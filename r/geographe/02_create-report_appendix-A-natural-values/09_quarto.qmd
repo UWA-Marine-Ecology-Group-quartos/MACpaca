@@ -1,6 +1,8 @@
 ---
 title: "Appendix A - Geographe Marine Park Natural Values Report"
 subtitle: "South-west Marine Parks Network"
+filters:
+  - figure-numbering.lua
 format:
   pdf:
     output-file: "Project 4.21-Geographe-2-Appendix A-q-Natural values.pdf"
@@ -48,6 +50,17 @@ library(ggtext)
 Understanding of natural values
 
 ## Benthic ecosystem extent
+### Observations
+
+```{r}
+#| fig-width: 8
+#| fig-height: 4
+#| fig-cap: "Habitat classes observed in stereo-BRUV imagery. Habitat classes observed in spatially balanced stereo-BRUV and drop-camera imagery visualised as spatial pie charts. State and Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+p_scatterpie_multi <- readRDS(here("plots/geographe/habitat/GeographeAMP_scatterpie_2014-2024.rds"))
+p_scatterpie_multi
+```
+
+{{< pagebreak >}}
 
 ### Dominant habitat types
 
@@ -73,14 +86,14 @@ grid::grid.raster(img)
 
 {{< pagebreak >}}
 
-### Observations
+### Funcional reef distribution and probability
 
 ```{r}
 #| fig-width: 8
-#| fig-height: 4
-#| fig-cap: "Habitat classes observed in stereo-BRUV imagery. Habitat classes observed in spatially balanced stereo-BRUV and drop-camera imagery visualised as spatial pie charts. State and Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-p_scatterpie_multi <- readRDS(here("plots/geographe/habitat/GeographeAMP_scatterpie_2014-2024.rds"))
-p_scatterpie_multi
+#| fig-height: 7
+#| fig-cap: "Predicted reef distribution probability and uncertainty from stereo-BRUV groundtruthing.The green polygon represents the extent of no-take National Park Zones. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+img <- png::readPNG(here("plots/geographe/habitat/GeographeAMP_predicted-reef-and-se_2014-2024.png"))
+grid::grid.raster(img)
 ```
 
 {{< pagebreak >}}
@@ -172,17 +185,34 @@ img <- png::readPNG(here("plots/geographe/habitat/GeographeAMP_predicted-individ
 grid::grid.raster(img)
 ```
 
+## Benchmarks of demersal fish natural values
+
+### Survey effort
+
+```{=latex}
+\stepcounter{metric}
+\renewcommand{\thefigure}{\arabic{metric}}
+```
+
+```{r}
+#| fig-width: 8
+#| fig-height: 8
+#| fig-cap: "Spatial distribution of observed species richness and total abundance (MaxN) per stereo-BRUV drop, pooled across all deployments. State and Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters."
+p_bubble <- readRDS(here("plots/geographe/fish/GeographeAMP_bubbleplot_richness-abundance.rds"))
+p_bubble
+```
+
 {{< pagebreak >}}
 
-## Benchmarks of demersal fish natural values
+```{=latex}
+\renewcommand{\thefigure}{\arabic{metric}.\arabic{figure}}
+```
 
 ### Species richness
 
 ```{=latex}
 \stepcounter{metric}
 ```
-
-
 
 ```{r}
 #| fig-width: 6
@@ -202,7 +232,7 @@ p_bar
 
 {{< pagebreak >}}
 
-
+### Species richness {.unlisted .unnumbered}
 
 ```{r}
 #| fig-width: 8
@@ -240,7 +270,7 @@ p_bar
 
 {{< pagebreak >}}
 
-
+### Total abundance {.unlisted .unnumbered}
 
 ```{r}
 #| fig-width: 8
@@ -280,7 +310,7 @@ p_bar
 
 {{< pagebreak >}}
 
-
+### Large Reef Fish Index\* {.unlisted .unnumbered}
 
 ```{r}
 #| fig-width: 8
@@ -318,7 +348,7 @@ p_bar
 
 {{< pagebreak >}}
 
-
+### Reef fish thermal index {.unlisted .unnumbered}
 
 ```{r}
 #| fig-width: 8

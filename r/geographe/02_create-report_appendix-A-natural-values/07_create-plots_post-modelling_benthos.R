@@ -256,6 +256,28 @@ saveRDS(p_cat_multi,
           paste(years, collapse = "-"), ".rds"
         ))
 
+
+## Predicted reef
+p_reef <- predictedreef_plot_multi(
+  dat_list          = dat_list,
+  prediction_limits = prediction_limits
+)
+
+print(p_reef)
+
+ggsave(
+  filename = paste0(
+    "plots/", park, "/habitat/", name,
+    "_predicted-reef-and-se_",
+    paste(years, collapse = "-"), ".png"
+  ),
+  plot = p_reef, height = 7, width = 8, dpi = 300, units = "in", bg = "white"
+)
+
+saveRDS(p_reef,
+        paste0("plots/", park, "/habitat/", name,
+               "_predicted-reef-and-se_", paste(years, collapse = "-"), ".rds"))
+
 # -------------------------------------------------------------------
 # PART 3: Multi-year individual habitat plots
 # -------------------------------------------------------------------
@@ -288,7 +310,7 @@ for (habitat_name in names(habitat_lookup)) {
     ),
     plot = p_hab,
     height = 5,
-    width = 8.1,
+    width = 8,
     dpi = 300,
     units = "in",
     bg = "white"

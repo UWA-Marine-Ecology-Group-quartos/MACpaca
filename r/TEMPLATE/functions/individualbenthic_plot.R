@@ -31,7 +31,7 @@ individualbenthic_plot <- function(habitat_name,
   # ---- Theme variants ----
   theme_left <- theme(
     axis.title = element_blank(),
-    axis.text = element_text(size = 10),
+    axis.text = element_text(size = 9),
     axis.ticks = element_line(linewidth = 0.2),
     panel.grid.major = element_line(linewidth = 0.2, colour = "grey85"),
     panel.grid.minor = element_blank(),
@@ -86,10 +86,9 @@ individualbenthic_plot <- function(habitat_name,
         linewidth = 0.6
       ),
       geom_sf(data = cwatr, colour = "firebrick", linewidth = 0.6),
-      scale_colour_manual(
-
-        values = with(marine_parks_amp, setNames(colour, zone))
-      ),
+      scale_colour_manual(values = with(marine_parks_amp, setNames(colour, zone))),
+      scale_x_continuous(breaks = scales::breaks_width(2)),
+      scale_y_continuous(breaks = scales::breaks_width(2)),
       coord_sf(
         xlim = c(prediction_limits[1], prediction_limits[2]),
         ylim = c(prediction_limits[3], prediction_limits[4]),
@@ -157,11 +156,13 @@ individualbenthic_plot <- function(habitat_name,
     plot_layout(heights = c(1, 1), guides = "collect") &
     theme(
       legend.position = "right",
+      legend.box.margin = margin(l = 4, unit = "mm"),
+      legend.margin = margin(l = 2, r = 4, unit = "mm"),
       panel.spacing = unit(0.5, "mm"),
-      plot.margin = margin(2, 2, 2, 2, unit = "mm")
+      plot.margin = margin(2, 8, 2, 2, unit = "mm")
     )
 
-  p_out <- cowplot::plot_grid(p_out, marine_park_legend(), ncol = 1, rel_heights = c(1, 0.145))
+  p_out <- cowplot::plot_grid(p_out, marine_park_legend(), ncol = 1, rel_heights = c(1, 0.25))
 
   return(p_out)
 }
