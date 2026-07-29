@@ -20,6 +20,9 @@ format:
         \newcounter{metric}
         \counterwithin*{figure}{metric}
         \captionsetup{format=plain, indention=0pt}
+        html:
+    output-file: "Project 4.21-Geographe-2-Appendix A-q-Natural values.html"
+    fig-dpi: 96
 toc: true
 execute:
   echo: false

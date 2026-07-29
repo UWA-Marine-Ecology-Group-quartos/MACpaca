@@ -232,7 +232,9 @@ p_bar
 
 {{< pagebreak >}}
 
-### Species richness {.unlisted .unnumbered}
+:::{.content-hidden when-format="html"}
+### Species richness {.unnumbered}
+:::
 
 ```{r}
 #| fig-width: 8
@@ -270,7 +272,9 @@ p_bar
 
 {{< pagebreak >}}
 
-### Total abundance {.unlisted .unnumbered}
+:::{.content-hidden when-format="html"}
+### Total abundance {.unnumbered}
+:::
 
 ```{r}
 #| fig-width: 8
@@ -310,7 +314,9 @@ p_bar
 
 {{< pagebreak >}}
 
-### Large Reef Fish Index\* {.unlisted .unnumbered}
+:::{.content-hidden when-format="html"}
+### Large Reef Fish Index\* {.unnumbered}
+:::
 
 ```{r}
 #| fig-width: 8
@@ -348,7 +354,9 @@ p_bar
 
 {{< pagebreak >}}
 
-### Reef fish thermal index {.unlisted .unnumbered}
+:::{.content-hidden when-format="html"}
+### Reef fish thermal index {.unnumbered}
+:::
 
 ```{r}
 #| fig-width: 8
