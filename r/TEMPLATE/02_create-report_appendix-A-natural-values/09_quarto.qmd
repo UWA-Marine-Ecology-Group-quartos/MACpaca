@@ -20,7 +20,7 @@ format:
         \newcounter{metric}
         \counterwithin*{figure}{metric}
         \captionsetup{format=plain, indention=0pt}
-        html:
+  html:
     output-file: "Project 4.21-Geographe-2-Appendix A-q-Natural values.html"
     fig-dpi: 96
 toc: true
@@ -252,7 +252,9 @@ p_bar
 
 {{< pagebreak >}}
 
+:::{.content-hidden when-format="html"}
 ### Species richness {.unlisted .unnumbered}
+:::
 
 ```{r}
 #| fig-width: 7
@@ -290,7 +292,9 @@ p_bar
 
 {{< pagebreak >}}
 
+:::{.content-hidden when-format="html"}
 ### Total abundance {.unlisted .unnumbered}
+:::
 
 ```{r}
 #| fig-width: 7
@@ -328,7 +332,9 @@ p_bar
 
 {{< pagebreak >}}
 
+:::{.content-hidden when-format="html"}
 ### Large Reef Fish Index\* {.unlisted .unnumbered}
+:::
 
 ```{r}
 #| fig-width: 7
@@ -366,7 +372,9 @@ p_bar
 
 {{< pagebreak >}}
 
+:::{.content-hidden when-format="html"}
 ### Reef fish thermal index {.unlisted .unnumbered}
+:::
 
 ```{r}
 #| fig-width: 7
