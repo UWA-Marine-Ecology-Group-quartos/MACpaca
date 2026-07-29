@@ -1,3 +1,5 @@
+![Alt Text](workflow.png)
+
 # australian-marine-parks
 
 ## Steps to use this template for a new marine park:
