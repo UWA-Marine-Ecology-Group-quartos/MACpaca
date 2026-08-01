@@ -1,0 +1,656 @@
+﻿GA ID,SURV_CODE,SURVEY_NAME,DATA_TYPE,VESSEL,START_DATE,END_DATE,START_PORT,END_PORT,DATA_OWNER,SYSTEM,TVU,Licence
+GA0344,9672,NthBrowseBasin,multibeam,MV Duke,24/12/2013,4/01/2014,Singapore,na,GA,Kongsberg EM2040 (200 kHz)/EM302 (30 kHz),IHO S44 1b,Geoscience Australia
+GA0157,ADEDAV,Adedav,multibeam,NO L'Atalante,3/04/1994,15/04/1994,Adelaide,SW Timor,IFREMER,Kongsberg EM12D (12 kHz),IHO S44 1b,Geoscience Australia
+,AIMS2014,GBR,singlebeam,RV Cape Ferguson,30/09/2008,19/02/2014,Cape Ferguson,Cape Ferguson,AIMS,Furuno FCV-1200L (200 kHz),IHO S44 2,AIMS
+,AIMS6352,BiggeIsland,multibeam,RV Solander,1/12/2015,18/12/2015,Broome,Darwin,AIMS/WAMSI,Kongsberg EM2040C (300 kHz),IHO S44 1b,
+,AIMS6396,HolothuriaReef,multibeam,RV Solander,27/02/2016,15/03/2016,Darwin,Darwin,AIMS/WAMSI,Kongsberg EM2040C (300 kHz),IHO S44 1b,
+,AllenCoralAtlas,CrocodileIslands,SDB,Sentinal2,1/01/2018,30/12/2020,na,na,Allen Coral Atlas,physics,15% + 0.5,"CC BY 4.0: 2020 Allen Coral Atlas Partnership and Vulcan, Inc. (Bathymetry - composite depth). Available from: www.allencoralatlas.org"
+,AllenCoralAtlas,ElizabethReef,SDB,Sentinal2,1/01/2018,30/12/2020,na,na,Allen Coral Atlas,physics,15% + 0.5,"CC BY 4.0: 2020 Allen Coral Atlas Partnership and Vulcan, Inc. (Bathymetry - composite depth). Available from: www.allencoralatlas.org"
+,AllenCoralAtlas,EntranceIsland,SDB,Sentinal2,1/01/2018,30/12/2020,na,na,Allen Coral Atlas,physics,15% + 0.5,"CC BY 4.0: 2020 Allen Coral Atlas Partnership and Vulcan, Inc. (Bathymetry - composite depth). Available from: www.allencoralatlas.org"
+,AllenCoralAtlas,GoulburnIslands,SDB,Sentinal2,1/01/2018,30/12/2020,na,na,Allen Coral Atlas,physics,15% + 0.5,"CC BY 4.0: 2020 Allen Coral Atlas Partnership and Vulcan, Inc. (Bathymetry - composite depth). Available from: www.allencoralatlas.org"
+,AllenCoralAtlas,GrooteIsland,SDB,Sentinal2,1/01/2018,30/12/2020,na,na,Allen Coral Atlas,physics,15% + 0.5,"CC BY 4.0: 2020 Allen Coral Atlas Partnership and Vulcan, Inc. (Bathymetry - composite depth). Available from: www.allencoralatlas.org"
+,AllenCoralAtlas,IndonesiaCentral,SDB,Sentinal2,1/01/2018,30/12/2020,na,na,Allen Coral Atlas,physics,15% + 0.5,"CC BY 4.0: 2020 Allen Coral Atlas Partnership and Vulcan, Inc. (Bathymetry - composite depth). Available from: www.allencoralatlas.org"
+,AllenCoralAtlas,IndonesiaEast,SDB,Sentinal2,1/01/2018,30/12/2020,na,na,Allen Coral Atlas,physics,15% + 0.5,"CC BY 4.0: 2020 Allen Coral Atlas Partnership and Vulcan, Inc. (Bathymetry - composite depth). Available from: www.allencoralatlas.org"
+,AllenCoralAtlas,IndonesiaWest,SDB,Sentinal2,1/01/2018,30/12/2020,na,na,Allen Coral Atlas,physics,15% + 0.5,"CC BY 4.0: 2020 Allen Coral Atlas Partnership and Vulcan, Inc. (Bathymetry - composite depth). Available from: www.allencoralatlas.org"
+,AllenCoralAtlas,MiddletonReef,SDB,Sentinal2,1/01/2018,30/12/2020,na,na,Allen Coral Atlas,physics,15% + 0.5,"CC BY 4.0: 2020 Allen Coral Atlas Partnership and Vulcan, Inc. (Bathymetry - composite depth). Available from: www.allencoralatlas.org"
+,AllenCoralAtlas,MorningtonIsland,SDB,Sentinal2,1/01/2018,30/12/2020,na,na,Allen Coral Atlas,physics,15% + 0.5,"CC BY 4.0: 2020 Allen Coral Atlas Partnership and Vulcan, Inc. (Bathymetry - composite depth). Available from: www.allencoralatlas.org"
+,AllenCoralAtlas,NewCaledoniaCentral,SDB,Sentinal2,1/01/2018,30/12/2020,na,na,Allen Coral Atlas,physics,15% + 0.5,"CC BY 4.0: 2020 Allen Coral Atlas Partnership and Vulcan, Inc. (Bathymetry - composite depth). Available from: www.allencoralatlas.org"
+,AllenCoralAtlas,NewCaledoniaEast,SDB,Sentinal2,1/01/2018,30/12/2020,na,na,Allen Coral Atlas,physics,15% + 0.5,"CC BY 4.0: 2020 Allen Coral Atlas Partnership and Vulcan, Inc. (Bathymetry - composite depth). Available from: www.allencoralatlas.org"
+,AllenCoralAtlas,NewYearIsland,SDB,Sentinal2,1/01/2018,30/12/2020,na,na,Allen Coral Atlas,physics,15% + 0.5,"CC BY 4.0: 2020 Allen Coral Atlas Partnership and Vulcan, Inc. (Bathymetry - composite depth). Available from: www.allencoralatlas.org"
+,AllenCoralAtlas,PNGNorth,SDB,Sentinal2,1/01/2018,30/12/2020,na,na,Allen Coral Atlas,physics,15% + 0.5,"CC BY 4.0: 2020 Allen Coral Atlas Partnership and Vulcan, Inc. (Bathymetry - composite depth). Available from: www.allencoralatlas.org"
+,AllenCoralAtlas,PNGSouth,SDB,Sentinal2,1/01/2018,30/12/2020,na,na,Allen Coral Atlas,physics,15% + 0.5,"CC BY 4.0: 2020 Allen Coral Atlas Partnership and Vulcan, Inc. (Bathymetry - composite depth). Available from: www.allencoralatlas.org"
+,AllenCoralAtlas,VanuatuNorth,SDB,Sentinal2,1/01/2018,30/12/2020,na,na,Allen Coral Atlas,physics,15% + 0.5,"CC BY 4.0: 2020 Allen Coral Atlas Partnership and Vulcan, Inc. (Bathymetry - composite depth). Available from: www.allencoralatlas.org"
+,AllenCoralAtlas,VanuatuSouth,SDB,Sentinal2,1/01/2018,30/12/2020,na,na,Allen Coral Atlas,physics,15% + 0.5,"CC BY 4.0: 2020 Allen Coral Atlas Partnership and Vulcan, Inc. (Bathymetry - composite depth). Available from: www.allencoralatlas.org"
+,Alucia2014_v01v02,CoralSea,multibeam,MV Alucia,22/10/2014,5/11/2014,Cairns,Cairns,JCU,Reson 7160 (50 kHz),IHO S44 1b,
+,Aquamap,CatalinaWreck,multibeam,SV Echo,1/05/2014,1/05/2014,Townsville,Townsville,Aquamap,R2Sonic 2022 (400 kHz),IHO S44 1a,
+,Aquamap,AbbotPoint,multibeam,SV Echo,28/05/2017,28/05/2017,Townsville,Townsville,Aquamap,R2Sonic 2022 (400 kHz),IHO S44 1a,
+GA0236,Auscan1,FremantleHobart,multibeam,RV Marion Dufresne,23/01/2003,17/02/2003,Fremantle,Hobart,GA,Thomson Marconi TSM 5265,IHO S44 1a,AusSeabed
+GA0245,Auscan2,HobartFremantle,multibeam,RV Marion Dufresne,18/02/2003,5/03/2003,Hobart,Fremantle,GA,Thomson Marconi TSM 5265,IHO S44 1a,AusSeabed
+,AUSLIG,BaitReef,singlebeam,unknown,unknown,unknown,unknown,unknown,GA,unknown,IHO S44 2,Geoscience Australia
+,AUSLIG,BellCay,singlebeam,unknown,unknown,unknown,unknown,unknown,GA,unknown,IHO S44 2,Geoscience Australia
+,AUSLIG,BowlingGreenBay,singlebeam,unknown,unknown,unknown,unknown,unknown,GA,unknown,IHO S44 2,Geoscience Australia
+,AUSLIG,BushyReef,singlebeam,unknown,unknown,unknown,unknown,unknown,GA,unknown,IHO S44 2,Geoscience Australia
+,AUSLIG,CayleyReef,singlebeam,unknown,unknown,unknown,unknown,unknown,GA,unknown,IHO S44 2,Geoscience Australia
+,AUSLIG,ChauvelReef,singlebeam,unknown,unknown,unknown,unknown,unknown,GA,unknown,IHO S44 2,Geoscience Australia
+,AUSLIG,ChestermanReef,singlebeam,unknown,unknown,unknown,unknown,unknown,GA,unknown,IHO S44 2,Geoscience Australia
+,AUSLIG,HookIsReef,singlebeam,unknown,unknown,unknown,unknown,unknown,GA,unknown,IHO S44 2,Geoscience Australia
+,AUSLIG,PandoraReef,singlebeam,unknown,unknown,unknown,unknown,unknown,GA,unknown,IHO S44 2,Geoscience Australia
+,AUSLIG,PeartReef,singlebeam,unknown,unknown,unknown,unknown,unknown,GA,unknown,IHO S44 2,Geoscience Australia
+,AUSLIG,SandpiperReef,singlebeam,unknown,unknown,unknown,unknown,unknown,GA,unknown,IHO S44 2,Geoscience Australia
+,AUSLIG,TernReef,singlebeam,unknown,unknown,unknown,unknown,unknown,GA,unknown,IHO S44 2,Geoscience Australia
+,AUSLIG,UNReef_17_20,singlebeam,unknown,unknown,unknown,unknown,unknown,GA,unknown,IHO S44 2,Geoscience Australia
+,AUSLIG,UNReef_17_21,singlebeam,unknown,unknown,unknown,unknown,unknown,GA,unknown,IHO S44 2,Geoscience Australia
+,AUSLIG,UNReef_20_103,singlebeam,unknown,unknown,unknown,unknown,unknown,GA,unknown,IHO S44 2,Geoscience Australia
+GA0222,Austrea1,NoumeaHobart,multibeam,NO L'Atalante,18/12/1999,11/01/2000,Noumea,Hobart,GA/IFREMER,Simrad EM120 (12 kHz),IHO S44 1a,AusSeabed
+GA0223,Austrea2,HobartBluffNZ,multibeam,NO L'Atalante,15/01/2000,9/02/2000,Hobart,"Bluff, NZ",GA/NOO,Simrad EM120 (12 kHz),IHO S44 1a,AusSeabed
+GA0364,BeagleMarinePark,LauncestonLaunceston,multibeam,MV Bluefin,17/06/2018,26/06/2018,Launceston,Stanley,GA,EM2040C (300 kHz),IHO S44 1a,AusSeabed
+GA0224,Bioview,HobartHobart,multibeam,RV Southern Surveyor,4/04/2000,15/05/2000,Hobart,Hobart,CSIRO,Simrad EM1002 (100 kHz),IHO S44 1a,AusSeabed
+GA1273,BMRG07MV,PortHedlandSuva,multibeam,RV Melville,19/04/1996,3/05/1996,Port Hedland,Suva,SIO,Seabeam 2000 (12 kHz),IHO S44 1b,Geoscience Australia
+,CapeFerguson,CentralGBR,multibeam,RV Cape Ferguson,3/09/2014,10/09/2014,Cape Ferguson,Cape Ferguson,JCU,Reson 8101 (240 kHz),IHO S44 1b,
+GA0336,CO2Storage,PetrelSubBasin,multibeam,MV Duke,4/05/2012,22/06/2012,Darwin,Darwin,GA,Kongsberg EM2040 (200 kHz),IHO S44 1b,Geoscience Australia
+,Coast_CocosChristmasIs,LAT,coastline lowwater,na,na,na,na,na,JCU,na,2,GA maritime boundaries
+,Coast_Indonesia,LAT,coastline lowwater,na,na,na,na,na,JCU,na,2,https://www.arcgis.com/home/item.html?id=f0ceb8af000a4ffbae75d742538c548b
+,Coast_LordHoweIs,LAT,coastline lowwater,na,na,na,na,na,JCU,na,2,GA maritime boundaries
+,Coast_MacquarieIs,LAT,coastline lowwater,na,na,na,na,na,JCU,na,2,GA maritime boundaries
+,Coast_NewCaledonia,LAT,coastline lowwater,na,na,na,na,na,JCU,na,2,https://www.arcgis.com/home/item.html?id=f0ceb8af000a4ffbae75d742538c548b
+,Coast_NewSouthWales,LAT,coastline lowwater,na,na,na,na,na,JCU,na,2,GA maritime boundaries
+,Coast_NewSouthWales,NSF,coastline near surface feature,na,na,na,na,na,JCU,na,2,GA maritime boundaries
+,Coast_NewZealand,LAT,coastline lowwater,na,na,na,na,na,JCU,na,2,https://www.arcgis.com/home/item.html?id=f0ceb8af000a4ffbae75d742538c548b
+,Coast_NorthernTerritory,LAT,coastline lowwater,na,na,na,na,na,JCU,na,2,GA maritime boundaries
+,Coast_PapuaNewGuinea,LAT,coastline lowwater,na,na,na,na,na,JCU,na,2,https://www.arcgis.com/home/item.html?id=f0ceb8af000a4ffbae75d742538c548b
+,Coast_Queensland,LAT,coastline lowwater,na,na,na,na,na,JCU,na,2,https://www.arcgis.com/home/item.html?id=f0ceb8af000a4ffbae75d742538c548b
+,Coast_SolomonIslands,LAT,coastline lowwater,na,na,na,na,na,JCU,na,2,https://www.arcgis.com/home/item.html?id=f0ceb8af000a4ffbae75d742538c548b
+,Coast_SouthAustralia,LAT,coastline lowwater,na,na,na,na,na,JCU,na,2,GA maritime boundaries
+,Coast_Tasmania,LAT,coastline lowwater,na,na,na,na,na,JCU,na,2,GA maritime boundaries
+,Coast_Tasmania,NSF,coastline near surface feature,na,na,na,na,na,JCU,na,2,GA maritime boundaries
+,Coast_TimorLeste,LAT,coastline lowwater,na,na,na,na,na,JCU,na,2,https://www.arcgis.com/home/item.html?id=f0ceb8af000a4ffbae75d742538c548b
+,Coast_Vanuatu,LAT,coastline lowwater,na,na,na,na,na,JCU,na,2,https://www.arcgis.com/home/item.html?id=f0ceb8af000a4ffbae75d742538c548b
+,Coast_Victoria,LAT,coastline lowwater,na,na,na,na,na,JCU,na,2,GA maritime boundaries
+,Coast_Victoria,NSF,coastline near surface feature,na,na,na,na,na,JCU,na,2,GA maritime boundaries
+,Coast_WesternAustralia,LAT,coastline lowwater,na,na,na,na,na,JCU,na,2,GA maritime boundaries
+,CoralSea,CableSystem,multibeam,RV Ridley Thomas,unknown,unknown,Honiara,Sydney,Australian Aid,Kongsberg EM122 (12 kHz),IHO S44 1b,
+GA0277,CRC012004,FitzroyRiver,multibeam,Rum Rambler,20/09/2004,26/09/2004,Gladstone,Gladstone,Coastal CRC,Reson 8125 (455 kHz),IHO S44 1b,Geoscience Australia
+,CRCSI2011,Sunshine,lidar,LADS,29/10/2011,11/11/2011,Marcoola,Marcoola,CRCSI,LADS3,IHO S44 1b,State of Queensland
+GA0333,D110219,InnerDarwinHarbour,multibeam,Matthew Flinders,24/06/2011,20/08/2011,Darwin,Darwin,AIMS/DPC/GA,Kongsberg EM3002D (300 kHz),IHO S44 1b,Geoscience Australia
+,DERM,Queensland,singlebeam,various,unknown,unknown,unknown,unknown,DERM,unknown,IHO S44 2,Queensland DES
+,ENCNewZealand,Depth,depth,na,na,na,na,na,NIWA,random points to NZ2016 grid,IHO S44 1b,CCBy4.0 National Institute of Water and Atmospheric Research Ltd
+,ENCNewZealand,Elevation,elevation,na,na,na,na,na,NIWA,random points to NZ2016 grid,IHO S44 1b,CCBy4.0 National Institute of Water and Atmospheric Research Ltd
+,EOMAP,AshmoreReef,SDB,Sentinal2,20/11/2022,20/11/2022,na,na,GA,physics,15% + 0.5,GA maritime boundaries
+,EOMAP,BrowseIsland,SDB,Sentinal2,20/11/2022,20/11/2022,na,na,GA,physics,15% + 0.5,GA maritime boundaries
+,EOMAP,CartierIsland,SDB,Sentinal2,20/11/2022,20/11/2022,na,na,GA,physics,15% + 0.5,GA maritime boundaries
+,EOMAP,ClerkeReef,SDB,Sentinal2,20/11/2022,20/11/2022,na,na,GA,physics,15% + 0.5,GA maritime boundaries
+,EOMAP,CunninghamIs,SDB,Sentinal2,20/11/2022,20/11/2022,na,na,GA,physics,15% + 0.5,GA maritime boundaries
+,EOMAP,MermaidReef,SDB,Sentinal2,20/11/2022,20/11/2022,na,na,GA,physics,15% + 0.5,GA maritime boundaries
+,EOMAP,ScottReef,SDB,Sentinal2,20/11/2022,20/11/2022,na,na,GA,physics,15% + 0.5,GA maritime boundaries
+,EOMAP,KimberleyCoast,SDB,Sentinal2,20/11/2022,20/11/2022,na,na,GA,physics,15% + 0.5,GA maritime boundaries
+,EOMAP,SolomonIslands,SDB,Sentinal2,17/03/2021,17/03/2021,na,na,GA,physics,15% + 0.5,GA maritime boundaries
+GA2391,EW0002,WoodlarkBasin,multibeam,RV Maurice Ewing,5/02/2000,28/02/2000,Lyttleton,Suva,LDEO,Thompson Marconi TSM 5265,IHO S44 1b,Geoscience Australia
+GA1212,EW9203,WoodlarkBasin,multibeam,RV Ewing,17/03/1992,24/04/1992,Gladstone,Papeete,LDEO,Atlas Hydrosweep (16 kHz),IHO S44 1b,Geoscience Australia
+GA2392,EW9510,WoodlarkBasin,multibeam,RV Maurice Ewing,28/09/1995,15/10/1995,Kaohsiung,Honiara,LDEO,Thompson Marconi TSM 5265,IHO S44 1b,Geoscience Australia
+GA2320,EW9511,SolomonIslands,multibeam,RV Ewing,16/10/1995,18/11/1995,Honiara,Suva,LDEO,Atlas Hydrosweep (16 kHz),IHO S44 1b,Geoscience Australia
+GA2364,EW9910,WoodlarkBasin,multibeam,RV Ewing,30/08/1999,15/09/1999,Agana,Lae,LDEO,Atlas Hydrosweep (16 kHz),IHO S44 1b,Geoscience Australia
+GA2322,EW9911,WoodlarkBasin,multibeam,RV Ewing,18/09/1999,21/10/1999,Lae,Townsville,LDEO,Atlas Hydrosweep (16 kHz),IHO S44 1b,Geoscience Australia
+GA2324,EW9914,LauBasin,multibeam,RV Ewing,2/12/1999,28/12/1999,Townsville,Lyttleton,LDEO,Atlas Hydrosweep (16 kHz),IHO S44 1b,Geoscience Australia
+GA4443,FK150324,ScottReef,multibeam,RV Falkor,24/03/2015,6/04/2015,Broome,Broome,Uni Sydney,Kongsberg EM710 (30 kHz),IHO S44 1b,Geoscience Australia
+GA4446,FK150410,TimorSea,multibeam,RV Falkor,10/04/2015,4/05/2015,Broome,Darwin,Schmidt Ocean Institute,Kongsberg EM710 (30 kHz)/EM302 (30 kHz),IHO S44 1b,Geoscience Australia
+,FK200409,BroomeCairnsEM302,multibeam,RV Falkor,16/04/2020,18/04/2020,Broome,Cairns,SOI,Kongsberg EM302 (30 kHz),IHO S44 1b,Schmidt Ocean Institute
+,FK200429,CairnsCairnsEM302,multibeam,RV Falkor,29/04/2020,11/06/2020,Cairns,Cairns,SOI,Kongsberg EM302 (30 kHz),IHO S44 1b,Schmidt Ocean Institute
+,FK200930,BrisbaneBrisbaneEM302,multibeam,RV Falkor,2020/0930,16/11/2020,Brisbane,Darwin,SOI,Kongsberg EM302 (30 kHz),IHO S44 1b,Schmidt Ocean Institute
+,FK200930,BrisbaneBrisbaneEM710,multibeam,RV Falkor,2020/0930,16/11/2020,Brisbane,Darwin,SOI,Kongsberg EM710 (70/100 kHz),IHO S44 1b,Schmidt Ocean Institute
+,FK210321,BrisbaneDarwinEM302,multibeam,RV Falkor,21/03/2021,4/04/2021,Brisbane,Darwin,SOI,Kongsberg EM302 (30 kHz),IHO S44 1b,Schmidt Ocean Institute
+,FK210321,BrisbaneDarwinEM710,multibeam,RV Falkor,21/03/2021,4/04/2021,Brisbane,Darwin,SOI,Kongsberg EM710 (70/100 kHz),IHO S44 1b,Schmidt Ocean Institute
+,FK210501,DarwinHawaiiEM302,multibeam,RV Falkor,1/05/2021,6/05/2021,Darwin,Hawaii,SOI,Kongsberg EM302 (30 kHz),IHO S44 1b,Schmidt Ocean Institute
+,FK210501,DarwinHawaiiEM710,multibeam,RV Falkor,1/05/2021,6/05/2021,Darwin,Hawaii,SOI,Kongsberg EM710 (70-100 kHz),IHO S44 1b,Schmidt Ocean Institute
+GA0234,FR012002,TorresStraitCRC,multibeam,RV Franklin,22/01/2002,6/02/2002,Brisbane,Cairns,Geoscience Australia,Reson Seabat 8101 (240 kHz),IHO S44 1b,Geoscience Australia
+GA4423,Gardline,BaliDarwin,multibeam,MV Duke,17/07/2013,1/08/2013,Bali,Darwin,Gardline P/L,Kongsberg EM302D (30 kHz),IHO S44 1b,Geoscience Australia
+GA2361,GATOPAS,TopasTrial,multibeam,RV Southern Surveyor,9/12/2004,10/12/2004,Brisbane,Brisbane,GA,Simrad EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+,GBR201107,,multibeam,RV Cape Ferguson,17/08/2011,25/07/2011,Cape Ferguson,Cape Ferguson,AIMS,Imagenix Delta-T (260 kHz),IHO S44 1b,
+,GBRSeabed,Biodiversity,singlebeam,RV Lady Basten,17/09/2003,28/11/2005,Townsville,Townsville,Qld DAF/CSIRO,Simrad EY500 (120 kHz),IHO S44 2,CSIRO
+,GeoMapApp,IndonesiaSBES,singlebeam,various,various,various,various,various,GeoMapApp,various,IHO S44 2,unknown
+,GeoMapApp,SubantarcticSBES,singlebeam,various,various,various,various,various,GeoMapApp,various,IHO S44 2,unknown
+,GeoMapApp,CapelBankSBES,singlebeam,various,various,various,various,various,GeoMapApp,various,IHO S44 2,unknown
+,GeoMapApp,PNGNorthSBES,singlebeam,various,various,various,various,various,GeoMapApp,various,IHO S44 2,unknown
+GA0352,Gippsland2D,BrisbaneBrisbaneEM302,multibeam,MV Duke,6/04/2015,24/04/2015,Brisbane,Brisbane,GA,EM302 (30 kHz),IHO S44 1a,AusSeabed
+GA0352,Gippsland2D,BrisbaneBrisbaneEM2040,multibeam,MV Duke,6/04/2015,24/04/2015,Brisbane,Brisbane,GA,EM2040 (300 kHz),IHO S44 1a,AusSeabed
+,GNSS,CORS,elevation,na,na,na,na,na,GA,CORS,0.2,Geoscience Australia
+GA2249,HBR2001C,ScottReef,multibeam,RV Petr Kottsov,6/12/2001,5/01/2002,Singapore,Singapore,BHP,Kongsberg EM12S (13 kHz),IHO S44 1b,Geoscience Australia
+GA4484,IN2015_C01,GABGeologyEM122,multibeam,RV Investigator,22/10/2015,27/11/2015,Hobart,Port Lincoln,CSIRO,Kongsberg EM122 (12 kHz),IHO S44 1a,CSIRO
+,IN2015_T01,HobartSydneyEM122,multibeam,RV Investigator,10/05/2015,13/05/2015,Hobart,Sydney,CSIRO,Kongsberg EM122 (12 kHz),IHO S44 1a,CSIRO
+,IN2015_T02,SydneyHobartEM122,multibeam,RV Investigator,21/06/2015,24/06/2015,Sydney,Hobart,CSIRO,Kongsberg EM122 (12 kHz),IHO S44 1a,CSIRO
+,IN2015_V02,SydneyBrisbaneEM122,multibeam,RV Investigator,16/05/2015,24/05/2015,Sydney,Brisbane,MNF,Kongsberg EM122 (12 kHz),IHO S44 1b,CSIRO
+,IN2015_V03,BrisbaneSydneyEM710,multibeam,RV Investigator,2/06/2015,17/06/2015,Brisbane,Sydney,MNF,Kongsberg EM710 (70/100 kHz),IHO S44 1b,CSIRO
+,IN2015_V03,BrisbaneSydneyEM122,multibeam,RV Investigator,2/06/2015,17/06/2015,Brisbane,Sydney,MNF,Kongsberg EM122 (12 kHz),IHO S44 1b,CSIRO
+,IN2016_E02,SydneyHobartEM122,multibeam,RV Investigator,16/12/2016,20/12/2016,Sydney,Hobart,CSIRO,Kongsberg EM122 (12 kHz),IHO S44 1a,CSIRO
+,IN2016_T01,NadiHobartEM122,multibeam,RV Investigator,30/06/2016,13/07/2016,Nadi,Hobart,USydney,Kongsberg EM122 (12 kHz),IHO S44 1b,CSIRO
+,IN2016_T02,HobartSydneyEM122,multibeam,RV Investigator,25/08/2016,28/08/2016,Hobart,Sydney,CSIRO,Kongsberg EM122 (12 kHz),IHO S44 1a,CSIRO
+,IN2016_T02,HobartSydneyEM710,multibeam,RV Investigator,25/08/2016,28/08/2016,Hobart,Sydney,CSIRO,Kongsberg EM710 (70-100 kHz),IHO S44 1a,CSIRO
+,IN2016_V04,SydneyBrisbaneEM710,multibeam,RV Investigator,31/08/2016,21/09/2016,Sydney,Brisbane,UTS,Kongsberg EM710 (70/100 kHz),IHO S44 1b,CSIRO
+,IN2016_V04,SydneyBrisbaneEM122,multibeam,RV Investigator,31/08/2016,21/09/2016,Sydney,Brisbane,UTS,Kongsberg EM122 (12 kHz),IHO S44 1b,CSIRO
+,IN2016_V05,BrisbaneBrisbaneEM710,multibeam,RV Investigator,27/09/2016,24/10/2016,Brisbane,Sydney,JCU,Kongsberg EM710 (70/100 kHz),IHO S44 1b,CSIRO
+,IN2016_V05,BrisbaneBrisbaneEM122,multibeam,RV Investigator,27/09/2016,24/10/2016,Brisbane,Sydney,JCU,Kongsberg EM122 (12 kHz),IHO S44 1b,CSIRO
+,IN2016_V06,BrisbaneBrisbaneEM710,multibeam,RV Investigator,29/10/2016,12/11/2016,Brisbane,Brisbane,CSIRO,Kongsberg EM710 (70/100 kHz),IHO S44 1b,CSIRO
+,IN2016_V06,BrisbaneBrisbaneEM122,multibeam,RV Investigator,29/10/2016,12/11/2016,Brisbane,Brisbane,CSIRO,Kongsberg EM122 (12 kHz),IHO S44 1b,CSIRO
+GA4820,IN2017_C01,GABEcologyEM122,multibeam,RV Investigator,10/04/2017,28/04/2017,Hobart,Hobart,CSIRO,Kongsberg EM122 (12 kHz),IHO S44 1a,CSIRO
+,IN2017_T01,SydneyBroomeEM122,multibeam,RV Investigator,24/09/2017,8/10/2018,Sydney,Broome,CSIRO,Kongsberg EM122 (12 kHz),IHO S44 1b,CSIRO
+,IN2017_T01,SydneyBroomeEM710,multibeam,RV Investigator,24/09/2017,8/10/2018,Sydney,Broome,CSIRO,Kongsberg EM710 (70/100 kHz),IHO S44 1b,CSIRO
+,IN2017_V03,AbyssalPlainEM710,multibeam,RV Investigator,15/05/2017,17/06/2017,Bell Bay,Brisbane,CSIRO,Kongsberg EM710 (70-100 kHz),IHO S44 1a,CSIRO
+,IN2017_V03,AbyssalPlainEM122,multibeam,RV Investigator,15/05/2017,17/06/2017,Bell Bay,Brisbane,CSIRO,Kongsberg EM122 (12 kHz),IHO S44 1a,CSIRO
+,IN2017_V04,BrisbaneSydneyEM122,multibeam,RV Investigator,31/08/2017,18/09/2017,Brisbane,Sydney,UNSW,Kongsberg EM122 (12 kHz),IHO S44 1b,CSIRO
+,IN2017_V04,BrisbaneSydneyEM710,multibeam,RV Investigator,31/08/2017,18/09/2017,Brisbane,Sydney,UNSW,Kongsberg EM710 (70/100 kHz),IHO S44 1b,CSIRO
+,IN2018_T01,HobartBrisbaneEM122,multibeam,RV Investigator,6/04/2018,14/04/2018,Hobart,Brisbane,CSIRO,Kongsberg EM122 (12 kHz),IHO S44 1a,CSIRO
+,IN2018_T01,HobartBrisbaneEM710,multibeam,RV Investigator,6/04/2018,14/04/2018,Hobart,Brisbane,UTAS,Kongsberg EM710 (70/100 kHz),IHO S44 1b,CSIRO
+,IN2018_T02,BrisbaneHobartEM122,multibeam,RV Investigator,13/05/2018,20/05/2018,Brisbane,Hobart,UTAS/IMAS,Kongsberg EM122 (12 kHz),IHO S44 1b,CSIRO
+,IN2018_T02,BrisbaneHobartEM710,multibeam,RV Investigator,13/05/2018,20/05/2018,Brisbane,Hobart,UTAS/IMAS,Kongsberg EM710 (70/100 kHz),IHO S44 1b,CSIRO
+,IN2018_V03,BrisbaneBrisbaneEM122,multibeam,RV Investigator,19/04/2018,9/05/2018,Brisbane,Brisbane,CSIRO,Kongsberg EM710 (70/100 kHz),IHO S44 1b,CSIRO
+,IN2018_V04,EACIronInputsEM122,multibeam,RV Investigator,10/09/2018,9/10/2018,Hobart,Hobart,CSIRO,Kongsberg EM122 (12 kHz),IHO S44 1a,CSIRO
+,IN2019_E01,SingaporeCairnsEM122,multibeam,RV Investigator,27/07/2019,1/08/2019,Brisbane,Hobart,CSIRO,Kongsberg EM122 (12 kHz),IHO S44 1b,CSIRO
+,IN2019_E01,SingaporeCairnsEM710,multibeam,RV Investigator,27/07/2019,1/08/2019,Brisbane,Hobart,CSIRO,Kongsberg EM710 (70/100 kHz),IHO S44 1b,CSIRO
+,IN2019_T02,BrisbaneDarwinEM122,multibeam,RV Investigator,3/10/2019,13/10/2019,Brisbane,Darwin,CSIRO,Kongsberg EM122 (12 kHz),IHO S44 1b,CSIRO
+,IN2019_T02,BrisbaneDarwinEM710,multibeam,RV Investigator,3/10/2019,13/10/2019,Brisbane,Darwin,CSIRO,Kongsberg EM710 (70/100 kHz),IHO S44 1b,CSIRO
+,IN2019_V04,CairnsBrisbaneEM122,multibeam,RV Investigator,6/08/2019,2/09/2019,Cairns,Brisbane,CSIRO,Kongsberg EM122 (12 kHz),IHO S44 1b,CSIRO
+,IN2019_V04,CairnsBrisbaneEM710,multibeam,RV Investigator,6/08/2019,2/09/2019,Cairns,Brisbane,CSIRO,Kongsberg EM710 (70/100 kHz),IHO S44 1b,CSIRO
+,IN2019_V05,BrisbaneBrisbaneEM122,multibeam,RV Investigator,9/09/2019,28/09/2019,Brisbane,Brisbane,CSIRO,Kongsberg EM122 (12 kHz),IHO S44 1b,CSIRO
+,IN2020_V06,MacquarieIsland,multibeam,RV Investigator,8/10/2020,3/11/2020,Hobart,Hobart,CSIRO,Kongsberg EM122 (12 kHz),IHO S44 1a,CSIRO
+,IN2021_T01,BrisbaneDarwinEM122,multibeam,RV Investigator,11/06/2021,22/06/2021,Brisbane,Darwin,CSIRO,Kongsberg EM122 (12 kHz),IHO S44 1b,CSIRO
+,IN2021_T01,BrisbaneDarwinEM710,multibeam,RV Investigator,11/06/2021,22/06/2021,Brisbane,Darwin,CSIRO,Kongsberg EM710 (70/100 kHz),IHO S44 1b,CSIRO
+,IN2022_T01,CairnsDarwinEM122,multibeam,RV Investigator,10/09/2022,16/09/2022,Cairns,Darwin,CSIRO,Kongsberg EM122 (12 kHz),IHO S44 1b,CSIRO
+,IN2022_T01,CairnsDarwinEM710,multibeam,RV Investigator,10/09/2022,16/09/2022,Cairns,Darwin,CSIRO,Kongsberg EM710 (70/100 kHz),IHO S44 1b,CSIRO
+,JCU012008,MiddleReef,singlebeam,Scorpio,16/08/2008,17/08/2008,Townsville,Townsville,JCU,Ceestar (200 kHz),IHO S44 2,JCU
+,JK012004,CapeBowlingGreen,multibeam,RV James Kirby,18/08/2004,23/08/2004,Townsville,Townsville,Curtin University,Reson 8125 (455 kHz),IHO S44 1b,
+,JK012006,OrchardRocks,multibeam,RV James Kirby,4/07/2006,4/07/2006,Townsville,Townsville,JCU,Reson Seabat8101 (210 kHz),IHO S44 1b,
+GA2455,JK022005,EastTorresStrait,multibeam,RV James Kirby,9/12/2005,13/12/2005,Thursday Island,Thursday Island,JCU,Reson Seabat 8101 (240 kHz),IHO S44 1b,Geoscience Australia
+,JK022005,BayRock,multibeam,RV James Kirby,13/10/2005,13/10/2005,Townsville,Townsville,JCU,Reson Seabat8101 (210 kHz),IHO S44 1b,
+,JK022011,TurbidReefs,multibeam,RV James Kirby,29/08/2011,31/08/2011,Townsville,Townsville,JCU,Reson 8101 (240 kHz),IHO S44 1b,
+,JK022014,MyrmidonReef,multibeam,RV James Kirby,24/05/2014,27/05/2014,Townsville,Townsville,JCU,Reson 8101 (240 kHz),IHO S44 1b,
+,JK032005,Ribbon5,multibeam,RV James Kirby,18/12/2005,18/12/2005,Townsville,Townsville,JCU,Reson Seabat8101 (210 kHz),IHO S44 1b,
+GA2399,JK112004,GulfofPapua,multibeam,RV James Kirby,5/11/2004,10/11/2004,Thursday Island,Thursday Island,JCU,Reson Seabat 8101 (240 kHz),IHO S44 1b,Geoscience Australia
+GA4340,KH1101,BonaparteBasin,multibeam,RV Hakuho Maru,21/01/2011,30/01/2011,Fremantle,Darwin,University of Tokyo,Seabeam 2120 (20 kHz),IHO S44 1b,Geoscience Australia
+GA4302,KM0420,LaeAuckland,multibeam,RV Kilo Moana,19/12/2004,27/12/2004,Lae,Auckland,SOEST,Simrad EM120 (12 kHz),IHO S44 1b,Geoscience Australia
+GA4408,KM0504,WellingtonBrisbane,multibeam,RV Kilo Moana,16/02/2005,22/02/2005,Wellington,Brisbane,SOEST,Simrad EM120 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2407,KM0505,BrisbanePagoPagoEM120,multibeam,RV Kilo Moana,24/03/2005,1/04/2005,Brisbane,Pago Pago,SOEST,Simrad EM120 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2407,KM0505,BrisbanePagoPagoEM1002,multibeam,RV Kilo Moana,24/03/2005,1/04/2005,Brisbane,Pago Pago,SOEST,Simrad EM1002 (95 kHz),IHO S44 1b,Geoscience Australia
+GA2435,KM0702,BrisbaneTownsville,multibeam,RV Kilo Moana,11/03/2007,13/03/2007,Brisbane,Townsville,SOEST,Simrad EM1002 (95 kHz),IHO S44 1b,Geoscience Australia
+GA4341,KM0703,WestPacificEM120,multibeam,RV Kilo Moana,14/03/2007,18/04/2007,Townsville,Suva,UCalifornia,Simrad EM120 (12 kHz),IHO S44 1b,Geoscience Australia
+GA4341,KM0703,WestPacificEM1002,multibeam,RV Kilo Moana,14/03/2007,15/04/2007,Townsville,Suva,UCalifornia,Simrad EM1002 (95 kHz),IHO S44 1b,Geoscience Australia
+GA0354,KR1605,LordHoweRise,multibeam,RV Kairei,23/03/2016,11/05/2016,Brisbane,Brisbane,GA/JAMSTEC,Seabeam 2112 (12 kHz),IHO S44 1b,Geoscience Australia
+GA0363,KR1715,LordHoweRise,multibeam,RV Kairei,30/10/2017,27/12/2017,Brisbane,Brisbane,GA/JAMSTEC,Seabeam 2112 (12 kHz),IHO S44 1b,Geoscience Australia
+,Landsat,FlindersIsland,SDB,Landsat8,7/11/2017,7/11/2017,na,na,JCU,empirical,15% + 0.5,Not for distribution
+,Landsat,RennelIsland,SDB,Landsat8,22/01/2017,22/01/2017,na,na,JCU,empirical,15% + 0.5,Not for distribution
+,Landsat,SahulBanks1,SDB,Landsat8,unknown,unknown,na,na,JCU,empirical,15% + 0.5,JCU not for distribution
+,Landsat,DeliveranceIsland,SDB,Landsat8,na,na,na,na,JCU,empirical,15% + 0.5,JCU not to be distributed
+,Landsat,Gladstone,SDB,Landsat8,na,na,na,na,QLD Govt,physics,15% + 0.5,Qld DES
+,Landsat,NewCaledoniaReef,SDB,Landsat7,na,na,na,na,JCU,empirical,15% + 0.5,JCU not to be distributed
+,Landsat,PNGcoast1,SDB,Landsat8,na,na,na,na,JCU,empirical,15% + 0.5,JCU not to be distributed
+,Landsat,PNGcoast2,SDB,Landsat8,na,na,na,na,JCU,empirical,15% + 0.5,JCU not to be distributed
+,Landsat,PNGcoast3,SDB,Landsat8,na,na,na,na,JCU,empirical,15% + 0.5,JCU not to be distributed
+,Landsat,PNGcoast4,SDB,Landsat8,na,na,na,na,JCU,empirical,15% + 0.5,JCU not to be distributed
+,Landsat,PNGcoast5,SDB,Landsat8,na,na,na,na,JCU,empirical,15% + 0.5,JCU not to be distributed
+,Landsat,PNGcoast6,SDB,Landsat8,na,na,na,na,JCU,empirical,15% + 0.5,JCU not to be distributed
+,Landsat,PNGcoast7,SDB,Landsat8,na,na,na,na,JCU,empirical,15% + 0.5,JCU not to be distributed
+,Landsat,PNGcoast8,SDB,Landsat8,na,na,na,na,JCU,empirical,15% + 0.5,JCU not to be distributed
+,Landsat,PNGcoast9,SDB,Landsat8,na,na,na,na,JCU,empirical,15% + 0.5,JCU not to be distributed
+,Landsat,PNGcoast10,SDB,Landsat8,na,na,na,na,JCU,empirical,15% + 0.5,JCU not to be distributed
+,Landsat,RennelIsland,SDB,Landsat8,na,na,na,na,JCU,empirical,15% + 0.5,JCU not to be distributed
+GA2374,MANAUTE,ManusBasin,multibeam,RV L'Atalante,25/03/2000,19/04/2000,Honiara,Darwin,IFREMER,Simrad EM-12D (12 kHz),IHO S44 1b,Geoscience Australia
+GA2382,MD148,Pecten,multibeam,RV Marion Dufresne,12/06/2005,8/07/2005,Bitung,Darwin,USydney/IPEV,Thompson Marconi TSM 5265,IHO S44 1b,Geoscience Australia
+GA2395,MD153,AusfairZoNeco12,multibeam,RV Marion Dufresne,8/02/2006,27/02/2006,Auckland,Sydney,IPEV,Thompson Marconi TSM 5265,IHO S44 1b,Geoscience Australia
+GA4421,MH370,IndianOcean,multibeam,RV Fugro Equator,5/06/2014,7/02/2017,Bali,Singapore,GA,Kongsberg EM302 (30 kHz),IHO S44 1a,AusSeabed
+GA2387,MR01K05L2,SingaporeKoror,multibeam,RV Mirai,18/10/2001,5/11/2001,Singapore,Koror,JAMSTEC,Seabeam 2112 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2386,MR02K04,KelangSekinehama,multibeam,RV Mirai,25/07/2002,22/08/2002,Kelang,Sekinehama,JAMSTEC,Seabeam 2112 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2385,MR03K03L2,NakagusukuBrisbane,multibeam,RV Mirai,1/07/2003,30/07/2003,nakagusuku,Brisbane,JAMSTEC,Seabeam 2112 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2385,MR03K03L2,TropOceanClimate,multibeam,RV Mirai,1/07/2003,30/07/2003,Nakagusuku,Brisbane,JAMSTEC,Seabeam 2112 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2384,MR03K04L1,TropOceanClimate,multibeam,RV Mirai,3/08/2003,5/09/2005,Brisbane,Papeete,JAMSTEC,Seabeam 2112 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2393,MR04K03L2,DarwinHachinoche,multibeam,RV Mirai,4/07/2004,2/08/2004,Darwin,Hachinoche,JAMSTEC,Seabeam 2112 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2482,MR0707L1,TropOceanClimate,multibeam,RV Mirai,28/12/2007,25/01/2008,Auckland,nakagusuku,JAMSTEC,Seabeam 2112 (12 kHz),IHO S44 1b,Geoscience Australia
+GA4378,MR0901Leg2,PapeeteBrisbane,multibeam,RV Mirai,21/05/2009,19/06/2009,Papeete,Brisbane,JAMSTEC,Seabeam 2112 (12 kHz),IHO S44 1b,Geoscience Australia
+GA4379,MR0901Leg3,BrisbaneMoji,multibeam,RV Mirai,20/06/2009,2/07/2009,Brisbane,Moji,JAMSTEC,Seabeam 2112 (12 kHz),IHO S44 1b,Geoscience Australia
+GA4418,MR1205Leg1,SekinehamaAuckland,multibeam,RV Mirai,5/11/2012,25/11/2012,Sekinehama,Auckland,JAMSTEC,Seabeam 3012 (12 kHz),IHO S44 1b,Geoscience Australia
+,MSQ,ShenNengHerveyBay,multibeam,QG Norfolk,5/05/2010,5/05/2010,Brisbane,Brisbane,MSQ,Kongsberg EM3002D (300 kHz),IHO S44 1b,
+,MSQ,ShenNengBarrenIsland,multibeam,QG Norfolk,5/05/2010,5/05/2010,Brisbane,Brisbane,MSQ,Kongsberg EM3002D (300 kHz),IHO S44 1b,
+,MSQ,ShenNengHerveyBayFSD,multibeam,QG Norfolk,5/05/2010,5/05/2010,Brisbane,Brisbane,MSQ,Kongsberg EM3002D (300 kHz),IHO S44 1a,
+,MSQ,GladstoneHerveyBay,multibeam,QG Norfolk,12/05/2010,12/05/2010,Brisbane,Brisbane,MSQ,Kongsberg EM3002D (300 kHz),IHO S44 1b,
+,MSQ,UranganFairway,multibeam,QG Norfolk,23/01/2015,23/01/2015,Brisbane,Brisbane,MSQ,Kongsberg EM3002D (300 kHz),IHO S44 1b,
+,MSQ,WideBay_MBES,multibeam,QG Norfolk,10/05/2021,10/05/2021,Brisbane,Brisbane,MSQ,Kongsberg EM2040C (320 kHz),IHO S44 1a,
+,MSQ,Aseries,singlebeam,unknown,unknown,unknown,unknown,unknown,MSQ,unknown,IHO S44 1b,MSQ
+,MSQ,Bseries,singlebeam,unknown,unknown,unknown,unknown,unknown,MSQ,unknown,IHO S44 1b,MSQ
+,MSQ,Cseries,singlebeam,unknown,unknown,unknown,unknown,unknown,MSQ,unknown,IHO S44 1b,MSQ
+,MSQ,Dseries,singlebeam,unknown,unknown,unknown,unknown,unknown,MSQ,unknown,IHO S44 1b,MSQ
+,MSQ,Eseries,singlebeam,unknown,unknown,unknown,unknown,unknown,MSQ,unknown,IHO S44 1b,MSQ
+,MSQ,Fseries,singlebeam,unknown,unknown,unknown,unknown,unknown,MSQ,unknown,IHO S44 1b,MSQ
+,MSQ,Gseries,singlebeam,unknown,unknown,unknown,unknown,unknown,MSQ,unknown,IHO S44 1b,MSQ
+,MSQ,Hseries,singlebeam,unknown,unknown,unknown,unknown,unknown,MSQ,unknown,IHO S44 1b,MSQ
+,MSQ,Jseries,singlebeam,unknown,unknown,unknown,unknown,unknown,MSQ,unknown,IHO S44 1b,MSQ
+,MSQ,Kseries,singlebeam,unknown,unknown,unknown,unknown,unknown,MSQ,unknown,IHO S44 1b,MSQ
+,MSQ,WideBay_SDB,SDB,WV2,na,na,na,na,MSQ,physics,15% + 0.5,Qld State Govt
+GA4848,NESP,ElizabethMiddletonReefs,multibeam,RV Bluefin,24/01/2020,6/02/2020,Launceston,Launceston,GA,Kongsberg EM2040 (300 kHz),IHO S44 1a,AusSeabed
+,NESP,CamdenSound,multibeam,RV LinneausCape Villaret,20/11/2014,19/03/2016,Broome,Broome,WAMSI,Kongsberg EM2040C (300 kHz),IHO S44 1b,NESP
+GA0331,NETasmania,HobartHobart,multibeam,RV Challenger,19/05/2011,28/05/2011,Hobart,Hobart,GA,EM3002 (330 kHz),IHO S44 1a,AusSeabed
+GA0337,NETasmania,HobartHobart,multibeam,RV Challenger,25/06/2012,7/07/2012,Hobart,Hobart,GA,EM3002 (330 kHz),IHO S44 1a,AusSeabed
+,NewCaledonia,Compilation100m,multibeam,various,various,various,various,various,SGNC/Ifremer,various,IHO S441b,CCBy4.0 Geological department of New Caledonia/Ifremer
+,NIDEM_1   ,DeGrey,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_100,Launceston,NIDEM v2.0,na,na,na,TAS,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_102 ,Perth,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_105,Bicheno,NIDEM v2.0,na,na,na,TAS,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_106 ,Bynce,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_107 ,BoucautBay,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_108,SouthwestArea,NIDEM v2.0,na,na,na,TAS,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_109 ,Umbakumba,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_11,Mapoon,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_110,CapeMelville,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_112,ShelburneBay,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_115 ,InglisIsland,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_116 ,ArnhemBay,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_117 ,BathurstIsland,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_118 ,RoperRiver,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_12,PortDouglas,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_124 ,GilbertRiver,NIDEM v2.0,na,na,na,QLD,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_126 ,EightyMileBeach,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_128 ,Nhulunbuy,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_129,WilsonsProm,NIDEM v2.0,na,na,na,VIC,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_13,LizardIsland,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_130,KingIslandEast,NIDEM v2.0,na,na,na,TAS,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_132 ,Rakula,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_134,Lorne,NIDEM v2.0,na,na,na,VIC,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_136 ,Karumba,NIDEM v2.0,na,na,na,QLD,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_138,HotspurIsland,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_14,Hobart,NIDEM v2.0,na,na,na,TAS,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_140 ,CapeFourcroy,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_142,FlindersGroup,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_143,Stanage,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_146,PortAlbert,NIDEM v2.0,na,na,na,VIC,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_147,Wingaroo,NIDEM v2.0,na,na,na,TAS,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_149 ,MorningtonIsland,NIDEM v2.0,na,na,na,QLD,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_15  ,CoulombPoint,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_150,FridayIsland,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_154 ,BlueMudBay,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_155,CapeGrenville,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_156 ,BessiersIsland,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_157 ,EntranceIsland,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_159 ,CaledonBay,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_16  ,Derby,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_160 ,CumberlandStrait,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_162,HeraldsProng,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_164,SunshineCoast,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_167 ,TreacheryBay,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_168,SEFraserIsland,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_169,Yeppoon,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_17  ,AugustusIsland,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_171 ,Onslow,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_173 ,Eucla,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_174,Brisbane,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_175,HighPeakIsland,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_176 ,Roebourne,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_177,NthCapricorns,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_178,Strahan,NIDEM v2.0,na,na,na,TAS,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_179,BoobyIsland,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_180 ,Fortescue,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_181 ,CapeScott,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_182,FlindersIsland,NIDEM v2.0,na,na,na,SA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_183 ,Nganmarriyanga,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_186,Warrnambool,NIDEM v2.0,na,na,na,VIC,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_187 ,Galiwinku,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_188 ,McArthurRiver,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_189 ,YelcherBeach,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_190,PortClinton,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_191,Clairview,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_192 ,SteepPoint,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_193 ,Dampier,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_195,Ingham,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_196 ,BrowseIsland,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_198,ShoalwaterBay,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_2,SharpPoint,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_20,Coulta,NIDEM v2.0,na,na,na,SA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_201 ,CobourgPeninsula,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_202,PortAugusta,NIDEM v2.0,na,na,na,SA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_205 ,EndyalgoutIsland,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_206,EastCay,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_207,CapeLiptrap,NIDEM v2.0,na,na,na,VIC,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_208,AirleyBeach,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_209 ,Broome,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_21,Arukun,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_210 ,Mardie,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_213 ,VanderlinIsland,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_214,Wynyard,NIDEM v2.0,na,na,na,TAS,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_216 ,Ladjardarr,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_217,Eddystone,NIDEM v2.0,na,na,na,TAS,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_218,Rockhampton,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_219 ,Hotham,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_22,BellCay,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_220 ,CapeArid,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_221,FlindersIslandEast,NIDEM v2.0,na,na,na,TAS,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_224,PointHicks,NIDEM v2.0,na,na,na,VIC,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_225 ,Wadeye,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_227,Cooktown,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_228,CurlewIsland,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_23,WreckBay,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_230,GippslandEast,NIDEM v2.0,na,na,na,VIC,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_231,ApolloBay,NIDEM v2.0,na,na,na,VIC,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_232,FlindersIslandWest,NIDEM v2.0,na,na,na,TAS,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_233,Cardwell,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_234,SthBroadSound,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_235 ,StAndrewIsland,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_236 ,Albany,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_237 ,Talandji,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_239,Smithton,NIDEM v2.0,na,na,na,TAS,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_24,Townsville,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_241,Eden,NIDEM v2.0,na,na,na,NSW,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_242 ,Burketown,NIDEM v2.0,na,na,na,QLD,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_244,Weipa,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_245 ,Carnarvon,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_246,CapeRange,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_247 ,NapierBay,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_248,Melbourne,NIDEM v2.0,na,na,na,VIC,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_249,HerveyBay,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_250,Geelong,NIDEM v2.0,na,na,na,VIC,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_251 ,Warruwi,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_252 ,Lagrange,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_253,Bundaberg,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_254,KagarReef,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_255 ,BuckinghamRiver,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_256,Mackay,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_258 ,CrocodileIslands,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_259,CapeDirection,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_26,PenrithIsland,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_260,NthShoalwaterBay,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_262 ,LawleyRiver,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_263,RaineIsland,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_264,GippslandWest,NIDEM v2.0,na,na,na,VIC,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_265 ,GulfofCarpentaria,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_266,MiddleIsland,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_267,FlindersIslandNorth,NIDEM v2.0,na,na,na,TAS,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_268 ,Yawajaba,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_269,Gladstone,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_27,Swansea,NIDEM v2.0,na,na,na,TAS,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_270 ,EightyMileBeach,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_271 ,Learmonth,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_273 ,FieldIsland,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_275 ,CassiniIsland,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_276,SESwainReefs,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_277 ,CapeInscription,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_278 ,BarrowIsland,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_279 ,MontebelloIslands,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_28,Raminea,NIDEM v2.0,na,na,na,TAS,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_280,TraversIsland,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_281 ,Carpentaria,NIDEM v2.0,na,na,na,QLD,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_282 ,Geraldton,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_283 ,Traverse,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_284,BatemansBay,NIDEM v2.0,na,na,na,NSW,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_285,TernIslet,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_286,Bridport,NIDEM v2.0,na,na,na,TAS,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_287 ,CoralBay,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_288,Woolnorth,NIDEM v2.0,na,na,na,TAS,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_289 ,StewardIslands,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_290,Torquay,NIDEM v2.0,na,na,na,VIC,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_292 ,JunctionBay,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_293,Devonport,NIDEM v2.0,na,na,na,TAS,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_294,DealIsland,NIDEM v2.0,na,na,na,TAS,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_296,NSWQld,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_298 ,Jemarnde,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_299 ,AdeleIsland,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_3   ,LacrosseIsland,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_30  ,ConderPoint,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_300,GreatSandyStrait,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_301 ,Esperance,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_302,WesternPort,NIDEM v2.0,na,na,na,VIC,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_304 ,Nanga,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_305 ,KingGeorgeRiver,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_306 ,Kalbarri,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_31  ,MelvilleIsland,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_33  ,Darwin,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_34  ,MassacreInlet,NIDEM v2.0,na,na,na,QLD,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_37  ,Nyuldora,NIDEM v2.0,na,na,na,QLD,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_38  ,Denham,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_39,Greenhill,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_4,Bowen,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_40,Cairns,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_41,ScawfellIsland,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_43,ForsythIsland,NIDEM v2.0,na,na,na,QLD,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_44,CapeYork,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_45  ,MarchinbarIsland,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_46  ,BiggeIsland,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_47  ,WildmanRiver,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_48,BurdekinRiver,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_49  ,BoongareeIsland,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_5,CurtisGroup,NIDEM v2.0,na,na,na,TAS,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_50  ,Minjilang,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_51,VrilyaPoint,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_52  ,TroughtonIsland,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_53  ,AnnaPlains,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_55  ,Wyndham,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_56  ,ElsieIsland,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_57,KingIslandNorth,NIDEM v2.0,na,na,na,TAS,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_58  ,Alyangula,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_6   ,Wurrumiyanga,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_61  ,LimmenBightRiver,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_62,BountifulIsland,NIDEM v2.0,na,na,na,QLD,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_63  ,LongIsland,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_65  ,StrettonStrait,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_66,Proserpine,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_67  ,WalcottInlet,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_69  ,Madura,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_7   ,AurariBay,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_70,WestIsland,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_71  ,Kimbolton,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_72  ,DampierPeninsula,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_73 ,Adelaide,NIDEM v2.0,na,na,na,SA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_75  ,Pardoo,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_76,MoretonIsland,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_77  ,WildcatReefs,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_78  ,SundayIsland,NIDEM v2.0,na,na,na,WA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_79 ,Beachport,NIDEM v2.0,na,na,na,SA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_8,LakesEntrance,NIDEM v2.0,na,na,na,VIC,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_80,Haslam,NIDEM v2.0,na,na,na,SA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_83,CornerInlet,NIDEM v2.0,na,na,na,VIC,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_85,HornIsland,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_86,NEFraserIsland,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_87,TownshendIs,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_88,KingIslandSouth,NIDEM v2.0,na,na,na,TAS,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_89  ,VeronIslands,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_9,WhitsundayIsland,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_90 ,CapeBorda,NIDEM v2.0,na,na,na,SA,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_92  ,GarigGunak,NIDEM v2.0,na,na,na,NT,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_95,NorthNSW,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_97,SthCapricorns,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NIDEM_99,PennefatherRiver,NIDEM v2.0,Digital Earth Australia,na,na,na,na,GA,NIDEM v2.0,0.5,Digital Earth Australia
+,NOVA1BHO,NovaBank,singlebeam,RV Horizon,18/05/1967,22/05/1967,unknown,unknown,SIO,unknown,IHO S44 2,Scripps Institute of Oceanography
+,NSW,MarineLidarProject,lidar,LADS,1/07/2018,1/12/2018,unknown,unknown,NSW DPIE,LADS HD,IHO S44 1b,"CCBY4.0 Attribute 'NSW Department of Planning, Industry and Environment' in publications using this data."
+,PortBrisbane,MoretonBay,multibeam,MV Jim Peel,1/01/2009,31/12/2010,Brisbane,Brisbane,Port of Brisbane,Reson 7125 (400 kHz),IHO S44 1a,
+,PortBrisbane,PointCartwright,multibeam,MV Jim Peel,1/03/2009,31/10/2009,Brisbane,Brisbane,Port of Brisbane,Reson 7125 (400 kHz),IHO S44 1a,
+,PortCairns,TrinityBay,singlebeam,Tribulation/Nyleta,unknown,unknown,Cairns,Cairns,Ports North,Atlas DESO 300 (200kHz),IHO S44 1b,Ports North
+,PortTownsville,ClevelandBay,singlebeam,Seahawk/Brolga,unknown,unknown,Townsville,Townsville,Port of Townsville,Navisound 210/Navisound 420,IHO S44 1b,Port of Townsville
+,PPC1,GuamSydney,multibeam,RV Gelendzhik,20/04/2008,23/06/2008,Guam,Sydney,Tyco Telecom,Simrad EM12S (12 kHz),IHO S44 1b,
+GA4442,RR1003,WellingtonKaoshsiung,multibeam,RV Roger Reville,28/02/2010,17/03/2010,Wellington,Kaoshsiung,SIO,Seabeam 2112 (12 kHz),IHO S44 1b,Geoscience Australia
+GA4478,RR1510,NapierColombo,multibeam,RV Roger Reville,7/07/2015,31/07/2015,Napier,Colombo,SIO,Kongsberg EM122 (12 kHz),IHO S44 1b,Geoscience Australia
+GA0267,Seeps,Sigs,multibeam,RV Parmelia K,1/03/2004,21/03/2004,Darwin,Broome,GA,Seabeam 1185 (180 kHz),IHO S44 1b,Geoscience Australia
+,Sentinal,CairnsCooktown,SDB,Sentinal2,na,na,na,na,GBRMPA,physics,15% + 0.5,GBRMPA
+,Sentinal,CairnsCooktownReef,SDB,Sentinal2,na,na,na,na,GBRMPA,physics,15% + 0.5,GBRMPA
+,Sentinal,FarNorthQld,SDB,Sentinal2,na,na,na,na,GBRMPA,physics,15% + 0.5,GBRMPA
+,Sentinal,FarNorthQldReef,SDB,Sentinal2,na,na,na,na,GBRMPA,physics,15% + 0.5,GBRMPA
+,Sentinal,MackayCapricorn,SDB,Sentinal2,na,na,na,na,GBRMPA,physics,15% + 0.5,GBRMPA
+,Sentinal,MackayCapricornReef,SDB,Sentinal2,na,na,na,na,GBRMPA,physics,15% + 0.5,GBRMPA
+,Sentinal,TownsvilleWhitsunday,SDB,Sentinal2,na,na,na,na,GBRMPA,physics,15% + 0.5,GBRMPA
+,Sentinal,TownsvilleWhitsundayReef,SDB,Sentinal2,na,na,na,na,GBRMPA,physics,15% + 0.5,GBRMPA
+"Some MBES, SBES, Lidar material in the product was sourced from the Australian Hydrographic Office (AHO).  Some data points were also sourced from AHO published Electronic Navigation Charts (ENC).",,,,,,,,,,,,
+,SI1001,ApproachNewcastle,multibeam,Guardian Geomatics,1/12/2020,30/04/2021,Newcastle,Newcastle,AHO,unknown,IHO S44 1a,Contact hydro.licensing@defence.gov.au
+,SI1002,BeagleGulf,multibeam,PrecisionHydrographicServices,9/07/2020,25/10/2020,Darwin,Darwin,AHO,Kongsberg EM2040 (300 kHz),IHO S44 1a,Contact hydro.licensing@defence.gov.au
+,SI1003,NWVanDiemenGulf,multibeam,Guardian Geomatics,1/08/2021,30/12/2021,Darwin,Darwin,AHO,Kongsberg EM2040 (300 kHz),IHO S44 1a,Contact hydro.licensing@defence.gov.au
+,SI1004,WestApproachTorresStrait,multibeam,MV Pacific Conquest/Blue Shadow 02,29/10/2020,21/02/2021,Thursday Island,Thursday Island,AHO,Kongsberg EM2040/EM2040P (200-400 kHz),IHO S44 1a,Contact hydro.licensing@defence.gov.au
+,SI1005,TorresStraitUKCMA,multibeam,EGS Survey,1/12/2021,24/01/2022,Thursday Island,Thursday Island,AHO,Kongsberg EM2040 (300 kHz),IHO S44 1a,Contact hydro.licensing@defence.gov.au
+,SI1006,GreatNorthEastChannel,multibeam,MV Offshore Guardian/MV Special Order,4/02/2021,14/04/2021,Thursday Island,Thursday Island,AHO,Kongsberg EM2040/Norbit iWBMsh (200-400 kHz),IHO S44 1a,Contact hydro.licensing@defence.gov.au
+,SI1007,GBRTwoWayRoute,multibeam,unknown,unknown,unknown,Cairns,Cairns,AHO,unknown,IHO S44 1a,Contact hydro.licensing@defence.gov.au
+,SI1008,GulfStVincent,multibeam,Fugro Marine Australia,27/08/2020,21/12/2020,Adelaide,Adelaide,AHO,Kongsberg EM2040 (300 kHz),IHO S44 1a,Contact hydro.licensing@defence.gov.au
+,SI1010,ApproachBroome,multibeam,EGS Survey,5/08/2020,2/10/2020,Darwin,Darwin,AHO,Kongsberg EM2040 (300 kHz),IHO S44 1a,Contact hydro.licensing@defence.gov.au
+,SI1011,MavisReefEast,multibeam,Neptune Geomatics,22/09/2020,8/01/2021,Darwin,Darwin,AHO,R2Sonic 2024 (350 kHz),IHO S44 1a,Contact hydro.licensing@defence.gov.au
+,SI1012,BackstairsPassage,multibeam,PrecisionHydrographicServices,12/01/2021,16/04/2021,Adelaide,Adelaide,AHO,Kongsberg EM2040 (300 kHz),IHO S44 1a,Contact hydro.licensing@defence.gov.au
+,SI1013,KingIsland,multibeam,unknown,1/01/2021,31/07/2021,unknown,unknown,AHO,Kongsberg EM2040C (300 kHz),IHO S44 1a,Contact hydro.licensing@defence.gov.au
+,SI1014,,lidar,,,,,,AHO,,IHO S44 1b,Contact hydro.licensing@defence.gov.au
+,SI1015,NWCamdenSound,multibeam,Neptune Geomatics,21/09/2021,9/01/2022,Darwin,Darwin,AHO,Kongsberg EM2040 (300 kHz),IHO S44 1a,Contact hydro.licensing@defence.gov.au
+,SI1016,NorthEastBeagleGulf,multibeam,Guardian Geomatics,3/05/2021,7/07/2021,Darwin,Darwin,AHO,Kongsberg EM2040 (300 kHz),IHO S44 1a,Contact hydro.licensing@defence.gov.au
+,SI1018,GreatNorthEastChannelSW,multibeam,EGS Survey,5/02/2022,2/04/2022,Thursday Island,Thursday Island,AHO,Kongsberg EM2040 (300 kHz),IHO S44 1a,Contact hydro.licensing@defence.gov.au
+,SI1020,BanksStrait,multibeam,MV Offshore Solution,28/02/2021,6/05/2021,unknown,unknown,AHO,Kongsberg EM2040C (300 kHz),IHO S44 1a,Contact hydro.licensing@defence.gov.au
+,SI1024,BanksStraitCapeBarren,multibeam,iXblue,6/12/2021,12/04/2022,Unknown,Unknown,AHO,Kongsberg EM2040 (300 kHz),IHO S44 1a,Contact hydro.licensing@defence.gov.au
+,SI1027,ClarenceStrait,multibeam,PrecisionHydrographicServices,10/07/2022,9/10/2022,Darwin,Darwin,AHO,Kongsberg EM2040 (300 kHz),IHO S44 1a,Contact hydro.licensing@defence.gov.au
+,SI1029,HayPtHydrographersPass,multibeam,MV SeaRanger,19/08/2022,8/11/2022,Hay Point,Hay Point,AHO,Kongsberg EM2040 (300 kHz),IHO S44 1a,Contact hydro.licensing@defence.gov.au
+,SI1035,CapeBarrenBabellIsland,multibeam,NeptuneGeomatics,20/01/2022,16/06/2022,Unknown,Unknown,AHO,Kongsberg EM2040 (300 kHz),IHO S44 1a,Contact hydro.licensing@defence.gov.au
+,SI1036,NorthEastFlindersIsland,multibeam,Guardian Geomatics,16/12/2021,7/05/2022,Unknown,Unknown,AHO,Kongsberg EM2040 (300 kHz),IHO S44 1a,Contact hydro.licensing@defence.gov.au
+GA2486,SO183L3,Pabesia,multibeam,RV Sonne,22/08/2005,13/09/2005,Durban,Darwin,GUHB,Kongsberg EM120 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2487,SO185,Vital,multibeam,RV Sonne,14/09/2005,7/10/2005,Darwin,Jakarta,UKIEL,Kongsberg EM120 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2418,SO1902007,DarwinWellington,multibeam,RV Sonne,30/12/2006,7/01/2007,Darwin,Wellington,IFM GEOMAR,Simrad EM-120 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2417,SO190L12,Sindbad,multibeam,RV Sonne,11/10/2006,23/12/2006,Darwin,Darwin,IFM GEOMAR,Kongsberg EM120 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2498,SO2032009,TownsvillePNG,multibeam,RV Sonne,27/10/2009,29/10/2009,Townsville,PNG,JCU,Simrad EM120 (12 kHz),IHO S44 1b,Geoscience Australia
+GA4353,SO2152011,NZAus,multibeam,RV Sonne,7/06/2011,10/06/2011,Kermadec Ridge,Townsville,JCU,Simrad EM120 (12 kHz),IHO S44 1b,Geoscience Australia
+GA4354,SO2162011,AusPNG,multibeam,RV Sonne,15/06/2011,17/06/2011,Townsville,New Britain,JCU,Simrad EM120 (12 kHz),IHO S44 1b,Geoscience Australia
+,SO2282013,PNGAus,multibeam,RV Sonne,14/06/2013,21/06/2013,PNG,Townsville,JCU,Simrad EM120 (12 kHz),IHO S44 1b,
+,SO2292013,AusNewCaledonia,multibeam,RV Sonne,1/07/2013,4/07/2013,Townsville,Noumea,JCU,Simrad EM120 (12 kHz),IHO S44 1b,
+,SO2562017,AucklandDarwinEM122,multibeam,RV Sonne,17/04/2017,9/05/2017,Auckland,Darwin,JCU,Kongsberg EM122 (12 kHz),IHO S44 1a,
+,SO2562017,AucklandDarwinEM710,multibeam,RV Sonne,17/04/2017,9/05/2017,Auckland,Darwin,JCU,Kongsberg EM710 (70/100 kHz),IHO S44 1a,
+GA0210,SOJN07MV,HobartMelbourne,multibeam,RV Melville,10/04/1997,17/04/1997,Hobart,Melbourne,SIO,Seabeam 2000 (12 kHz),IHO S44 1a,AusSeabed
+GA0318,SOL4930,MontgomeryReef,multibeam,RV Solander,6/07/2009,21/07/2009,Exmouth,Broome,AIMS,Kongsberg EM3002D (300 kHz),IHO S44 1b,Geoscience Australia
+GA0319,SOL4931,ScottReef,multibeam,RV Solander,24/07/2009,7/08/2009,Broome,Broome,AIMS,Kongsberg EM3002D (300 kHz),IHO S44 1b,Geoscience Australia
+GA0321,SOL4933,KimberleyDarwin,multibeam,RV Solander,15/08/2009,24/08/2009,Broome,Darwin,AIMS,Kongsberg EM3002D (300 kHz),IHO S44 1b,Geoscience Australia
+GA0322,SOL4934,BonaparteGulf,multibeam,RV Solander,27/08/2009,24/09/2009,Darwin,Darwin,GA,Kongsberg EM3002D (300 kHz),IHO S44 1b,Geoscience Australia
+GA0325,SOL5117,BonaparteGulf,multibeam,RV Solander,31/07/2010,27/08/2010,Darwin,Darwin,GA,Kongsberg EM3002D (300 kHz),IHO S44 1b,Geoscience Australia
+GA0335,SOL5463,PetrelSubBasin,multibeam,RV Solander,3/05/2012,31/05/2012,Darwin,Darwin,GA,Kongsberg EM3002D (300 kHz),IHO S44 1b,Geoscience Australia
+GA0339,SOL5650,OceanicShoals,multibeam,RV Solander,12/09/2012,6/10/2012,Broome,Broome,GA/AIMS,Kongsberg EM3002D (300 kHz),IHO S44 1b,Geoscience Australia
+GA0340,SOL5754,BrowseBasin,multibeam,RV Solander,1/05/2013,30/05/2013,Broome,Broome,GA,Kongsberg EM3002D (300 kHz),IHO S44 1b,Geoscience Australia
+GA0351,SOL6187,OuterDarwinHarbour,multibeam,RV Solander,25/05/2015,23/06/2015,Darwin,Darwin,GA/DLRM/AIMS,Kongsberg EM2040C (300 kHz),IHO S44 1b,Geoscience Australia
+GA4312,SS032010,KimberleyShelf,multibeam,RV Southern Surveyor,14/04/2010,5/05/2010,Broome,Port Hedland,CMAR,Kongsberg EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA0270,SS052004,KennPlateau,multibeam,RV Southern Surveyor,3/05/2004,27/05/2004,Sydney,Noumea,GA,Simrad EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA0282,SS052005,ArafuraSea,multibeam,RV Southern Surveyor,30/04/2005,29/05/2005,Darwin,Darwin,GA,Kongsberg EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA2437,SS052007,NWBio,multibeam,RV Southern Surveyor,7/06/2007,7/07/2007,Dampier,Darwin,CMAR,Kongsberg EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA4396,SS052012,IndonFlowthrough,multibeam,RV Southern Surveyor,26/09/2012,10/10/2012,Fremantle,Darwin,CMAR,Kongsberg EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA2375,SS062005,CorneaCartier,multibeam,RV Southern Surveyor,31/05/2005,23/06/2005,Darwin,Darwin,AIMS/ANU,Kongsberg EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA2408,SS062006,RowleyShoals,multibeam,RV Southern Surveyor,29/05/2006,24/06/2006,Geraldton,Port Hedland,GA,Kongsberg EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA2461,SS062008,LordHoweRise,multibeam,RV Southern Surveyor,16/04/2008,29/04/2008,Sydney,Noumea,CSIRO,Simrad EM300 (30 kHz),IHO S44 1a,CSIRO
+GA0294,SS2003_V03,FraserIsland1geog,multibeam,RV Southern Surveyor,12/04/2003,26/04/2003,Brisbane,Brisbane,UNewcastle,Reson 8101 (240 kHz),IHO S44 1a,Geoscience Australia
+GA0294,SS2003_V03,FraserIsland1grid,multibeam,RV Southern Surveyor,12/04/2003,26/04/2003,Brisbane,Brisbane,UNewcastle,Reson 8101 (240 kHz),IHO S44 1a,Geoscience Australia
+GA2357,SS2004_V06,COTROVE,multibeam,RV Southern Surveyor,2/06/2004,27/06/2004,Noumea,Sydney,ANU,Simrad EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA2363,SS2004_V09,SEQueensland,multibeam,RV Southern Surveyor,15/09/2004,30/09/2004,Brisbane,Brisbane,USydney,Simrad EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA2359,SS2004_V10,BrisbaneTonga,multibeam,RV Southern Surveyor,2/10/2004,26/10/2004,Brisbane,Nuku'alofa,UTAS,Simrad EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA0295,SS2005_V01,FraserIsland2,multibeam,RV Southern Surveyor,7/01/2005,23/01/2005,Brisbane,Bundaberg,UNewcastle,Simrad EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA0274,SS2005_V02,MellishRise,multibeam,RV Southern Surveyor,25/01/2005,20/02/2005,Bundaberg,Cairns,GA,Simrad EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA0276,SS2005_V04,Carpreefs2,multibeam,RV Southern Surveyor,22/03/2005,13/04/2005,Weipa,Darwin,GA,Simrad EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA2409,SS2006_T01,DarwinSuva,multibeam,RV Southern Surveyor,5/08/2006,17/08/2006,Darwin,Suva,GA,Simrad EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA2411,SS2006_T02,NoumeaSydney,multibeam,RV Southern Surveyor,11/09/2006,17/09/2006,Noumea,Sydney,UNSW,Simrad EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA2443,SS2007_T04,DarwinMadang,multibeam,RV Southern Surveyor,15/07/2007,24/07/2007,Darwin,Madang,CSIRO/ANU,Simrad EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA2440,SS2007_T06,MackayNewcastle,multibeam,RV Southern Surveyor,16/10/2007,21/10/2007,Mackay,Newcastle,CMAR,Simrad EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA2447,SS2007_V07,GBRMargin,multibeam,RV Southern Surveyor,26/09/2007,16/10/2007,Cairns,Mackay,JCU,Simrad EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA2472,SS2008_T02,SuvaCairns,multibeam,RV Southern Surveyor,8/06/2008,18/06/2008,Suva ,Cairns,CMAR,Simrad EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA2475,SS2008_T03,NextWave,multibeam,RV Southern Surveyor,12/08/2008,16/08/2008,Gladstone,Sydney,UTS/UNSW,Simrad EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA2473,SS2008_V09,GBRCO2,multibeam,RV Southern Surveyor,24/07/2008,11/08/2008,Cairns,Gladstone,CSIRO-BOM,Simrad EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA2479,SS2008_V12,SEAustMargin,multibeam,RV Southern Surveyor,4/11/2008,21/11/2008,Newcastle,Sydney,UNewcastle,Simrad EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA2488,SS2009_T02,NoumeaHobart,multibeam,RV Southern Surveyor,30/07/2009,7/08/2009,Noumea,Hobart,CMAR,Simrad EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA4331,SS2010_V09,SydneySydney,multibeam,RV Southern Surveyor,15/10/2010,31/10/2010,Sydney,Sydney,UTS/UNSW,Simrad EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA4385,SS2012_T01,HobartBrisbane,multibeam,RV Southern Surveyor,12/04/2012,18/04/2012,Hobart,Brisbane,CSIRO,Simrad EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+,SS2012_T02,BrisbaneLautoka,multibeam,RV Southern Surveyor,2/05/2012,9/05/2012,Brisbane,Lautoka,JCU,Simrad EM300 (30 kHz),IHO S44 1b,
+,SS2012_T07,DarwinCairns,multibeam,RV Southern Surveyor,15/10/2012,23/10/2012,Darwin,Cairns,JCU,Simrad EM300 (30 kHz),IHO S44 1a,
+,SS2012_V01,MoretonIsland,multibeam,RV Southern Surveyor,20/04/2012,24/04/2012,Brisbane,Brisbane,CSIRO,Simrad EM300 (30 kHz),IHO S44 1b,
+,SS2012_V06,CairnsBrisbane,multibeam,RV Southern Surveyor,26/10/2012,19/11/2012,Cairns,Brisbane,USydney,Simrad EM300 (30 kHz),IHO S44 1a,
+GA4400,SS2012_V07,TasmantidSeamounts,multibeam,RV Southern Surveyor,23/11/2012,19/12/2012,Brisbane,Brisbane,UQ,Simrad EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+,SS2013_T03,BroomeBrisbane,multibeam,RV Southern Surveyor,27/08/2013,10/09/2013,Broome,Brisbane,JCU,Simrad EM300 (30 kHz),IHO S44 1b,
+,SS2013_T04,BrisbaneHobart,multibeam,RV Southern Surveyor,27/09/2013,2/10/2013,Brisbane,Hobart,CSIRO,Simrad EM300 (30 kHz),IHO S44 1b,
+,SS2013_V01,BrisbaneBrisbane,multibeam,RV Southern Surveyor,18/01/2013,3/02/2013,Brisbane,Brisbane,USydney,Simrad EM300 (30 kHz),IHO S44 1b,
+,SS2013_V02,BrisbaneSydney,multibeam,RV Southern Surveyor,8/02/2013,23/02/2013,Brisbane,Sydney,UoW,Simrad EM300 (30 kHz),IHO S44 1b,
+GA4395,SST062012,FremantleDarwin,multibeam,RV Southern Surveyor,7/09/2012,16/09/2012,Fremantle,Darwin,CMAR,Kongsberg EM300 (30 kHz),IHO S44 1b,Geoscience Australia
+,Swordfish,BreakseaSpit,SDB,Landsat7,na,na,na,na,JCU,physics,15% + 0.5,EOMAP
+,Swordfish,CoringaReef,SDB,Landsat8,na,na,na,na,JCU,physics,15% + 0.5,EOMAP
+,Swordfish,LindaReef,SDB,Landsat7,na,na,na,na,JCU,physics,15% + 0.5,EOMAP
+,Swordfish,TorresStrait,SDB,Landsat7,na,na,na,na,JCU,physics,15% + 0.5,EOMAP
+GA2312,TAN0308,NORFANZ,multibeam,RV RV Tangaroa,9/05/2003,7/06/2003,Wellington,Wellington,NIWA,Simrad EM-300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA2436,TAN0713,LordHoweRise,multibeam,RV Tangaroa,6/10/2007,22/11/2007,Wellington,Wellington,GA,Simrad EM-300 (30 kHz),IHO S44 1b,Geoscience Australia
+GA0345,TAN1411,BrowseBasin,multibeam,RV Tangaroa,9/10/2014,12/11/2014,Darwin,Darwin,GA,Kongsberg EM302 (30 kHz),IHO S44 1b,Geoscience Australia
+,TAN2021_V01,MacquarieRidge,multibeam,RV Tangaroa,9/11/2021,4/12/2021,Wellington NZ,Wellington NZ,NIWA,Kongsberg EM302 (30 kHz),IHO S44 1a,NIWA/CSIRO
+GA0125,Tasmante,AucklandAdelaide,multibeam,NO L'Atalante,12/02/1994,29/03/1994,Auckland,Adelaide,GA/IFREMER,Simrad EM120 (12 kHz),IHO S44 1a,AusSeabed
+,TeamSurv,Argo2018,singlebeam,MV Argo,28/06/2018,30/12/2018,Cairns,Cairns,JCU,Raymarine DSM300 (50/200 kHz),IHO S44 2,JCU
+,TeamSurv,Argo2019,singlebeam,MV Argo,1/01/2019,21/12/2019,Cairns,Cairns,JCU,Raymarine DSM300 (50/200 kHz),IHO S44 2,JCU
+,TeamSurv,Argo2020,singlebeam,MV Argo,3/01/2020,5/10/2020,Cairns,Cairns,JCU,Raymarine DSM300 (50/200 kHz),IHO S44 2,JCU
+,TeamSurv,Argo2021,singlebeam,MV Argo,3/05/2021,3/10/2021,Cairns,Cairns,JCU,Raymarine DSM300 (50/200 kHz),IHO S44 2,JCU
+,TeamSurv,Aroona2019,singlebeam,MV Aroona,25/03/2019,30/12/2019,Cairns,Cairns,JCU,Furuno MFDBB (200 kHz),IHO S44 2,JCU
+,TeamSurv,Aroona2020,singlebeam,MV Aroona,1/01/2020,20/12/2020,Cairns,Cairns,JCU,Furuno MFDBB (200 kHz),IHO S44 2,JCU
+,TeamSurv,Aroona2021,singlebeam,MV Aroona,7/01/2021,6/10/2021,Cairns,Cairns,JCU,Furuno MFDBB (200 kHz),IHO S44 2,JCU
+,TeamSurv,CharlieI2019,singlebeam,MV CharlieI,14/11/2019,31/12/2019,Cairns,Cairns,JCU,Garmin EchoMap 75sv (200 kHz),IHO S44 2,JCU
+,TeamSurv,CharlieI2020,singlebeam,MV CharlieI,1/01/2020,31/12/2020,Cairns,Cairns,JCU,Garmin EchoMap 75sv (200 kHz),IHO S44 2,JCU
+,TeamSurv,CharlieI2021,singlebeam,MV CharlieI,1/01/2021,7/01/2021,Cairns,Cairns,JCU,Garmin EchoMap 75sv (200 kHz),IHO S44 2,JCU
+,TeamSurv,FlyingFishV2019,singlebeam,MV FlyingFishV,12/08/2019,14/12/2019,Cairns,Cairns,JCU,Furuno FCV587 Fishfinder (200 kHz),IHO S44 2,JCU
+,TeamSurv,FlyingFishV2020,singlebeam,MV FlyingFishV,10/01/2020,22/12/2020,Cairns,Cairns,JCU,Furuno FCV587 Fishfinder (200 kHz),IHO S44 2,JCU
+,TeamSurv,FlyingFishV2021,singlebeam,MV FlyingFishV,7/01/2021,21/06/2021,Cairns,Cairns,JCU,Furuno FCV587 Fishfinder (200 kHz),IHO S44 2,JCU
+,TeamSurv,GundooSpirit2019,singlebeam,MV Gundoo Spirit,27/05/2019,13/11/2019,North Keppel Island,North Keppel Island,JCU,Garmin GPSMap 5012 (200 kHz),IHO S44 2,JCU
+,TeamSurv,GundooSpirit2020,singlebeam,MV Gundoo Spirit,1/01/2020,11/12/2020,North Keppel Island,North Keppel Island,JCU,Garmin GPSMap 5012 (200 kHz),IHO S44 2,JCU
+,TeamSurv,Sharpshooter2019,singlebeam,MV Sharpshooter,4/06/2019,29/12/2019,Cairns,Cairns,JCU,Garmin GPSMap 8412XSV (200 kHz),IHO S44 2,JCU
+,TeamSurv,Sharpshooter2020,singlebeam,MV Sharpshooter,14/01/2020,21/04/2020,Cairns,Cairns,JCU,Garmin GPSMap 8412XSV (200 kHz),IHO S44 2,JCU
+,TeamSurv,Spoilsport2019,singlebeam,MV Spoilsport,20/06/2019,31/12/2019,Cairns,Cairns,JCU,Furuno FCV-588 (200 kHz),IHO S44 2,JCU
+,TeamSurv,Spoilsport2020,singlebeam,MV Spoilsport,1/01/2020,31/12/2020,Cairns,Cairns,JCU,Furuno FCV-588 (200 kHz),IHO S44 2,JCU
+,TeamSurv,Spoilsport2021,singlebeam,MV Spoilsport,2/01/2021,31/10/2021,Cairns,Cairns,JCU,Furuno FCV-588 (200 kHz),IHO S44 2,JCU
+,TeamSurv,Zostera2019,singlebeam,MV Zostera,26/04/2019,13/12/2019,Brisbane,Brisbane,JCU,Garmin EchoMap 70dv (200 kHz),IHO S44 2,JCU
+,TeamSurv,Zostera2020,singlebeam,MV Zostera,16/01/2020,12/03/2020,Brisbane,Brisbane,JCU,Garmin EchoMap 70dv (200 kHz),IHO S44 2,JCU
+,TM2012_V01,MoretonBayIsland,multibeam,RV Tom Marshall,22/09/2012,7/10/2012,Brisbane,Brisbane,CSIRO,Simrad EM3002 (300 kHz),IHO S44 1b,CSIRO
+,TM2014_V01,FraserCoast,multibeam,RV Tom Marshall,26/05/2014,5/06/2014,Brisbane,Brisbane,CSIRO,Simrad EM2040C (300 kHz),IHO S44 1b,CSIRO
+,USC,BaffleCreek,singlebeam,USC Tinny,22/01/2018,6/02/2018,Sippy Downs,Sippy Downs,USunshineCoast,Lowance HDS-7 Gen3 (200 kHz),IHO S44 1b,USunshineCoast
+,USC,BoyneRiver,singlebeam,USC Tinny,16/01/2018,16/01/2018,Sippy Downs,Sippy Downs,USunshineCoast,Lowance HDS-7 Gen3 (200 kHz),IHO S44 1b,USunshineCoast
+,USC,BurnettRiver,singlebeam,USC Tinny,6/01/2018,8/01/2018,Sippy Downs,Sippy Downs,USunshineCoast,Lowance HDS-7 Gen3 (200 kHz),IHO S44 1b,USunshineCoast
+,USC,CalliopeRiver,singlebeam,USC Tinny,17/01/2018,17/01/2018,Sippy Downs,Sippy Downs,USunshineCoast,Lowance HDS-7 Gen3 (200 kHz),IHO S44 1b,USunshineCoast
+,USC,CawarralCreek,singlebeam,USC Tinny,31/01/2018,3/02/2018,Sippy Downs,Sippy Downs,USunshineCoast,Lowance HDS-7 Gen3 (200 kHz),IHO S44 1b,USunshineCoast
+,USC,ElliotRiver,singlebeam,USC Tinny,5/01/2018,5/01/2018,Sippy Downs,Sippy Downs,USunshineCoast,Lowance HDS-7 Gen3 (200 kHz),IHO S44 1b,USunshineCoast
+,USC,EurimbulaCreek,singlebeam,USC Tinny,4/02/2018,4/02/2018,Sippy Downs,Sippy Downs,USunshineCoast,Lowance HDS-7 Gen3 (200 kHz),IHO S44 1b,USunshineCoast
+,USC,KolanRiver,singlebeam,USC Tinny,7/01/2018,7/01/2018,Sippy Downs,Sippy Downs,USunshineCoast,Lowance HDS-7 Gen3 (200 kHz),IHO S44 1b,USunshineCoast
+,USC,MiddleCreek,singlebeam,USC Tinny,5/02/2018,5/02/2018,Sippy Downs,Sippy Downs,USunshineCoast,Lowance HDS-7 Gen3 (200 kHz),IHO S44 1b,USunshineCoast
+,USC,MulambinCreek,singlebeam,USC Tinny,2/02/2018,2/02/2018,Sippy Downs,Sippy Downs,USunshineCoast,Lowance HDS-7 Gen3 (200 kHz),IHO S44 1b,USunshineCoast
+,USC,RossCreek,singlebeam,USC Tinny,31/01/2018,31/01/2018,Sippy Downs,Sippy Downs,USunshineCoast,Lowance HDS-7 Gen3 (200 kHz),IHO S44 1b,USunshineCoast
+,USC,RoundHillCreek,singlebeam,USC Tinny,19/01/2018,21/01/2018,Sippy Downs,Sippy Downs,USunshineCoast,Lowance HDS-7 Gen3 (200 kHz),IHO S44 1b,USunshineCoast
+,USC,TheNarrows,singlebeam,USC Tinny,18/01/2018,18/01/2018,Sippy Downs,Sippy Downs,USunshineCoast,Lowance HDS-7 Gen3 (200 kHz),IHO S44 1b,USunshineCoast
+,USC,TheodoliteCreek,singlebeam,USC Tinny,8/01/2018,8/01/2018,Sippy Downs,Sippy Downs,USunshineCoast,Lowance HDS-7 Gen3 (200 kHz),IHO S44 1b,USunshineCoast
+,USC,WaterParkCreek,singlebeam,USC Tinny,1/02/2018,1/02/2018,Sippy Downs,Sippy Downs,USunshineCoast,Lowance HDS-7 Gen3 (200 kHz),IHO S44 1b,USunshineCoast
+,UW012011,LizardIsland,singlebeam,LIRS boat,7/12/2011,15/07/2011,Lizard Island,Lizard Island,UWollongong,Ceeducer Pro (200 kHz),IHO S44 2,UWollongong
+,UWA,NorthWestShelfA,SDB,Sentinal2,1/01/2017,30/12/2020,na,na,UWA,empirical,15% + 0.5,"cite ""Towards a regional high-resolution bathymetry of the North West Shelf of Australia based on Sentinel-2 satellite images, 3D seismic surveys, and historical datasets"""
+,UWA,NorthWestShelfB,SDB,Sentinal2,1/01/2017,30/12/2020,na,na,UWA,empirical,15% + 0.5,"cite ""Towards a regional high-resolution bathymetry of the North West Shelf of Australia based on Sentinel-2 satellite images, 3D seismic surveys, and historical datasets"""
+,UWA,SharkBaySDB,SDB,Sentinal2,1/01/2017,30/12/2020,na,na,UWA,empirical,15% + 0.5,"cite ""Towards a regional high-resolution bathymetry of the North West Shelf of Australia based on Sentinel-2 satellite images, 3D seismic surveys, and historical datasets"""
+GA2330,VANC11MV,PortHedlandDarwin,multibeam,RV Melville,18/06/2003,16/07/2003,Port Hedland,Darwin,SIO,Seabeam 2000 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2331,VANC12MV,VANC12,multibeam,RV Melville,6/08/2003,17/08/2003,Darwin,Cairns,SIO,Seabeam 2000 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2331,VANC12MV,VANC12EM3000,multibeam,RV Melville,14/08/2003,20/08/2003,Darwin,Cairns,SIO,Simrad EM3000 (300 kHz),IHO S44 1b,Geoscience Australia
+GA0247,VANC13MV,VANC13EM3000,multibeam,RV Melville,21/08/2003,25/08/2003,Cairns,Port Moresby,SIO,Kongsberg EM3000 (300 kHz),IHO S44 1b,Geoscience Australia
+GA2332,VANC14MV,VANC14EM3000,multibeam,RV Melville,26/08/2003,16/09/2003,Port Moreseby,PortMoresby,SIO,Kongsberg EM3000 (300 kHz),IHO S44 1b,Geoscience Australia
+GA2368,VANC15MV,VANC15EM3000,multibeam,RV Melville,18/09/2003,26/09/2003,Port Moresby,Port Moresby,SIO,Kongsberg EM3000 (300 kHz),IHO S44 1b,Geoscience Australia
+GA2333,VANC16MV,VANC16EM3000,multibeam,RV Melville,27/09/2003,5/10/2003,Port Moresby,Cairns,SIO,Kongsberg EM3000 (300 kHz),IHO S44 1b,Geoscience Australia
+GA2336,VANC19MV,VANC19,multibeam,RV Melville,8/01/2004,13/01/2004,Cairns,Port Moresby,SIO,Seabeam 2000 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2369,VANC21MV,VANC21,multibeam,RV Melville,26/01/2004,15/02/2004,Port Moresby,Port Moresby,SIO,Seabeam 2000 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2370,VANC22MV,VANC22,multibeam,RV Melville,17/02/2004,1/03/2004,Port Moresby,Port Moresby,SIO,Seabeam 2000 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2338,VANC23MV,VANC23,multibeam,RV Melville,1/03/2003,9/03/2003,Port Moresby,Cairns,SIO,Seabeam 2000 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2339,VANC24MV,VANC24,multibeam,RV Melville,10/03/2004,20/03/2004,Cairns,Port Moresby,SIO,Seabeam 2000 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2371,VANC25MV,VANC25,multibeam,RV Melville,20/03/2004,2/04/2004,Port Moresby,Port Moresby,SIO,Seabeam 2000 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2340,VANC26MV,VANC26,multibeam,RV Melville,2/04/2004,12/04/2004,Port Moresby,Cairns,SIO,Seabeam 2000 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2341,VANC27MV,VANC27,multibeam,RV Melville,16/04/2004,22/04/2004,Cairns,Port Moresby,SIO,Seabeam 2000 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2341,VANC27MV,VANC27EM3000,multibeam,RV Melville,16/04/2004,22/04/2004,Cairns,Port Moresby,SIO,Simrad EM3000 (300 kHz),IHO S44 1b,Geoscience Australia
+GA2342,VANC28MV,VANC28MV,multibeam,RV Melville,22/04/2004,6/05/2004,Port Moresby,Port Moresby,SIO,Seabeam 2000 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2342,VANC28MV,VANC28EM3000,multibeam,RV Melville,22/04/2004,6/05/2004,Port Moresby,Port Moresby,SIO,Kongsberg EM3000 (300 kHz),IHO S44 1b,Geoscience Australia
+GA2372,VANC29MV,VANC29,multibeam,RV Melville,6/05/2004,17/05/2004,Port Moresby,Port Moresby,SIO,Seabeam 2000 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2372,VANC29MV,VANC29EM3000,multibeam,RV Melville,6/05/2004,17/05/2004,Port Moresby,Port Moresby,SIO,Kongsberg EM3000 (300 kHz),IHO S44 1b,Geoscience Australia
+GA2343,VANC30MV,VANC30,multibeam,RV Melville,18/05/2004,27/05/2004,Port Moresby,Cairns,SIO,Seabeam 2000 (12 kHz),IHO S44 1b,Geoscience Australia
+GA2343,VANC30MV,VANC30EM3000,multibeam,RV Melville,18/05/2004,27/05/2004,Port Moresby,Cairns,SIO,Kongsberg EM3000 (300 kHz),IHO S44 1b,Geoscience Australia
+,Victoria,MBES_LIDAR,lidar,various,unknown,unknown,unknown,unknown,Deakin University,various,IHO S44 1b,"This work is licensed under a Creative Commons Attribution 4.0 non-commercial license (https://creativecommons.org/licenses/by-nc/4.0/). You are free to reuse the work under this license, provided that you appropriately credit the State of Victoria (Department of Energy, Environment and Climate Action) as the source, indicate any modifications made, and comply with the other terms of the license."
+,WADOT,BroomeMBES,multibeam,SV Alec Hansen II,1/05/2007,1/05/2007,Broome,Broome,WA DOT,Reson Seabat 8101 (240 kHz),IHO S44 Special,CCBY4.0 Attribute 'WA Depatement of Transport' in publications using this data.
+,WADOT,BroomeSBES,singlebeam,unknown,unknown,unknown,unknown,unknown,WA DOT,unknown,IHO S44 1b,CCBY4.0 Attribute 'WA Depatement of Transport' in publications using this data.
+,WADOTAB2016,HoutmanAbrolhos,lidar,LADS,30/04/2016,30/04/2016,Perth,Perth,WADOT,LADS HD,IHO S44 1b,CCBY4.0 Attribute 'WA Depatement of Transport' in publications using this data.
+,WADOTAK2016,Yanchep,lidar,LADS,30/04/2016,30/04/2016,Perth,Perth,WADOT,LADS HD,IHO S44 1b,CCBY4.0 Attribute 'WA Depatement of Transport' in publications using this data.
+,WADOTBS2009,Busselton,lidar,LADS,30/12/2009,30/12/2009,Perth,Perth,WADOT,LADS HD,IHO S44 1b,CCBY4.0 Attribute 'WA Depatement of Transport' in publications using this data.
+,WADOTBU2009,Bunbury,lidar,LADS,30/12/2009,30/12/2009,Perth,Perth,WADOT,LADS HD,IHO S44 1b,CCBY4.0 Attribute 'WA Depatement of Transport' in publications using this data.
+,WADOTCE2016,Cervantes,lidar,LADS,30/04/2016,30/04/2016,Perth,Perth,WADOT,LADS HD,IHO S44 1b,CCBY4.0 Attribute 'WA Depatement of Transport' in publications using this data.
+,WADOTCS2009,Rockingham,lidar,LADS,30/12/2009,30/12/2009,Perth,Perth,WADOT,LADS HD,IHO S44 1b,CCBY4.0 Attribute 'WA Depatement of Transport' in publications using this data.
+,WADOTDV2009,Dawesville,lidar,LADS,30/12/2009,30/12/2009,Perth,Perth,WADOT,LADS HD,IHO S44 1b,CCBY4.0 Attribute 'WA Depatement of Transport' in publications using this data.
+,WADOTFP2016,NorthLeeman,lidar,LADS,30/04/2016,30/04/2016,Perth,Perth,WADOT,LADS HD,IHO S44 1b,CCBY4.0 Attribute 'WA Depatement of Transport' in publications using this data.
+,WADOTFR2009,Perth,lidar,LADS,30/12/2009,30/12/2009,Perth,Perth,WADOT,LADS HD,IHO S44 1b,CCBY4.0 Attribute 'WA Depatement of Transport' in publications using this data.
+,WADOTGN2016,Geraldton,lidar,LADS,30/04/2016,30/04/2016,Perth,Perth,WADOT,LADS HD,IHO S44 1b,CCBY4.0 Attribute 'WA Depatement of Transport' in publications using this data.
+,WADOTHL2016,Hillarys,lidar,LADS,30/04/2016,30/04/2016,Perth,Perth,WADOT,LADS HD,IHO S44 1b,CCBY4.0 Attribute 'WA Depatement of Transport' in publications using this data.
+,WADOTJU2016,JurienBay,lidar,LADS,30/04/2016,30/04/2016,Perth,Perth,WADOT,LADS HD,IHO S44 1b,CCBY4.0 Attribute 'WA Depatement of Transport' in publications using this data.
+,WADOTLA2016,Lancelin,lidar,LADS,30/04/2016,30/04/2016,Perth,Perth,WADOT,LADS HD,IHO S44 1b,CCBY4.0 Attribute 'WA Depatement of Transport' in publications using this data.
+,WADOTLM2016,Leeman,lidar,LADS,30/04/2016,30/04/2016,Perth,Perth,WADOT,LADS HD,IHO S44 1b,CCBY4.0 Attribute 'WA Depatement of Transport' in publications using this data.
+,WADOTLP2016,LedgePoint,lidar,LADS,30/04/2016,30/04/2016,Perth,Perth,WADOT,LADS HD,IHO S44 1b,CCBY4.0 Attribute 'WA Depatement of Transport' in publications using this data.
+,WADOTMH2009,Mandurah,lidar,LADS,30/12/2009,30/12/2009,Perth,Perth,WADOT,LADS HD,IHO S44 1b,CCBY4.0 Attribute 'WA Depatement of Transport' in publications using this data.
+,WADOTNR2016,OceanReef,lidar,LADS,30/04/2016,30/04/2016,Perth,Perth,WADOT,LADS HD,IHO S44 1b,CCBY4.0 Attribute 'WA Depatement of Transport' in publications using this data.
+,WADOTPD2016,SouthGeraldton,lidar,LADS,30/04/2016,30/04/2016,Perth,Perth,WADOT,LADS HD,IHO S44 1b,CCBY4.0 Attribute 'WA Depatement of Transport' in publications using this data.
+,WADOTPG2016,NorthGeraldton,lidar,LADS,30/04/2016,30/04/2016,Perth,Perth,WADOT,LADS HD,IHO S44 1b,CCBY4.0 Attribute 'WA Depatement of Transport' in publications using this data.
+,WADOTTR2009,TwoRocks,lidar,LADS,30/12/2009,30/12/2009,Perth,Perth,WADOT,LADS HD,IHO S44 1b,CCBY4.0 Attribute 'WA Depatement of Transport' in publications using this data.
+,WADOTUR2009,Jindalee,lidar,LADS,30/12/2009,30/12/2009,Perth,Perth,WADOT,LADS HD,IHO S44 1b,CCBY4.0 Attribute 'WA Depatement of Transport' in publications using this data.
+,WADOTWB2009,Warnbro,lidar,LADS,30/12/2009,30/12/2009,Perth,Perth,WADOT,LADS HD,IHO S44 1b,CCBY4.0 Attribute 'WA Depatement of Transport' in publications using this data.
+GA1149,WEST05MV,PapeeteBrisbane,multibeam,RV Melville,19/05/1994,25/06/1994,Papeete,Brisbane,SIO,Seabeam 2000 (12 kHz),IHO S44 1b,Geoscience Australia
+GA1152,WEST06MV,BrisbaneTonga,multibeam,RV Melville,30/08/1994,30/09/2004,Brisbane,Nuku'alofa,SIO,Seabeam 2000 (12 kHz),IHO S44 1b,Geoscience Australia
+,ZOE200,NewCaledonia,singlebeam,MV Coriolis,unknown,unknown,Noumea,Noumea,GEOMER,unknown,IHO S44 2,GEOMER

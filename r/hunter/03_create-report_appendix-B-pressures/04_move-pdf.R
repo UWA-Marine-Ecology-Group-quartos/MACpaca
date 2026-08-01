@@ -8,7 +8,7 @@ name <- config$name
 park <- config$park
 
 # TODO Change pdf_name to your quarto name
-pdf_name <- "Project 4.21-TEMPLATE-2-Appendix B-q-Pressures.pdf"
+pdf_name <- "Project 4.21-Hunter-2-Appendix B-q-Pressures.pdf"
 
 # Make sure Australian marine parks is set to working directory
 dest_dir <- paste0("quartos/", park)
@@ -21,3 +21,4 @@ file.rename(
   ),
   to = file.path(dest_dir, pdf_name)
 )
+

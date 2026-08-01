@@ -184,6 +184,7 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
           breaks   = c(0, 0.5, 1),
           labels   = c("0", "0.5", "1"),
           guide    = guide_colorbar(title.hjust = 0, title.vjust = 0.5, label.hjust = 0)
+
         )
     }
 
@@ -205,10 +206,10 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
         name     = "Normalised\ncombined SE",
         limits   = se_limits,
         oob      = scales::squish
-      ) +
-      build_base(i, show_x = TRUE, show_park_legend = TRUE)
-  })
 
+      ) +
+      build_base(i, show_x = TRUE, show_park_legend = FALSE)
+  })
   # ------------------------------------------------------------
   # Row labels
   # ------------------------------------------------------------
@@ -218,7 +219,7 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
       annotate(
         "text", x = 0.5, y = 0.5,
         label = label, angle = 90,
-        fontface = "bold", size = 5
+        fontface = "bold", size = 3.5
       )
   }
 
@@ -253,6 +254,8 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
       panel.spacing        = unit(0.5, "mm"),
       plot.margin          = margin(2, 2, 2, 2, unit = "mm")
     )
+
+  p_out <- cowplot::plot_grid(p_out, marine_park_legend(), ncol = 1, rel_heights = c(1, 0.145))
 
   return(p_out)
 }

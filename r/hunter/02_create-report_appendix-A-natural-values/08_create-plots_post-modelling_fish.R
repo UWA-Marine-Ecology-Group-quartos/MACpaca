@@ -41,14 +41,14 @@ file.sources <- list.files(pattern = "*.R", path = paste0("r/", park, "/function
 sapply(file.sources, source, .GlobalEnv)
 
 # TODO Set cropping extent - larger than most zoomed out plot
-e <- ext(114.2, 115.8, -34.7, -33.1)
+e <- ext(152.25, 152.98, -32.75, -32.3)
 
 # Load necessary spatial files
 sf_use_s2(FALSE)
 
 # Australian outline and state and commonwealth marine parks
-marine_parks <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
-  dplyr::filter(name %in% c("Ngari Capes", "Geographe", "South-west Corner")) # TODO select relevant parks
+marine_parks <- st_read("data/amp_shapefile/Australian_Marine_Parks_v2.shp") %>%
+  dplyr::filter(name %in% c("Hunter")) # TODO select relevant parks
 
 marine_parks_amp <- marine_parks %>%
   dplyr::filter(epbc %in% "Commonwealth") %>%
@@ -69,6 +69,9 @@ cwatr <- st_read("data/south-west network/spatial/shapefiles/amb_coastal_waters_
   st_crop(e) %>%
   st_transform(4326)
 
+npz <- marine_parks[marine_parks$zone %in% "National Park Zone", ]
+wasanc <- marine_parks[marine_parks$zone %in% "Sanctuary Zone", ]
+
 # Load the bathymetry data (GA 250m resolution)
 bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
   crop(e) %>%
@@ -79,7 +82,7 @@ bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__
 names(bathy)[3] <- "Depth"
 
 # Spatial predictions limits
-prediction_limits <- c(115.035, 115.57, -33.665, -33.34)
+prediction_limits <- c(152.25, 152.98, -32.75, -32.3)
 
 # Pretty fish metric names mapped to raster layer stubs
 fish_metric_lookup <- c(
@@ -131,7 +134,7 @@ for (yr in years) {
 # (defined after the source() loop above, so it overrides the default in
 # functions/controlplot_fish.R).
 # =============================================================================
-
+library(lwgeom)
 library(RNetCDF)
 library(lubridate)
 
@@ -278,7 +281,7 @@ control_all <- purrr::map(years, \(yy) {
   if (!inherits(dat_yy, "SpatRaster")) dat_yy <- terra::rast(dat_yy)
   terra::crs(dat_yy) <- "EPSG:4326"
 
-  controldata_fish(dat = dat_yy, year = yy, amp_abbrv = "GMP", state_abbrv = "NCMP") # TODO park abbreviations
+  controldata_fish(dat = dat_yy, year = yy, amp_abbrv = "Hunter", state_abbrv = "H") # TODO park abbreviations
 })
 
 park_dat.shallow <- purrr::map_dfr(control_all, "shallow") %>%
@@ -320,8 +323,8 @@ for (metric_code in names(metric_lookup)) {
   p_metric <- controlplot_fish(
     data = park_dat.control,
     metric = metric_code,
-    amp_abbrv = "GMP", # TODO park abbreviations
-    state_abbrv = "NCMP",
+    amp_abbrv = "Hunter", # TODO park abbreviations
+    state_abbrv = "H",
     metric_label = metric_lookup[[metric_code]]
   )
 
@@ -359,7 +362,7 @@ for (metric_code in names(metric_lookup)) {
 
 theme_collapse<-theme(
   panel.grid.major=element_line(colour = "white"),
-  panel.grid.minor=element_line(colour = "white", size = 0.25),
+  panel.grid.minor=element_line(colour = "white", linewidth = 0.25),
   plot.margin= grid::unit(c(0, 0, 0, 0), "in"))
 
 theme.larger.text<-theme(
@@ -381,8 +384,8 @@ sti <- CheckEM::australia_life_history %>%
   glimpse()
 
 # Create DF filter for Commonwealth waters only
-marine_parks_amp <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
-  dplyr::filter(name %in% c("Ngari Capes", "Geographe", "South-west Corner")) %>% # TODO select relevant parks
+marine_parks_amp <- st_read("data/amp_shapefile/Australian_Marine_Parks_v2.shp") %>%
+  dplyr::filter(name %in% c("Hunter")) %>% # TODO select relevant parks
   dplyr::filter(epbc == "Commonwealth") %>%
   st_transform(4326)
 
@@ -836,3 +839,34 @@ ggsave(
 saveRDS(bar_b20_v2,
         paste0("plots/", park, "/fish/", name, "_top_b20_bar_plot_mixed.rds")
 )
+
+# -------------------------------------------------------------------
+# Bubble plots
+# -------------------------------------------------------------------
+
+tidy_count <- readRDS(paste0("data/", park, "/tidy/", name, "_tidy-count.rds")) %>%
+  semi_join(metadata_amp, by = c("campaignid", "sample"))
+
+bubble_combined <- bubble_plots(
+  dat                 = tidy_count,
+  ausc                = ausc,
+  cwatr               = cwatr,
+  marine_parks_amp    = marine_parks_amp,
+  wasanc              = wasanc,
+  prediction_limits   = prediction_limits
+)
+
+bubble_combined
+
+ggsave(
+  paste0("plots/", park, "/fish/", name, "_bubbleplot_richness-abundance.png"),
+  plot   = bubble_combined,
+  height = 9,
+  width  = 8,
+  dpi    = 300,
+  units  = "in",
+  bg     = "white"
+)
+
+saveRDS(bubble_combined,
+        paste0("plots/", park, "/fish/", name, "_bubbleplot_richness-abundance.rds"))

@@ -1,6 +1,6 @@
 controldata_fish <- function(dat, year, amp_abbrv, state_abbrv) {
 
-  marine_parks <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
+  marine_parks <- st_read("data/amp_shapefile/Australian_Marine_Parks_v2.shp") %>%
     CheckEM::clean_names() %>%
     dplyr::mutate(zone_new = case_when(
       str_detect(zone, "Other State Marine Park Zone")  ~ paste(state_abbrv, "other zones"),

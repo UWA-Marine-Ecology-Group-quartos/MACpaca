@@ -1,9 +1,9 @@
 ###
-# Project: NESP 4.20 - Marine Park Dashboard reporting
+# Project: NESP 4.21 - Australian Marine Parks Natural Values Reporting
 # Data:    Habitat data synthesis
 # Task:    Model habitat data using the full subsets approach from @beckyfisher/FSSgam
-# Author:  Claude Spencer
-# Date:    June 2024
+# Author:  Claude Spencer & Henry Evans
+# Date:    July 2026
 ###
 
 rm(list=ls())
@@ -19,16 +19,19 @@ config <- yaml::read_yaml(
 
 name <- config$name
 park <- config$park
-#years <- config$years
+years <- config$years
+combine_benthos <- config$combine_benthos
+
+# Label used to save/read pooled benthos outputs (single combined file)
+# instead of one file per year. Ignored when combine_benthos is FALSE.
+benthos_label <- if (combine_benthos) paste(years, collapse = "_") else NA
 
 ## TODO Run below to install FSSgam package
- #if (!requireNamespace("remotes", quietly = TRUE)) {
- #  install.packages("remotes")
- #}
- #remotes::install_github("beckyfisher/FSSgam_package")
-remotes::install_github("GlobalArchiveManual/CheckEM")
-remotes::install_version("patchwork", version = "1.2.0") #older version required for ggplot to work
-remotes::install_version("ggplot2", version = "3.5.1") #older version required for CheckEM to work
+# if (!requireNamespace("remotes", quietly = TRUE)) {
+#   install.packages("remotes")
+# }
+# remotes::install_github("beckyfisher/FSSgam_package")
+
 library(CheckEM)
 library(tidyverse)
 library(mgcv)
@@ -49,8 +52,7 @@ habi <- readRDS(paste0("data/", park, "/tidy/", name, "_benthos-count.RDS")) %>%
   glimpse()
 
 model_dat <- habi %>%
-  pivot_longer(cols = c(macroalgae, sand, rock, sessile_invertebrates, reef, #seagrasses
-                        ),
+  pivot_longer(cols = c(macroalgae, sand, rock, sessile_invertebrates, reef), #, seagrasses
                names_to = "response", values_to = "number") %>%
   glimpse()
 
@@ -61,7 +63,7 @@ pred.vars <- c("geoscience_depth", "geoscience_aspect", "geoscience_roughness", 
 round(cor(model_dat[ , pred.vars]), 2)
 
 # TODO Review of individual predictors for even distribution---
-CheckEM::plot_transformations(pred.vars = pred.vars, dat = model_dat) ##THE LOG DISTRIBUTION DOESNT LOOK EVEN IS THAT AN ISSUE?
+CheckEM::plot_transformations(pred.vars = pred.vars, dat = model_dat)
 
 # TODO Check to make sure Response vector has not more than 80% zeros---
 (unique.vars = unique(as.character(model_dat$response)))
@@ -73,22 +75,22 @@ for(i in 1:length(unique.vars)){
     unique.vars.use = c(unique.vars.use, unique.vars[i])}
 }
 
-unique.vars.use ##force reef.
+unique.vars.use
 
 # # Or you can force in your own variables, you might need reef for fish predictions
-# unique.vars.use <- c("macroalgae",
-#                      "sand",
+ unique.vars.use <- c("sand",
 #                      "rock",
+#                      "macroalgae",
 #                      "sessile_invertebrates",
-#                      "reef",
-#                      "seagrasses")
+#                      "seagrasses",
+                      "reef")
 
 # Run the full subset model selection----
 outdir    <- paste0("output/model-output/", park, "/habitat/")
 out.all   <- list()
 var.imp   <- list()
 resp.vars <- unique.vars.use
-factor.vars <- c("sample") # TODO set factors ##have nothing here
+factor.vars <- c(NULL) # TODO set factors - if one year of data or combining years set as null
 
 # Loop through the FSS function for each Abiotic taxa----
 for(i in 1:length(resp.vars)){
@@ -99,7 +101,7 @@ for(i in 1:length(resp.vars)){
                    s(geoscience_depth, bs = 'cr'),
                  family = binomial("logit"),  data = use.dat) # TODO check family
 
-  model.set <- generate_model_set(use.dat = use.dat,
+  model.set <- generate.model.set(use.dat = use.dat,
                                   test.fit = Model1,
                                   pred.vars.cont = pred.vars,
                                   pred.vars.fact = factor.vars,
@@ -108,7 +110,7 @@ for(i in 1:length(resp.vars)){
                                   cov.cutoff = 0.7, # TODO need to check - Fisher recommends 0.28
                                   max.predictors = 4 # TODO check this
   )
-  out.list <- fit_model_set(model.set,
+  out.list <- fit.model.set(model.set,
                             max.models = 600,
                             parallel = T,
                             r2.type = "dev")
@@ -149,59 +151,56 @@ write.csv(all.var.imp,         file = paste0(outdir, name, "_abiotic_all.var.imp
 ## TODO Select best models from above then write them below (check all.mod.fits and all.var.imp)
 # For each response, carefully write the selected model choosing model type (family),
 # predictor variables, factor variables, k and bs
+# TODO if only one year: remove "year +" and drop ", by = year" from each s() term for every model below
 
-##DO I NEED TO REMOVE SEAGRASS/MACROALGAE ETC FROM THIS POINT ON IF I DONT HAVE CORRECT MODELS/SUFFICENT DATA?
 # Sand
 m_sand <- gam(cbind(sand, total_pts - sand) ~
-                year +
-                s(geoscience_aspect, by = year, k = 5, bs = "cc")  +
-                s(geoscience_depth, by = year, k = 5, bs = "cr") +
-                s(geoscience_detrended, by = year, k = 5, bs = "cr"),
+                s(geoscience_depth, k = 3, bs = "cr") +
+                s(geoscience_roughness, k = 3, bs = "cr"),
               data = habi, method = "REML", family = binomial("logit"))
 summary(m_sand)
 
 # Rock - too rare to model
-m_rock <- gam(cbind(rock, total_pts - rock) ~
-                year +
-                s(geoscience_aspect, by = year, k = 5, bs = "cc")  +
-                s(geoscience_detrended, by = year, k = 5, bs = "cr") +
-                s(geoscience_roughness, by = year, k = 5, bs = "cr"),
-              data = habi, method = "REML", family = binomial("logit"))
-summary(m_rock)
+#m_rock <- gam(cbind(rock, total_pts - rock) ~
+#                year +
+#                s(geoscience_aspect, by = year, k = 5, bs = "cc")  +
+#                s(geoscience_detrended, by = year, k = 5, bs = "cr") +
+#                s(geoscience_roughness, by = year, k = 5, bs = "cr"),
+#              data = habi, method = "REML", family = binomial("logit"))
+#summary(m_rock)
 
 # Macroalgae
-m_macro <- gam(cbind(macroalgae, total_pts - macroalgae) ~
-                 year +
-                 s(geoscience_aspect, by = year, k = 5, bs = "cc")  +
-                 s(geoscience_depth, by = year, k = 5, bs = "cr") +
-                 s(geoscience_detrended, by = year, k = 5, bs = "cr"),
-               data = habi, method = "REML", family = binomial("logit"))
-summary(m_macro)
+#m_macro <- gam(cbind(macroalgae, total_pts - macroalgae) ~
+#                 year +
+#                 s(geoscience_aspect, by = year, k = 5, bs = "cc")  +
+#                 s(geoscience_depth, by = year, k = 5, bs = "cr") +
+#                 s(geoscience_detrended, by = year, k = 5, bs = "cr"),
+#               data = habi, method = "REML", family = binomial("logit"))
+#summary(m_macro)
 
 # Seagrass
-m_seagrass <- gam(cbind(seagrasses, total_pts - seagrasses) ~
-                    year +
-                    s(geoscience_aspect, by = year, k = 5, bs = "cc")  +
-                    s(geoscience_depth, by = year, k = 5, bs = "cr") +
-                    s(geoscience_detrended, by = year, k = 5, bs = "cr"),
-                  data = habi, method = "REML", family = binomial("logit"))
-summary(m_seagrass)
+#m_seagrass <- gam(cbind(seagrasses, total_pts - seagrasses) ~
+#                    year +
+#                    s(geoscience_aspect, by = year, k = 5, bs = "cc")  +
+#                    s(geoscience_depth, by = year, k = 5, bs = "cr") +
+#                    s(geoscience_detrended, by = year, k = 5, bs = "cr"),
+#                  data = habi, method = "REML", family = binomial("logit"))
+#summary(m_seagrass)
 
 # Inverts
-m_inverts <- gam(cbind(sessile_invertebrates, total_pts - sessile_invertebrates) ~
-                   year +
-                   s(geoscience_aspect, by = year, k = 5, bs = "cc")  +
-                   s(geoscience_depth, by = year, k = 5, bs = "cr") +
-                   s(geoscience_roughness, by = year, k = 5, bs = "cr"),
-                 data = habi, method = "REML", family = binomial("logit"))
-summary(m_inverts)
+#m_inverts <- gam(cbind(sessile_invertebrates, total_pts - sessile_invertebrates) ~
+#                   year +
+#                   s(geoscience_aspect, by = year, k = 5, bs = "cc")  +
+#                   s(geoscience_depth, by = year, k = 5, bs = "cr") +
+#                   s(geoscience_roughness, by = year, k = 5, bs = "cr"),
+#                 data = habi, method = "REML", family = binomial("logit"))
+#summary(m_inverts)
 
 # Reef
 m_reef <- gam(cbind(reef, total_pts - reef) ~
-                year +
-                s(geoscience_aspect, by = year, k = 5, bs = "cc")  +
-                s(geoscience_detrended, by = year, k = 5, bs = "cr") +
-                s(geoscience_roughness, by = year, k = 5, bs = "cr"),
+                s(geoscience_aspect, k = 3, bs = "cc") +
+                s(geoscience_depth, k = 3, bs = "cr") +
+                s(geoscience_roughness, k = 3, bs = "cr"),
               data = habi, method = "REML", family = binomial("logit"))
 summary(m_reef)
 
@@ -211,11 +210,10 @@ preddf <- preds %>%
   as.data.frame(xy = T, na.rm = T)
 
 # Extract status to predict onto
-marine_parks <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
-  dplyr::filter(name %in% c("Ngari Capes", "Geographe", "South-west Corner")) %>% # TODO select marine parks in your area
-  dplyr::filter(zone_type %in% c("Sanctuary Zone (IUCN VI)",
-                                 "National Park Zone (IUCN II)")) %>%
-  dplyr::mutate(status = "No-Take") %>%
+marine_parks <- st_read("data/amp_shapefile/Australian_Marine_Parks.shp") %>%
+  dplyr::filter(RESNAME %in% c("Hunter")) %>% # TODO select marine parks in your area
+  dplyr::filter(ZONEIUCN %in% c("VI")) %>%
+  dplyr::mutate(status = "Fished") %>%
   vect() %>%
   glimpse()
 
@@ -225,41 +223,44 @@ preddf_s <- cbind(preddf, terra::extract(marine_parks, predv)) %>%
   dplyr::mutate(status = as.factor(ifelse(is.na(status), "Fished", "No-Take"))) %>%
   glimpse()
 
-preddf_sy1 <- preddf_s %>% dplyr::mutate(year = years[1])        ##IS THIS FOR DATA WITH MULTIPLE YEARS?? IF YOU HAVE CONFIG YEARS HASHED OUT ABOVE ARE YOU MEANT TO BE DOING THIS?
-preddf_sy2 <- preddf_s %>% dplyr::mutate(year = years[2])
-
-preddf_sy <- dplyr::bind_rows(preddf_sy1, preddf_sy2) %>%
-  dplyr::mutate(year = factor(year, levels = levels(habi$year))) %>%
-  glimpse()
+if (combine_benthos) {
+  preddf_sy <- preddf_s
+} else {
+  preddf_sy <- purrr::map_dfr(years, \(yr) preddf_s %>% dplyr::mutate(year = yr)) %>%
+    dplyr::mutate(year = factor(year, levels = levels(habi$year)))
+}
 
 # predict, rasterise and plot
+# TODO comment-out any habitats not modeled above
 predhab <- cbind(preddf_sy,
-                 "p_macro"    = predict(m_macro, preddf_sy, type = "response", se.fit = T),
+                 #"p_macro"    = predict(m_macro, preddf_sy, type = "response", se.fit = T),
                  "p_sand"     = predict(m_sand, preddf_sy, type = "response", se.fit = T),
-                 "p_seagrass" = predict(m_seagrass, preddf_sy, type = "response", se.fit = T),
-                 "p_inverts"  = predict(m_inverts, preddf_sy, type = "response", se.fit = T),
-                 "p_rock"     = predict(m_rock, preddf_sy, type = "response", se.fit = T),
+                 #"p_seagrass" = predict(m_seagrass, preddf_sy, type = "response", se.fit = T),
+                 #"p_inverts"  = predict(m_inverts, preddf_sy, type = "response", se.fit = T),
+                 #"p_rock"     = predict(m_rock, preddf_sy, type = "response", se.fit = T),
                  "p_reef"     = predict(m_reef, preddf_sy, type = "response", se.fit = T)
                  ) %>%
   glimpse()
 
-prasts_y1 <- rast(predhab %>%
-                    dplyr::filter(as.character(year) %in% years[1]) %>%
-                    dplyr::select(x, y, starts_with("p_")),
-                  crs = "epsg:4326")
-
-prasts_y2 <- rast(predhab %>%
-                    dplyr::filter(as.character(year) %in% years[2]) %>%
-                    dplyr::select(x, y, starts_with("p_")),
-                  crs = "epsg:4326")
-plot(prasts_y1)
-summary(prasts_y1)
-plot(prasts_y2)
-summary(prasts_y2)
-
 # Calculate MESS and mask predictions ----
-resp.vars <- c("p_sand", "p_macro", "p_seagrass", "p_inverts", "p_rock", "p_reef")
-pred.years <- years
+# TODO remove habitats not predicted
+resp.vars <- c("p_sand", "p_reef") #"p_macro", "p_seagrass", "p_inverts", "p_rock",
+
+# One output per label: each survey year, or a single combined label when pooling.
+pred.labels <- if (combine_benthos) benthos_label else years
+
+# Helper: return the habi + predhab rows that belong to a given output label.
+# When pooling there is no year split, so we use every row.
+rows_for <- function(label) {
+  if (combine_benthos) {
+    list(habi = habi, predhab = predhab)
+  } else {
+    list(
+      habi    = dplyr::filter(habi,    as.character(year) == label),
+      predhab = dplyr::filter(predhab, as.character(year) == label)
+    )
+  }
+}
 
 # Labels and colours for dominant habitat outputs
 dom_labels <- c(
@@ -276,7 +277,8 @@ benthos_dom_tag <- function(r) {
 
   fit_lyrs <- names(r)[
     grepl("\\.fit$", names(r)) &
-      !grepl("\\.se\\.fit$", names(r))
+      !grepl("\\.se\\.fit$", names(r)) &
+      !grepl("^p_reef\\.fit$", names(r))
   ]
 
   r_fit <- terra::subset(r, fit_lyrs)
@@ -303,12 +305,14 @@ normalise <- function(x) {
   (x - xmin) / (xmax - xmin)
 }
 
-for (this_year in pred.years) {
+# Create and save prediction layers
+for (this_label in pred.labels) {
 
-  print(this_year)
+  print(this_label)
 
-  xy <- habi %>%
-    dplyr::filter(as.character(year) == this_year) %>%
+  rr <- rows_for(this_label)
+
+  xy <- rr$habi %>%
     dplyr::transmute(x = longitude_dd, y = latitude_dd)
 
   preddf_m <- NULL
@@ -319,8 +323,7 @@ for (this_year in pred.years) {
 
     mod <- get(stringr::str_replace(resp_var, "^p_", "m_"))
 
-    temppred <- predhab %>%
-      dplyr::filter(as.character(year) == this_year) %>%
+    temppred <- rr$predhab %>%
       dplyr::select(
         x, y,
         dplyr::all_of(paste0(resp_var, ".fit")),
@@ -350,12 +353,11 @@ for (this_year in pred.years) {
   # ---------------------------
   # Combined standard error
   # ---------------------------
-
+  # TODO remove irrelevant habitats
   se_rasts <- terra::subset(
     preddf_m,
-    c("p_macro.se.fit", "p_rock.se.fit", "p_sand.se.fit",
-      "p_seagrass.se.fit", "p_inverts.se.fit", "p_reef.se.fit")
-  )
+    c("p_sand.se.fit", "p_reef.se.fit")
+  ) #"p_seagrass.se.fit", "p_inverts.se.fit","p_macro.se.fit", "p_rock.se.fit",
 
   se_rasts_norm <- terra::rast(
     lapply(1:terra::nlyr(se_rasts), function(i) normalise(se_rasts[[i]]))
@@ -369,13 +371,13 @@ for (this_year in pred.years) {
   preddf_m2 <- c(preddf_m, dom_rast, mean_se)
 
   # Data frame for ggplot categorical tiles
+  # TODO remove irrelevant habitats
   pred_dom_df <- as.data.frame(dom_rast, xy = TRUE, na.rm = TRUE) %>%
     dplyr::mutate(
       dom_tag = unname(dom_labels[as.character(dom_tag)]),
       dom_tag = factor(
         dom_tag,
-        levels = c("Sand", "Macroalgae", "Seagrass",
-                   "Rock", "Sessile invertebrates", "Reef")
+        levels = c("Sand",  "Reef") #"Macroalgae", "Seagrass", "Rock", "Sessile invertebrates",
       )
     )
 
@@ -390,7 +392,7 @@ for (this_year in pred.years) {
     preddf_m,
     paste0(
       "output/model-output/", park, "/habitat/",
-      names(preddf_m), "_predicted_", this_year, ".tif"
+      names(preddf_m), "_predicted_", this_label, ".tif"
     ),
     overwrite = TRUE
   )
@@ -400,7 +402,7 @@ for (this_year in pred.years) {
     se_rasts_norm,
     paste0(
       "output/model-output/", park, "/habitat/",
-      name, "_predicted-se-normalised_", this_year, ".rds"
+      name, "_predicted-se-normalised_", this_label, ".rds"
     )
   )
 
@@ -408,7 +410,7 @@ for (this_year in pred.years) {
     se_rasts_norm,
     paste0(
       "output/model-output/", park, "/habitat/",
-      name, "_predicted-se-normalised_", this_year, ".tif"
+      name, "_predicted-se-normalised_", this_label, ".tif"
     ),
     overwrite = TRUE
   )
@@ -418,7 +420,7 @@ for (this_year in pred.years) {
     mean_se,
     paste0(
       "output/model-output/", park, "/habitat/",
-      name, "_predicted-mean-se_", this_year, ".rds"
+      name, "_predicted-mean-se_", this_label, ".rds"
     )
   )
 
@@ -426,7 +428,7 @@ for (this_year in pred.years) {
     mean_se,
     paste0(
       "output/model-output/", park, "/habitat/",
-      name, "_predicted-mean-se_", this_year, ".tif"
+      name, "_predicted-mean-se_", this_label, ".tif"
     ),
     overwrite = TRUE
   )
@@ -436,7 +438,7 @@ for (this_year in pred.years) {
     preddf_m2,
     paste0(
       "output/model-output/", park, "/habitat/",
-      name, "_predicted-habitat_", this_year, ".rds"
+      name, "_predicted-habitat_", this_label, ".rds"
     )
   )
 
@@ -445,7 +447,7 @@ for (this_year in pred.years) {
     pred_dom_df,
     paste0(
       "output/model-output/", park, "/habitat/",
-      name, "_predicted-dominant-habitat_", this_year, ".rds"
+      name, "_predicted-dominant-habitat_", this_label, ".rds"
     )
   )
 
@@ -454,7 +456,7 @@ for (this_year in pred.years) {
     preddf_m2,
     paste0(
       "output/model-output/", park, "/habitat/",
-      name, "_predicted-habitat-with-dominant_", this_year, ".tif"
+      name, "_predicted-habitat-with-dominant_", this_label, ".tif"
     ),
     overwrite = TRUE
   )
@@ -464,7 +466,7 @@ for (this_year in pred.years) {
     dom_rast,
     paste0(
       "output/model-output/", park, "/habitat/",
-      name, "_predicted-dominant-habitat_", this_year, ".tif"
+      name, "_predicted-dominant-habitat_", this_label, ".tif"
     ),
     overwrite = TRUE
   )

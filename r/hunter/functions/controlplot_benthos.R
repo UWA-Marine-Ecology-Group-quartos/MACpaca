@@ -9,11 +9,11 @@ controlplot_benthos <- function(data, taxa, amp_abbrv, state_abbrv,
 
   if (is.null(taxa_label)) {
     taxa_label <- dplyr::case_when(
-      taxa == "seagrass"   ~ "Seagrass",
-      taxa == "macroalgae" ~ "Macroalgae",
-      taxa == "rock"       ~ "Rock",
+      #taxa == "seagrass"   ~ "Seagrass",
+      #taxa == "macroalgae" ~ "Macroalgae",
+      #taxa == "rock"       ~ "Rock",
       taxa == "sand"       ~ "Sand",
-      taxa == "inverts"    ~ "Sessile invertebrates",
+      #taxa == "inverts"    ~ "Sessile invertebrates",
       TRUE ~ stringr::str_to_title(taxa)
     )
   }
@@ -28,6 +28,7 @@ controlplot_benthos <- function(data, taxa, amp_abbrv, state_abbrv,
     dplyr::filter(!is.na(.data[[mean_col]])) %>%
     dplyr::mutate(
       depth_class = factor(depth_class, levels = depth_levels),
+      year = as.numeric(year),
       zone_new = factor(
         zone_new,
         levels = c(
@@ -95,8 +96,8 @@ controlplot_benthos <- function(data, taxa, amp_abbrv, state_abbrv,
     ) +
     facet_wrap(~depth_class, ncol = 1, scales = "free_y") +
     theme_classic() +
-    scale_x_continuous(breaks = c(2014, 2024)) + # TODO set to your survey years
-    coord_cartesian(xlim = c(2013, 2025), ylim = c(0, NA)) +
+    scale_x_continuous(breaks = c(2025)) + # TODO set to your survey years
+    coord_cartesian(xlim = c(2025, 2025), ylim = c(0, NA)) +
     scale_fill_manual(values = fill_vals, name = "Marine Parks", drop = FALSE) +
     scale_shape_manual(values = shape_vals, name = "Marine Parks", drop = FALSE) +
     labs(x = "Year", y = "Mean predicted probability") +

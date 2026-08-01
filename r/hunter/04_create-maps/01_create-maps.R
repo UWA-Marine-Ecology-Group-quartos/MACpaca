@@ -45,7 +45,7 @@ file.sources <- list.files(pattern = "*.R", path = "functions/", full.names = T)
 sapply(file.sources, source, .GlobalEnv)
 
 # TODO Set cropping extent - larger than most zoomed out plot
-e <- ext(114.2, 115.8,-34.7, -33.1)
+e <- ext(152.3,153.056,-32.69,-32.33)
 
 # Load necessary spatial files
 sf_use_s2(T)
@@ -56,10 +56,10 @@ ausc <- st_crop(aus, e)
 
 # Load marine parks
 # All australian marine parks - for inset plotting
-aus_marine_parks <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp")
+aus_marine_parks <- st_read("data/amp_shapefile/Australian_Marine_Parks_v2.shp")
 
-marine_parks <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
-  dplyr::filter(name %in% c("Ngari Capes", "Geographe", "South-west Corner")) %>% # TODO select relevant parks
+marine_parks <- st_read("data/amp_shapefile/Australian_Marine_Parks_v2.shp") %>%
+  dplyr::filter(name %in% c("Hunter")) %>% # TODO select relevant parks
   glimpse()
 
 # Australian Marine Parks only (for separate ggplot legends)
