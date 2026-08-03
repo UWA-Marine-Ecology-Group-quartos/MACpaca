@@ -1,0 +1,145 @@
+---
+title: "Appendix C - Geographe Marine Park Data Analysis Report"
+subtitle: "South-west Marine Parks Network"
+format:
+  pdf:
+    output-file: "Project 4.21-Geographe-3-Appendix C-q-Data Analysis.pdf"
+    fig-pos: 'H'
+    geometry:
+      - top=2cm
+      - bottom=2.5cm
+      - left=2cm
+      - right=2cm
+    toc: true
+    fig-format: png
+    fig-dpi: 300
+    include-in-header:
+      text: |
+        \usepackage{caption}
+        \usepackage{float}
+        \renewcommand{\thetable}{C.\arabic{table}}
+        \renewcommand{\thefigure}{C.\arabic{figure}}
+        \captionsetup{format=plain, indention=0pt}
+  html:
+    output-file: "Project 4.21-Geographe-3-Appendix C-q-Data Analysis.html"
+    toc: true
+    fig-dpi: 96
+execute:
+  echo: false
+  warning: false
+  message: false
+post-render: 04_move-pdf.R
+---
+
+<!--
+NUMBERING NOTE: this uses a simple sequential \thetable/\thefigure counter
+(C.1, C.2, C.3...), not the "C 1.1 / C 2.1" section-nested style in your
+source PDF. Say the word if you want the section-nested version instead.
+-->
+
+```{r}
+#| include: false
+
+# Quarto's default execute directory is wherever this .qmd file lives
+# (create-appendix-C/). The park root (geographe/) - where 00_config.yml,
+# data/, output/ etc. actually live - is one level up. Capturing both as
+# absolute paths here rather than relying on here::here(), whose project-root
+# detection doesn't match this nested folder layout (it was resolving to the
+# wrong directory entirely, not just off-by-one).
+qmd_dir  <- getwd()
+park_dir <- dirname(qmd_dir)
+
+# 02_load-model-selection.R uses relative "output/model-output/..." paths
+# internally (matching the convention in 00_/01_/03_/05_/06_), so it needs
+# the working directory to actually BE the park root when it runs - this
+# takes effect immediately (opts_knit$set has an immediate setwd() side
+# effect), so load_model_selection() below sees the right directory.
+knitr::opts_knit$set(root.dir = park_dir)
+
+library(gt)
+library(dplyr)
+
+source(file.path(qmd_dir, "gt_model_tables.R"))
+source(file.path(qmd_dir, "02_load-model-selection.R"))
+
+model_selection <- load_model_selection()
+habitat_table   <- model_selection$habitat
+fish_table      <- model_selection$fish
+
+# TODO replace with your real shared tex_path() if one already exists -
+# this is a minimal stand-in (forward-slash normalisation for LaTeX on Windows).
+tex_path <- function(path) gsub("\\\\", "/", path)
+
+habitat_appC_dir <- file.path(park_dir, "output", "model-output", park, "appendix-C", "habitat")
+fish_appC_dir    <- file.path(park_dir, "output", "model-output", park, "appendix-C", "fish")
+```
+
+# Data Analysis
+
+## Benthic ecosystem extent
+
+```{=latex}
+\begin{table}[H]
+\caption{Habitat model selection results. Top generalised additive models (GAMs) for predicting the probability of occurrence of key habitats from full subset analyses. Differences between the lowest reported corrected Akaike Information Criterion ($\Delta$AICc), AICc weight ($\omega$AICc), variance explained (R\textsuperscript{2}) and effective degrees of freedom (EDF) are reported for model comparison. Model selection was based on the most parsimonious model (fewest variables - shown in bold) within two units of the lowest AICc.}
+```
+
+```{r}
+build_habitat_model_table(habitat_table)
+```
+
+```{=latex}
+\end{table}
+```
+
+```{r}
+#| results: asis
+habitat_importance_png <- tex_path(file.path(habitat_appC_dir, paste0(name, "_habitat-importance.png")))
+habitat_curves_png     <- tex_path(file.path(habitat_appC_dir, paste0(name, "_habitat-response-curves.png")))
+
+cat(sprintf(
+"\\begin{figure}[H]
+\\includegraphics{%s}
+\\caption{Variable importance scores for predicting the probability of occurrence of main habitat categories. Response variables included in the most parsimonious top model are indicated (X), with the colour gradient representing positive (red), zero (white) and negative (blue) relationships.}
+\\end{figure}
+
+\\begin{figure}[H]
+\\includegraphics{%s}
+\\caption{Plots of the most parsimonious model found to predict the probability of occurrence of key habitat types. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value. Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data.}
+\\end{figure}",
+habitat_importance_png, habitat_curves_png
+))
+```
+
+## Demersal fish assemblage
+
+```{=latex}
+\begin{table}[H]
+\caption{Demersal fish model selection results. Top generalised additive models (GAMs) for predicting the species and abundance distribution of metrics of interest from full subset analyses. Differences between the lowest reported corrected Akaike Information Criterion ($\Delta$AICc), AICc weight ($\omega$AICc), variance explained (R\textsuperscript{2}) and effective degrees of freedom (EDF) are reported for model comparison. Model selection was based on the best model (fewest variables - shown in bold) within two units of the lowest AICc. *Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays.}
+```
+
+```{r}
+build_fish_model_table(fish_table)
+```
+
+```{=latex}
+\end{table}
+```
+
+```{r}
+#| results: asis
+fish_importance_png <- tex_path(file.path(fish_appC_dir, paste0(name, "_fish-importance.png")))
+fish_curves_png     <- tex_path(file.path(fish_appC_dir, paste0(name, "_fish-response-curves.png")))
+
+cat(sprintf(
+"\\begin{figure}[H]
+\\includegraphics{%s}
+\\caption{Variable importance scores for predicting the probability of demersal fish metrics. Response variables included in the most parsimonious top model are indicated (X), with the colour gradient representing positive (red), zero (white) and negative (blue) relationships. *Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays.}
+\\end{figure}
+
+\\begin{figure}[H]
+\\includegraphics{%s}
+\\caption{Plots of the best model found to predict the probability of occurrence of key fish groups. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value. Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data.}
+\\end{figure}",
+fish_importance_png, fish_curves_png
+))
+```

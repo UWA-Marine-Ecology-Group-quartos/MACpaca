@@ -216,12 +216,18 @@ preddf_s <- cbind(preddf, terra::extract(marine_parks, predv)) %>%
   glimpse()
 
 # Predict onto single pooled grid (no year duplication) ----
-resp.vars <- c("p_sand", "p_macro", "p_inverts")
+# Reef is predicted and saved alongside the three habitat classes because
+# 06_model-data_fish.R uses it as a predictor and 07 plots it. It is excluded
+# from the dominant-habitat layer and the combined SE below - reef is
+# macroalgae + rock + sessile invertebrates by construction, so it would win
+# every cell in a which.max() and would double-count in the mean SE.
+resp.vars <- c("p_sand", "p_macro", "p_inverts", "p_reef")
 
 predhab <- cbind(preddf_s,
                  "p_macro"   = predict(m_macro,   preddf_s, type = "response", se.fit = T),
                  "p_sand"    = predict(m_sand,     preddf_s, type = "response", se.fit = T),
-                 "p_inverts" = predict(m_inverts,  preddf_s, type = "response", se.fit = T)
+                 "p_inverts" = predict(m_inverts,  preddf_s, type = "response", se.fit = T),
+                 "p_reef"    = predict(m_reef,     preddf_s, type = "response", se.fit = T)
 ) %>%
   glimpse()
 
@@ -237,7 +243,8 @@ benthos_dom_tag <- function(r) {
 
   fit_lyrs <- names(r)[
     grepl("\\.fit$", names(r)) &
-      !grepl("\\.se\\.fit$", names(r))
+      !grepl("\\.se\\.fit$", names(r)) &
+      !grepl("^p_reef\\.fit$", names(r))
   ]
 
   r_fit <- terra::subset(r, fit_lyrs)
@@ -306,6 +313,7 @@ plot(preddf_m)
 dom_rast <- benthos_dom_tag(preddf_m)
 
 # Combined standard error ----
+# Reef deliberately excluded - see the note above benthos_dom_tag()
 se_rasts <- terra::subset(
   preddf_m,
   c("p_macro.se.fit", "p_sand.se.fit", "p_inverts.se.fit")

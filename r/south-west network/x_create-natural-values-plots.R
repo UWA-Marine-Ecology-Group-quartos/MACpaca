@@ -1,21 +1,34 @@
 ###
-# Project: NESP 5.6 Project - North west Corner Report
+# Project: NESP 5.6 Project - South-west Corner Report
 # Data:    Natural values ecosystems (NESP MERI), Commonwealth marine parks,
 #          terrestrial parks and aus outline
-# Task:    Creating natural values (benthic ecosystem) map — north-west network
-# Author:  Annika Leunig & Abbey Gibbons
+# Task:    Creating natural values (benthic ecosystem) map — south-west network
+# Author:  Annika Leunig
 # Date:    July 2026
-# Outputs: 1. North-west network natural values map (original source colours,
+# Outputs: 1. South-west network natural values map (original source colours,
 #             predicted reef layer removed, Commonwealth marine parks only)
+#          2. Individual park zoom-in natural values maps (Abrolhos, Bremer Bay,
+#             Eastern Recherche [+ full extent], Geographe, Great Australian
+#             Bight [+ full extent], Jurien Bay, Kangaroo Island, Murat &
+#             Western Eyre [+ full extent, + Murat only], Rottnest Canyon,
+#             SWC east, SWC west, Two Rocks, Twilight)
+#
+# NOTE: adapted from the north-west network version of this script. Two things
+# below are best-guess placeholders and should be checked against the actual
+# south-west shapefile before running:
+#   1. The marine park shapefile filename (section 1)
+#   2. The `name %in% c(...)` list used to build marine_parks_amp (section 1) —
+#      built from the individual park names used in the south-west AMP bathymetry
+#      script, but not verified against the shapefile's actual `name` field.
 ###
 
 # Table of contents
 #     1.  Set up and load data
 #     2.  CRS, colours and other housekeeping
 #     3.  Network-scale map function
-#     4.  FIGURE 1: North-west network natural values map
+#     4.  FIGURE 1: South-west network natural values map
 #     5.  Individual park functions — hillshade past 200m
-#     6.  FIGURE 2: North Kimberley (worked example)
+#     6.  FIGURES 2+: Individual park zoom-ins (assemble and save)
 
 
 # ==============================================================================
@@ -26,7 +39,7 @@
 rm(list = ls())
 
 # Set study name (folder structure)
-name <- "north-west"
+name <- "south-west"
 park <- "network"
 
 # Load libraries
@@ -39,26 +52,25 @@ library(cowplot)
 library(ggplot2)
 library(dplyr)
 
-# Set cropping extent (matches north-west network KEF/SST scripts)
-e <- ext(108.5, 130, -28, -10)
+# Set cropping extent (matches south-west network AMP bathymetry script's
+# bbox_network, with a small buffer)
+e <- ext(106, 139, -41, -22)
 
 # Aus outline
-aus <- st_read("data/north-west network/spatial/shapefiles/STE_2021_AUST_GDA2020.shp") %>%
+aus <- st_read("data/south-west network/spatial/shapefiles/STE_2021_AUST_GDA2020.shp") %>%
   st_make_valid()
 
-# Marine parks — Commonwealth AMPs + WA state marine parks (same list as the
-# north-west network KEF script's network_map() filter)
-marine_parks <- st_read("data/north-west network/spatial/shapefiles/nw-network-australia_marine-parks-all.shp") %>%
-  dplyr::filter(name %in% c(# Commonwealth AMPs (North-west Network)
-    "Argo-Rowley Terrace", "Ashmore Reef", "Carnarvon Canyon", "Cartier Island",
-    "Dampier", "Eighty Mile Beach", "Gascoyne", "Kimberley", "Mermaid Reef",
-    "Montebello", "Ningaloo", "Roebuck", "Shark Bay",
-    # WA state marine parks (Gascoyne-Pilbara-Kimberley)
-    "Hamelin Pool", "Muiron Islands", "Barrow Island", "Thevenard Island",
-    "Montebello Islands", "Yawuru Nagulagun / Roebuck Bay", "Yawuru", # IPA
-    "Nyangumarta Warrarn", # IPA
-    "Bardi Jawi Gaarra", "North Kimberley", "Mayala",
-    "Lalang-gaddam", "Rowley Shoals", "Scott Reef")) %>%
+# Marine parks — Commonwealth AMPs (south-west network) + WA/SA state marine
+# parks. VERIFY this list against the shapefile's `name` field — built from
+# the individual park zoom-ins in the AMP bathymetry script, not confirmed.
+marine_parks <- st_read("data/south-west network/spatial/shapefiles/south-and-western-australia_marine-parks-all.shp") %>%
+  dplyr::filter(name %in% c(# Commonwealth AMPs (South-west Network)
+    "Abrolhos", "Bremer", "Eastern Recherche", "Geographe",
+    "Great Australian Bight", "Jurien", "Kangaroo Island",
+    "Murray", "Western Eyre", "Rottnest Canyon", "South-west Corner",
+    "Twilight", "Two Rocks", "Murat",
+    # State marine parks (WA/SA) — update to match your shapefile's attributes
+    "Ngari Capes", "Shoalwater Islands", "Marmion", "Walpole and Nornalup Inlets")) %>%
   glimpse()
 
 # Commonwealth marine parks only, for the natural values map
@@ -66,16 +78,16 @@ marine_parks_amp <- marine_parks %>%
   dplyr::filter(epbc %in% "Commonwealth")
 
 # Terrestrial parks for mapping
-terrnp <- st_read("data/north-west network/spatial/shapefiles/Collaborative_Australian_Protected_Areas_Database_(CAPAD)_2024_-_Terrestrial__.shp") %>%
+terrnp <- st_read("data/south-west network/spatial/shapefiles/Collaborative_Australian_Protected_Areas_Database_(CAPAD)_2024_-_Terrestrial__.shp") %>%
   st_make_valid() %>%
   dplyr::filter(TYPE %in% c("Nature Reserve", "National Park"))
 
 # Natural values ecosystem — NESP MERI raster (has its own embedded colour table)
-naturalvalues <- rast("data/north-west network/spatial/rasters/NESP_MERI_Natural_Values_Ecosystems.tif") %>%
+naturalvalues <- rast("data/south-west network/spatial/rasters/NESP_MERI_Natural_Values_Ecosystems.tif") %>%
   crop(e)
 
 # Bathymetry — used for hillshade background on individual park figures only
-bathy <- rast("data/north-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
+bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
   crop(e)
 
 
@@ -98,7 +110,7 @@ mask_200 <- ifel(bathy >= -200, 1, NA)
 mask_200_resamp <- resample(mask_200, naturalvalues, method = "near")
 naturalvalues_clipped <- mask(naturalvalues, mask_200_resamp)
 
-# Class names (1:18, same lookup as the south-west scripts)
+# Class names (1:18, same lookup as the north-west/south-west scripts)
 nv_lookup <- c(
   "1"  = "Shelf unvegetated sediments",
   "2"  = "Upper slope sediments",
@@ -122,7 +134,7 @@ nv_lookup <- c(
 
 # Original colours — pulled directly from the raster's own embedded colour
 # table (NESP_MERI_Natural_Values_Ecosystems.tif), NOT the approximate
-# R-named colours (hab_colours) used in the south-west scripts.
+# R-named colours (hab_colours) used in earlier scripts.
 hab_colours_original <- c(
   "Shelf unvegetated sediments"      = "#A2D9FF",
   "Upper slope sediments"            = "#5171E2",
@@ -149,11 +161,11 @@ hab_colours_original <- c(
 # 3. NETWORK-SCALE MAP FUNCTION — natural values only, no predicted reef
 # ==============================================================================
 
-naturalvalues_map_northwest <- function(plot_limits,
+naturalvalues_map_southwest <- function(plot_limits,
                                         ocean_colour = "#e8e8e8",
                                         show_legend  = TRUE,
                                         title        = NULL,
-                                        break_step   = 2.0) {
+                                        break_step   = 5.0) {
 
   require(tidyverse); require(terra); require(sf); require(ggnewscale); require(cowplot)
 
@@ -232,7 +244,7 @@ naturalvalues_map_northwest <- function(plot_limits,
       name   = "Benthic ecosystem",
       values = present_colours[level_order],
       breaks = level_order,
-      guide  = guide_legend(ncol = 3, direction = "horizontal",
+      guide  = guide_legend(ncol = 4, direction = "horizontal",
                             title.position = "top", title.hjust = 0, byrow = TRUE)
     ) +
     theme_void() +
@@ -284,29 +296,30 @@ naturalvalues_map_northwest <- function(plot_limits,
 
 
 # ==============================================================================
-# 4. FIGURE 1: North-west network natural values map
+# 4. FIGURE 1: South-west network natural values map
 # ==============================================================================
 
-network_limits <- c(108.5, 130, -28, -10)
+network_limits <- c(109, 139, -41, -24.05)
 
-figure_northwest_nv <- naturalvalues_map_northwest(
+figure_southwest_nv <- naturalvalues_map_southwest(
   plot_limits  = network_limits,
+  ocean_colour = "#2b3a4a",
   show_legend  = TRUE,
-  break_step   = 2.0
+  break_step   = 5.0
 )
 
 ggsave(paste(paste0("plots/", park, "/spatial/benthic_habitat/", name),
              "network-natural-values.png", sep = "-"),
-       plot   = figure_northwest_nv,
+       plot   = figure_southwest_nv,
        dpi    = 600,
        width  = 12,
-       height = 9.75,
+       height = 9,
        bg     = "white")
 
 
 # ==============================================================================
 # 5. INDIVIDUAL PARK FUNCTIONS — hillshade past 200m
-# ==============================================================================⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+# ==============================================================================
 # --- Helper: sanity-check the plotted aspect ratio for a given extent ---
 check_ratio <- function(l) {
   mean_lat <- (l[3] + l[4]) / 2
@@ -316,10 +329,6 @@ check_ratio <- function(l) {
               l[2]-l[1], l[4]-l[3], (l[2]-l[1])/(l[4]-l[3]), rendered))
 }
 
-# Shelf classes only — kept for reference, no longer used to filter the
-# individual park maps (they now plot the full natural values layer, see
-# naturalvalues_map_hillshade_north() below), but left defined in case it's
-# needed elsewhere in the pipeline.
 shelf_classes <- c(
   "Shelf unvegetated sediments",
   "Shelf vegetated sediments",
@@ -336,11 +345,11 @@ shelf_classes <- c(
 )
 
 # --- FUNCTION: full natural values layer, ocean-colour background, no hillshade ---
-naturalvalues_map_hillshade_north <- function(plot_limits,
-                                              ocean_colour = "#e8e8e8",
-                                              show_legend  = TRUE,
-                                              title        = NULL,
-                                              break_step   = 0.2) {
+naturalvalues_map_hillshade_southwest <- function(plot_limits,
+                                                  ocean_colour = "#e8e8e8",
+                                                  show_legend  = TRUE,
+                                                  title        = NULL,
+                                                  break_step   = 0.2) {
 
   require(tidyverse); require(terra); require(sf); require(ggnewscale)
 
@@ -417,73 +426,6 @@ naturalvalues_map_hillshade_north <- function(plot_limits,
 
   return(p)
 }
-# ==============================================================================
-# 6. FIGURE 2: North Kimberley (worked example — repeat per park)
-# ==============================================================================
-# NOTE: these limits are a placeholder bounding box only — swap in the real
-# extent for each park (check against the shapefile/QGIS) before running.
-# check_ratio() helps you tune width/height so panels aren't stretched.
-
-# north_kimberley_limits <- c(123.0, 128.0, -15.0, -11.0)
-# check_ratio(north_kimberley_limits)
-#
-# north_kimberley_hs <- naturalvalues_map_hillshade_north(
-#   plot_limits = north_kimberley_limits,
-#   show_legend = FALSE,
-#   break_step  = 0.5
-# )
-#
-# # Legend built the same way as the network-scale one, just restricted to the
-# # shelf classes actually present in this park's extent
-# nk_ext <- ext(north_kimberley_limits[1], north_kimberley_limits[2],
-#               north_kimberley_limits[3], north_kimberley_limits[4])
-# nk_nv_crop <- crop(naturalvalues_clipped, nk_ext)
-# nk_nv_df   <- as.data.frame(nk_nv_crop, xy = TRUE, na.rm = TRUE)
-# colnames(nk_nv_df)[3] <- "value"
-# nk_nv_df$classname <- nv_lookup[as.character(nk_nv_df$value)]
-# nk_nv_df <- dplyr::filter(nk_nv_df, !is.na(classname), classname %in% shelf_classes)
-#
-# nk_level_order <- names(nv_lookup)[names(nv_lookup) %in% as.character(nk_nv_df$value)]
-# nk_level_order <- unname(nv_lookup[nk_level_order])
-#
-# legend_nk <- ggplot(data.frame(x = 1, y = 1,
-#                                classname = factor(nk_level_order, levels = nk_level_order)),
-#                     aes(x = x, y = y, fill = classname)) +
-#   geom_tile() +
-#   scale_fill_manual(
-#     name   = "Benthic habitat",
-#     values = hab_colours_original[nk_level_order],
-#     breaks = nk_level_order,
-#     guide  = guide_legend(ncol = 4, direction = "horizontal",
-#                           title.position = "top", title.hjust = 0)
-#   ) +
-#   theme_void() +
-#   theme(
-#     legend.key.size = unit(0.6, "cm"),
-#     legend.text     = element_text(size = 12),
-#     legend.title    = element_text(size = 13),
-#     legend.position = "bottom"
-#   )
-#
-# figure_north_kimberley <- cowplot::plot_grid(
-#   north_kimberley_hs,
-#   cowplot::get_legend(legend_nk),
-#   ncol        = 1,
-#   rel_heights = c(1, 0.2),
-#   align       = "v",
-#   axis        = "t"
-# ) +
-#   theme(plot.background = element_rect(fill = "white", colour = NA),
-#         plot.margin     = margin(t = 2, r = 15, b = 15, l = 5))
-#
-# ggsave(paste(paste0("plots/", park, "/spatial/benthic_habitat/", name),
-#              "north-kimberley-natural-values.png", sep = "-"),
-#        plot   = figure_north_kimberley,
-#        dpi    = 600,
-#        width  = 9,
-#        height = 8,
-#        bg     = "white")
-
 
 # ── Reusable natural values / benthic habitat plot function ──────────────────
 make_natural_values_plot <- function(plot_limits, break_step, save_name,
@@ -492,8 +434,8 @@ make_natural_values_plot <- function(plot_limits, break_step, save_name,
 
   check_ratio(plot_limits)
 
-  # Map itself already draws aus + terrnp (see naturalvalues_map_hillshade_north)
-  hs <- naturalvalues_map_hillshade_north(
+  # Map itself already draws aus + terrnp (see naturalvalues_map_hillshade_southwest)
+  hs <- naturalvalues_map_hillshade_southwest(
     plot_limits = plot_limits,
     show_legend = FALSE,
     break_step  = break_step
@@ -588,160 +530,211 @@ make_natural_values_plot <- function(plot_limits, break_step, save_name,
 
   invisible(figure)
 }
+
 # ==============================================================================
 # 6. INDIVIDUAL PARK ZOOM-INS (assemble and save)
 # ==============================================================================
-# ── Argo-Rowley Terrace ───────────────────────────────────────────────────────
+# All extents below are taken directly from the south-west network AMP
+# bathymetry script's network_map_wms_zoomed() calls. break_step is set from
+# that script's `break_step` argument where supplied (used there for thinned
+# longitude breaks); otherwise a sensible default is used since this script's
+# breaks aren't thinned the same way.
+
+# ── Abrolhos ──────────────────────────────────────────────────────────────────
 make_natural_values_plot(
-  plot_limits = c(115.5, 121.0, -18.0, -13.0),
+  plot_limits = c(108.5, 116.1, -30.0, -24.2),
   break_step  = 1.0,
-  save_name   = "argo-rowley-terrace",
-  width       = 6,
-  height      = 7,
-  park        = park,
-  name        = name,
-  legend_ncol = 3
-)
-
-# ── Ashmore Reef  ─────────────────────────────────────────────────────────────
-make_natural_values_plot(
-  plot_limits = c(122.5, 124.0, -13.0, -11.4),
-  break_step  = 0.5,
-  save_name   = "ashmore-reef",
-  width       = 7.5,
-  height      = 9.0,
-  park        = park,
-  name        = name,
-  legend_ncol = 3
-)
-
-# ── Carnarvon Canyon ──────────────────────────────────────────────────────────
-make_natural_values_plot(
-  plot_limits = c(110.0, 112.1, -24.5, -23.0),
-  break_step  = 0.5,
-  save_name   = "carnarvon-canyon",
-  width       = 6.5,
-  height      = 6.0,
-  park        = park,
-  name        = name,
-  legend_ncol = 3
-)
-
-# ── Cartier Island ────────────────────────────────────────────────────────────
-make_natural_values_plot(
-  plot_limits = c(123.3, 123.8, -12.7, -12.3),
-  break_step  = 0.1,
-  save_name   = "cartier-island",
-  width       = 6.5,
-  height      = 6.5,
-  park        = park,
-  name        = name,
-  legend_ncol = 3
-)
-
-# ── Dampier ───────────────────────────────────────────────────────────────────
-make_natural_values_plot(
-  plot_limits = c(116.6, 117.8, -21.0, -20.0),
-  break_step  = 0.2,
-  save_name   = "dampier",
-  width       = 7.0,
-  height      = 7.5,
-  park        = park,
-  name        = name,
-  legend_ncol = 2
-)
-
-# ── Eighty Mile Beach ─────────────────────────────────────────────────────────
-make_natural_values_plot(
-  plot_limits = c(118.2, 122.1, -20.5, -18.0),
-  break_step  = 0.5,
-  save_name   = "eighty-mile-beach",
-  width       = 9,
-  height      = 7.5,
-  park        = park,
-  name        = name,
-  legend_ncol = 3
-)
-
-# ── Gascoyne ──────────────────────────────────────────────────────────────────
-make_natural_values_plot(
-  plot_limits = c(109.5, 114.6, -24.2, -20.5),
-  break_step  = 0.5,
-  save_name   = "gascoyne",
-  width       = 8.0,
-  height      = 8.0,
-  park        = park,
-  name        = name,
-  legend_ncol = 3
-)
-
-# ── Kimberley ─────────────────────────────────────────────────────────────────
-make_natural_values_plot(
-  plot_limits = c(120.5, 127.3, -17.5, -13.0),
-  break_step  = 1,
-  save_name   = "kimberley",
+  save_name   = "abrolhos",
   width       = 8,
-  height      = 7,
+  height      = 8.5,
   park        = park,
   name        = name,
   legend_ncol = 3
 )
 
-# ── Mermaid Reef  ─────────────────────────────────────────────────────────────
+# ── Bremer Bay ────────────────────────────────────────────────────────────────
 make_natural_values_plot(
-  plot_limits = c(118.7, 119.8, -17.8, -16.7),
-  break_step  = 0.5,
-  save_name   = "mermaid-reef",
-  width       = 5,
-  height      = 6.5,
-  park        = park,
-  name        = name,
-  legend_ncol = 2
-)
-
-# ── Montebello ────────────────────────────────────────────────────────────────
-make_natural_values_plot(
-  plot_limits = c(114.6, 116.6, -21.6, -19.4),
-  break_step  = 0.5,
-  save_name   = "montebello",
-  width       = 7,
-  height      = 10,
-  park        = park,
-  name        = name,
-  legend_ncol = 2
-)
-
-# ── Ningaloo ──────────────────────────────────────────────────────────────────
-make_natural_values_plot(
-  plot_limits = c(113, 114.6, -23.7, -21.5),
+  plot_limits = c(119.3, 120.3, -35.3, -33.9),
   break_step  = 0.2,
-  save_name   = "ningaloo",
-  width       = 7.0,
+  save_name   = "bremer",
+  width       = 5,
+  height      = 11.2,
+  park        = park,
+  name        = name,
+  legend_ncol = 2
+)
+
+# ── Eastern Recherche ─────────────────────────────────────────────────────────
+make_natural_values_plot(
+  plot_limits = c(123.2, 124.4, -34.9, -33.5),
+  break_step  = 0.2,
+  save_name   = "eastern-recherche",
+  width       = 7,
+  height      = 9.5,
+  park        = park,
+  name        = name,
+  legend_ncol = 2
+)
+
+make_natural_values_plot(
+  plot_limits = c(122.2, 125.6, -37.8, -33.4),
+  break_step  = 0.5,
+  save_name   = "eastern-recherche-full-extent",
+  width       = 6.5,
   height      = 11,
   park        = park,
   name        = name,
   legend_ncol = 2
 )
 
-# ── Roebuck ───────────────────────────────────────────────────────────────────
+# ── Geographe ─────────────────────────────────────────────────────────────────
 make_natural_values_plot(
-  plot_limits = c(121.6, 122.8, -18.7, -17.2),
-  break_step  = 0.5,
-  save_name   = "roebuck",
-  width       = 5.5,
-  height      = 5.75,
+  plot_limits = c(114.8, 115.7, -33.7, -33.2),
+  break_step  = 0.2,
+  save_name   = "geographe",
+  width       = 8,
+  height      = 6.5,
   park        = park,
   name        = name,
   legend_ncol = 2
 )
 
-# ── Shark Bay ─────────────────────────────────────────────────────────────────
+# ── Great Australian Bight ────────────────────────────────────────────────────
 make_natural_values_plot(
-  plot_limits = c(111.5, 114.6, -26.1, -24.1),
+  plot_limits = c(128.7, 132.5, -33.6, -31.3),
   break_step  = 0.5,
-  save_name   = "shark-bay",
+  save_name   = "great-aus-bight",
+  width       = 7,
+  height      = 6,
+  park        = park,
+  name        = name,
+  legend_ncol = 2
+)
+
+make_natural_values_plot(
+  plot_limits = c(128.7, 132.5, -37.8, -31.3),
+  break_step  = 1,
+  save_name   = "great-aus-bight_full-extent",
+  width       = 7,
+  height      = 9,
+  park        = park,
+  name        = name,
+  legend_ncol = 2
+)
+
+# ── Jurien Bay ────────────────────────────────────────────────────────────────
+make_natural_values_plot(
+  plot_limits = c(114.2, 115.5, -31.0, -30.0),
+  break_step  = 0.2,
+  save_name   = "jurien",
+  width       = 8,
+  height      = 9,
+  park        = park,
+  name        = name,
+  legend_ncol = 2
+)
+
+# ── Kangaroo Island ───────────────────────────────────────────────────────────
+make_natural_values_plot(
+  plot_limits = c(136.0, 137.85, -36.5, -35.5),
+  break_step  = 0.5,
+  save_name   = "kangaroo-island",
   width       = 9,
   height      = 7.5,
+  park        = park,
+  name        = name,
+  legend_ncol = 3
+)
+
+# ── Murat and Western Eyre ────────────────────────────────────────────────────
+make_natural_values_plot(
+  plot_limits = c(132.45, 135.5, -35.4, -31.9),
+  break_step  = 0.5,
+  save_name   = "murat-western-eyre",
+  width       = 8,
+  height      = 9,
+  park        = park,
+  name        = name,
+  legend_ncol = 2
+)
+
+make_natural_values_plot(
+  plot_limits = c(131, 137, -39.4, -31.9),
+  break_step  = 1,
+  save_name   = "murat-western-eyre_full-extent",
+  width       = 6,
+  height      = 11,
+  park        = park,
+  name        = name,
+  legend_ncol = 2
+)
+
+make_natural_values_plot(
+  plot_limits = c(132.3, 133, -33.2, -32.2),
+  break_step  = 0.5,
+  save_name   = "murat",
+  width       = 5,
+  height      = 7,
+  park        = park,
+  name        = name,
+  legend_ncol = 1
+)
+
+# ── Rottnest Island Canyon ────────────────────────────────────────────────────
+make_natural_values_plot(
+  plot_limits = c(113.8, 115.8, -32.8, -31.3),
+  break_step  = 0.5,
+  save_name   = "rottnest-canyon",
+  width       = 10,
+  height      = 6,
+  park        = park,
+  name        = name,
+  legend_ncol = 3
+)
+
+# ── SWC Eastern arm ───────────────────────────────────────────────────────────
+make_natural_values_plot(
+  plot_limits = c(120.35, 122.2, -35.5, -33.7),
+  break_step  = 0.5,
+  save_name   = "swc-east",
+  width       = 8,
+  height      = 6,
+  park        = park,
+  name        = name,
+  legend_ncol = 3
+)
+
+# ── SWC Western arm ───────────────────────────────────────────────────────────
+make_natural_values_plot(
+  plot_limits = c(113.5, 116.4, -34.7857, -33.2643),
+  break_step  = 0.5,
+  save_name   = "swc-west",
+  width       = 9,
+  height      = 4.5,
+  park        = park,
+  name        = name,
+  legend_ncol = 3
+)
+
+# ── Two Rocks ─────────────────────────────────────────────────────────────────
+make_natural_values_plot(
+  plot_limits = c(114.7, 116.0, -32.0, -31.3),
+  break_step  = 0.2,
+  save_name   = "two-rocks",
+  width       = 11.5,
+  height      = 5,
+  park        = park,
+  name        = name,
+  legend_ncol = 3
+)
+
+# ── Twilight MP ───────────────────────────────────────────────────────────────
+make_natural_values_plot(
+  plot_limits = c(125.2, 127.15, -33.3, -32.1),
+  break_step  = 0.5,
+  save_name   = "twilight",
+  width       = 9,
+  height      = 5,
   park        = park,
   name        = name,
   legend_ncol = 3

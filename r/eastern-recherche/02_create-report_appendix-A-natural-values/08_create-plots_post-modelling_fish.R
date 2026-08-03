@@ -1175,3 +1175,34 @@ ggsave(
 )
 
 saveRDS(bar_b20, paste0("plots/", park, "/fish/", name, "_top_b20_bar_plot.rds"))
+
+# -------------------------------------------------------------------
+# Bubble plots
+# -------------------------------------------------------------------
+
+tidy_count <- readRDS(paste0("data/", park, "/tidy/", name, "_tidy-count.rds")) %>%
+  semi_join(metadata_amp, by = c("campaignid", "sample"))
+
+bubble_combined <- bubble_plots(
+  dat                 = tidy_count,
+  ausc                = ausc,
+  cwatr               = cwatr,
+  marine_parks_amp    = marine_parks_amp,
+  prediction_limits   = prediction_limits
+)
+
+bubble_combined
+
+ggsave(
+  paste0("plots/", park, "/fish/", name, "_bubbleplot_richness-abundance.png"),
+  plot   = bubble_combined,
+  height = 9,
+  width  = 8,
+  dpi    = 300,
+  units  = "in",
+  bg     = "white"
+)
+
+saveRDS(bubble_combined,
+        paste0("plots/", park, "/fish/", name, "_bubbleplot_richness-abundance.rds"))
+

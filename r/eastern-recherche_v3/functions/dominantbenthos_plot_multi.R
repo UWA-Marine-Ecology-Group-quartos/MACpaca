@@ -1,10 +1,30 @@
-dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_lookup) {
+dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_lookup,
+                                       x_breaks = 4, y_breaks = 4) {
 
   yrs <- names(dat_list)
 
   if (is.null(yrs) || any(yrs == "")) {
     stop("dat_list must be a named list")
   }
+
+  # ------------------------------------------------------------
+  # Graticule breaks
+  # ------------------------------------------------------------
+  # coord_sf() defaults to a fairly dense graticule, which collides once the
+  # panels are narrow. x_breaks / y_breaks take either a single number (a
+  # target count, passed to pretty(), which still chooses round values) or a
+  # vector of explicit degrees, e.g. y_breaks = seq(-35, -34, 0.5).
+  #
+  # Breaks sitting exactly on the extent are dropped: expand = FALSE would clip
+  # their labels in half at the panel edge.
+  resolve_breaks <- function(brks, lims) {
+    lims <- as.numeric(lims)
+    out  <- if (length(brks) > 1) brks else scales::breaks_pretty(n = brks)(lims)
+    out[out > min(lims) & out < max(lims)]
+  }
+
+  x_breaks <- resolve_breaks(x_breaks, c(prediction_limits[1], prediction_limits[2]))
+  y_breaks <- resolve_breaks(y_breaks, c(prediction_limits[3], prediction_limits[4]))
 
   # Gradient high colours for each habitat
   grad_high <- c(
@@ -55,14 +75,14 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
   # ------------------------------------------------------------
   theme_left <- theme(
     axis.title        = element_blank(),
-    axis.text         = element_text(size = 8),
+    axis.text         = element_text(size = 9),
     axis.ticks        = element_line(linewidth = 0.2),
     panel.grid.major  = element_line(linewidth = 0.2, colour = "grey85"),
     panel.grid.minor  = element_blank(),
     legend.title      = element_text(size = 9),
     legend.text       = element_text(size = 8),
-    legend.key.height = unit(0.5, "cm"),
-    legend.key.width  = unit(0.5, "cm"),
+    legend.key.height = unit(0.45, "cm"),
+    legend.key.width  = unit(0.45, "cm"),
     plot.margin       = margin(2, 2, 2, 2, unit = "mm")
   )
 
@@ -77,7 +97,13 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
     axis.ticks.x = element_blank()
   )
 
-  build_base <- function(i, show_x = TRUE) {
+  ngari_colours <- wasanc %>%
+    st_drop_geometry() %>%
+    distinct(zone, colour) %>%
+    arrange(zone) %>%
+    pull(colour)
+
+  build_base <- function(i, show_x = TRUE, show_park_legend = TRUE) {
 
     y_theme <- if (i == 1) theme_left else theme_inner
     x_theme <- if (show_x) theme() else theme_top
@@ -92,17 +118,47 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
       ),
       geom_sf(data = ausc, fill = "seashell2", colour = "black", linewidth = 0.2),
       geom_sf(
+        data        = wasanc,
+        aes(colour  = zone),
+        fill        = NA,
+        linewidth   = 0.8,
+        show.legend = show_park_legend
+      ),
+      scale_colour_manual(
+        name   = "State Marine Park",
+        guide  = "legend",
+        values = with(wasanc, setNames(colour, zone))
+      ),
+      guides(colour = guide_legend(
+        order        = 2,
+        ncol         = 1,
+        title.position = "top",
+        override.aes = list(colour = ngari_colours, fill = NA, linewidth = 1),
+        title.theme  = element_text(size = 9, face = "bold")
+      )),
+      ggnewscale::new_scale_color(),
+      geom_sf(
         data        = marine_parks_amp,
         aes(colour  = zone),
         fill        = NA,
-        show.legend = FALSE,
+        show.legend = show_park_legend,
         linewidth   = 0.6
       ),
       geom_sf(data = cwatr, colour = "firebrick", linewidth = 0.6),
       scale_colour_manual(
         name   = "Australian Marine Parks",
+        guide  = "legend",
         values = with(marine_parks_amp, setNames(colour, zone))
       ),
+      guides(colour = guide_legend(
+        order        = 1,
+        ncol         = 2,
+        title.position = "top",
+        override.aes = list(fill = NA, linewidth = 1),
+        title.theme  = element_text(size = 9, face = "bold")
+      )),
+      scale_x_continuous(breaks = x_breaks),
+      scale_y_continuous(breaks = y_breaks),
       coord_sf(
         xlim   = c(prediction_limits[1], prediction_limits[2]),
         ylim   = c(prediction_limits[3], prediction_limits[4]),
@@ -114,7 +170,7 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
       y_theme,
       x_theme,
       theme(
-        plot.title = element_text(hjust = 0.5, face = "bold", size = 10)
+        plot.title = element_text(hjust = 0.5, face = "bold", size = 11)
       )
     )
   }
@@ -148,14 +204,16 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
           name     = legend_names[[hab]],
           na.value = "transparent",
           breaks   = c(0, 0.5, 1),
-          labels   = c("0", "0.5", "1")
+          labels   = c("0", "0.5", "1"),
+          guide    = guide_colorbar(title.hjust = 0, title.vjust = 0.5, label.hjust = 0)
+
         )
     }
 
     # Only add year title when there are multiple years
     if (multi_year) p <- p + ggtitle(yrs[i])
 
-    p + build_base(i, show_x = FALSE)
+    p + build_base(i, show_x = FALSE, show_park_legend = FALSE)
   })
 
   # ------------------------------------------------------------
@@ -170,10 +228,10 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
         name     = "Normalised\ncombined SE",
         limits   = se_limits,
         oob      = scales::squish
-      ) +
-      build_base(i, show_x = TRUE)
-  })
 
+      ) +
+      build_base(i, show_x = TRUE, show_park_legend = FALSE)
+  })
   # ------------------------------------------------------------
   # Row labels
   # ------------------------------------------------------------
@@ -183,7 +241,7 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
       annotate(
         "text", x = 0.5, y = 0.5,
         label = label, angle = 90,
-        fontface = "bold", size = 4
+        fontface = "bold", size = 3.5
       )
   }
 
@@ -207,10 +265,10 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
       legend.box           = "horizontal",
       legend.box.just      = "centre",
       legend.justification = "centre",
-      legend.title         = element_text(size = 9, margin = margin(b = 10, r = 3)),
+      legend.title         = element_text(size = 9, margin = margin(b = 2, r = 3)),
       legend.text          = element_text(size = 8),
-      legend.key.height    = unit(0.5, "cm"),
-      legend.key.width     = unit(0.55, "cm"),
+      legend.key.height    = unit(0.3, "cm"),
+      legend.key.width     = unit(0.35, "cm"),
       legend.spacing.x     = unit(1, "mm"),
       legend.spacing.y     = unit(0.5, "mm"),
       legend.spacing       = unit(0.5, "mm"),
@@ -218,6 +276,8 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
       panel.spacing        = unit(0.5, "mm"),
       plot.margin          = margin(2, 2, 2, 2, unit = "mm")
     )
+
+  p_out <- cowplot::plot_grid(p_out, marine_park_legend(), ncol = 1, rel_heights = c(1, 0.145))
 
   return(p_out)
 }

@@ -174,10 +174,10 @@ dominantbenthos_plot <- function(pred_plot, prediction_limits) {
       axis.ticks = element_line(linewidth = 0.2),
       panel.grid.major = element_line(linewidth = 0.2, colour = "grey85"),
       panel.grid.minor = element_blank(),
-      legend.title = element_text(size = 8),
-      legend.text = element_text(size = 7),
-      legend.key.height = unit(0.45, "cm"),
-      legend.key.width = unit(0.45, "cm"),
+      legend.title      = element_text(size = 9),
+      legend.text       = element_text(size = 8),
+      legend.key.height = unit(0.5, "cm"),
+      legend.key.width  = unit(0.5, "cm"),
       plot.margin = margin(2, 2, 2, 2, unit = "mm")
     )
 }
@@ -481,6 +481,7 @@ ggsave(
   filename = paste0("plots/", park, "/habitat/", name, "_predicted-dominant-habitat.png"),
   plot = p_dom, height = 6, width = 8, dpi = 600, units = "in", bg = "white"
 )
+
 saveRDS(p_dom, paste0("plots/", park, "/habitat/", name, "_predicted-dominant-habitat.rds"))
 
 # =============================================================================
@@ -738,3 +739,23 @@ ggsave(
 )
 saveRDS(p_scatterpie, paste0("plots/", park, "/habitat/", name, "_scatterpie.rds"))
 
+## Predicted reef
+p_reef <- predictedreef_plot_multi(
+  dat_list          = list(pooled = dat),
+  prediction_limits = prediction_limits
+)
+
+print(p_reef)
+
+# Unsuffixed filenames, matching the pooled convention used by every other
+# output in this script (`years` is not read from the config here).
+ggsave(
+  filename = paste0(
+    "plots/", park, "/habitat/", name, "_predicted-reef-and-se.png"
+  ),
+  plot = p_reef, height = 7, width = 8, dpi = 300, units = "in", bg = "white"
+)
+
+saveRDS(p_reef,
+        paste0("plots/", park, "/habitat/", name,
+               "_predicted-reef-and-se.rds"))

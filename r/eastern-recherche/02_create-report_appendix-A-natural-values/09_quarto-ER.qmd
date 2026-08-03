@@ -1,6 +1,8 @@
 ---
 title: "Appendix A - Eastern Recherche Marine Park Natural Values Report"
 subtitle: "South-west Marine Parks Network"
+filters:
+  - figure-numbering.lua
 format:
   pdf:
     output-file: "Project 4.21-Eastern-Recherche-2-Appendix A-q-Natural values.pdf"
@@ -18,6 +20,9 @@ format:
         \newcounter{metric}
         \counterwithin*{figure}{metric}
         \captionsetup{format=plain, indention=0pt}
+  html:
+    output-file: "Project 4.21-Eastern-Recherche-2-Appendix A-q-Natural values.html"
+    fig-dpi: 96
 toc: true
 execute:
   echo: false
@@ -39,10 +44,13 @@ library(grid)
 library(tidytext)
 library(ggtext)
 
-# Year suffix on the fish spatial-metric PNGs (script 08 saves them with
-# paste(years, collapse = "-")). Set once per park to match the ERMP survey
-# years used throughout this appendix.
+park_dir <- "eastern-recherche"
+nm       <- "eastern-rechercheAMP"
+
 yr_suffix <- "2022-2025"
+
+hab  <- function(f) here(paste0("plots/", park_dir, "/habitat/", nm, f))
+fish <- function(f) here(paste0("plots/", park_dir, "/fish/",    nm, f))
 ```
 
 # Natural Values
@@ -51,13 +59,25 @@ Understanding of natural values
 
 ## Benthic ecosystem extent
 
+### Observations
+
+```{r}
+#| fig-width: 8
+#| fig-height: 8
+#| fig-cap: "Habitat classes observed in spatially balanced stereo-BRUV and drop-camera imagery visualised as spatial pie charts. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+img <- png::readPNG(hab("_scatterpie.png"))
+grid::grid.raster(img)
+```
+
+{{< pagebreak >}}
+
 ### Dominant habitat types
 
 ```{r}
 #| fig-width: 8
 #| fig-height: 5
 #| fig-cap: "Predicted dominant habitat type from stereo-BRUV groundtruthing. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-p_cat <- readRDS(here("plots/eastern-recherche/habitat/eastern-rechercheAMP_predicted-habitat-categorical.rds"))
+p_cat <- readRDS(hab("_predicted-habitat-categorical.rds"))
 p_cat
 ```
 
@@ -69,19 +89,19 @@ p_cat
 #| fig-width: 8
 #| fig-height: 7
 #| fig-cap: "Predicted habitat distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-img <- png::readPNG(here("plots/eastern-recherche/habitat/eastern-rechercheAMP_predicted-dominant-benthos-and-combined-se.png"))
+img <- png::readPNG(hab("_predicted-dominant-benthos-and-combined-se.png"))
 grid::grid.raster(img)
 ```
 
 {{< pagebreak >}}
 
-### Observations
+### Functional reef distribution and probability
 
 ```{r}
 #| fig-width: 8
-#| fig-height: 4
-#| fig-cap: "Habitat classes observed in spatially balanced stereo-BRUV and drop-camera imagery visualised as spatial pie charts. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-img <- png::readPNG(here("plots/eastern-recherche/habitat/eastern-rechercheAMP_scatterpie.png"))
+#| fig-height: 7
+#| fig-cap: "Predicted reef distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+img <- png::readPNG(hab("_predicted-reef-and-se.png"))
 grid::grid.raster(img)
 ```
 
@@ -89,37 +109,57 @@ grid::grid.raster(img)
 
 ## Benchmarks of benthic natural values
 
-### Sand predictions
+```{=latex}
+% Continue the running figure number into the benchmark sections, then switch
+% to <metric>.<plot> numbering. `metric` is seeded to the last benthic-extent
+% figure number so the majors carry on sequentially (5, 6, 7, ...).
+\setcounter{metric}{\value{figure}}
+\renewcommand{\thefigure}{\arabic{metric}.\arabic{figure}}
+```
+
+### Sand
+
+```{=latex}
+\stepcounter{metric}
+```
 
 ```{r}
 #| fig-width: 8
 #| fig-height: 5.5
 #| fig-cap: "Sand: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. ERMP = Eastern Recherche Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-img <- png::readPNG(here("plots/eastern-recherche/habitat/eastern-rechercheAMP_predicted-individual-habitat_sand.png"))
+img <- png::readPNG(hab("_predicted-individual-habitat_sand.png"))
 grid::grid.raster(img)
 ```
 
 {{< pagebreak >}}
 
-### Macroalgae predictions
+### Macroalgae
+
+```{=latex}
+\stepcounter{metric}
+```
 
 ```{r}
 #| fig-width: 8
 #| fig-height: 5.5
 #| fig-cap: "Macroalgae: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. ERMP = Eastern Recherche Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-img <- png::readPNG(here("plots/eastern-recherche/habitat/eastern-rechercheAMP_predicted-individual-habitat_macroalgae.png"))
+img <- png::readPNG(hab("_predicted-individual-habitat_macroalgae.png"))
 grid::grid.raster(img)
 ```
 
 {{< pagebreak >}}
 
-### Sessile invertebrates predictions
+### Sessile invertebrates
+
+```{=latex}
+\stepcounter{metric}
+```
 
 ```{r}
 #| fig-width: 8
 #| fig-height: 5.5
 #| fig-cap: "Sessile invertebrates: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. ERMP = Eastern Recherche Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-img <- png::readPNG(here("plots/eastern-recherche/habitat/eastern-rechercheAMP_predicted-individual-habitat_sessile-invertebrates.png"))
+img <- png::readPNG(hab("_predicted-individual-habitat_sessile-invertebrates.png"))
 grid::grid.raster(img)
 ```
 
@@ -127,11 +167,24 @@ grid::grid.raster(img)
 
 ## Benchmarks of demersal fish natural values
 
+### Survey effort
+
 ```{=latex}
-% Continue the running figure number into the fish section, then switch to
-% <metric>.<plot> numbering. `metric` is seeded to the last benthic figure
-% number so the majors carry on sequentially (7, 8, 9, 10).
-\setcounter{metric}{\value{figure}}
+\stepcounter{metric}
+\renewcommand{\thefigure}{\arabic{metric}}
+```
+
+```{r}
+#| fig-width: 8
+#| fig-height: 8
+#| fig-cap: "Spatial distribution of observed species richness and total abundance (MaxN) per stereo-BRUV drop, faceted by survey year. ERMP = Eastern Recherche Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters."
+p_bubble <- readRDS(fish("_bubbleplot_richness-abundance.rds"))
+p_bubble
+```
+
+{{< pagebreak >}}
+
+```{=latex}
 \renewcommand{\thefigure}{\arabic{metric}.\arabic{figure}}
 ```
 
@@ -141,13 +194,11 @@ grid::grid.raster(img)
 \stepcounter{metric}
 ```
 
-#### Benchmarks
-
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
 #| fig-cap: "Demersal fish - Species richness: benchmark plots by zone and depth contour from stereo-BRUV groundtruthing. ERMP = Eastern Recherche Marine Park (Commonwealth)."
-p_control <- readRDS(here("plots/eastern-recherche/fish/eastern-rechercheAMP_control-plot_species-richness-per-bruv.rds"))
+p_control <- readRDS(fish("_control-plot_species-richness-per-bruv.rds"))
 p_control
 ```
 
@@ -155,19 +206,21 @@ p_control
 #| fig-width: 6
 #| fig-height: 3
 #| fig-cap: "Demersal fish - Species richness: species accumulation curve by year from stereo-BRUV groundtruthing. ERMP = Eastern Recherche Marine Park (Commonwealth)."
-p_bar <- readRDS(here("plots/eastern-recherche/fish/eastern-rechercheAMP_SAC-sample.rds"))
+p_bar <- readRDS(fish("_SAC-sample.rds"))
 p_bar
 ```
 
 {{< pagebreak >}}
 
-#### Spatial predictions
+:::{.content-hidden when-format="html"}
+### Species richness {.unlisted .unnumbered}
+:::
 
 ```{r}
 #| fig-width: 7
 #| fig-height: 4
 #| fig-cap: "Demersal fish - Species richness: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-img <- png::readPNG(here(paste0("plots/eastern-recherche/fish/eastern-rechercheAMP_predicted-individual-fish-metric_whole-assemblage_", yr_suffix, ".png")))
+img <- png::readPNG(fish(paste0("_predicted-individual-fish-metric_whole-assemblage_", yr_suffix, ".png")))
 grid::grid.raster(img)
 ```
 
@@ -179,37 +232,39 @@ grid::grid.raster(img)
 \stepcounter{metric}
 ```
 
-#### Benchmarks
-
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
 #| fig-cap: "Demersal fish - Total abundance: benchmark plots by zone and depth contour from stereo-BRUV groundtruthing. ERMP = Eastern Recherche Marine Park (Commonwealth)."
-p_control <- readRDS(here("plots/eastern-recherche/fish/eastern-rechercheAMP_control-plot_total-abundance-per-bruv.rds"))
+p_control <- readRDS(fish("_control-plot_total-abundance-per-bruv.rds"))
 p_control
 ```
 
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Demersal fish - Total abundance: top 10 most abundant species (pooled across deployments) from stereo-BRUV groundtruthing. ERMP = Eastern Recherche Marine Park (Commonwealth)."
-p_bar <- readRDS(here("plots/eastern-recherche/fish/eastern-rechercheAMP_top_maxn_bar_plot.rds"))
+#| fig-cap: "Demersal fish - Total abundance: top 10 most abundant species (pooled across deployments) from stereo-BRUV groundtruthing. **Bold** species are unique within the 10 most abundant species by year. ERMP = Eastern Recherche Marine Park (Commonwealth)."
+p_bar <- readRDS(fish("_top_maxn_bar_plot.rds"))
 p_bar
 ```
 
 {{< pagebreak >}}
 
-#### Spatial predictions
+:::{.content-hidden when-format="html"}
+### Total abundance {.unlisted .unnumbered}
+:::
 
 ```{r}
 #| fig-width: 7
 #| fig-height: 4
 #| fig-cap: "Demersal fish - Total abundance: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-img <- png::readPNG(here(paste0("plots/eastern-recherche/fish/eastern-rechercheAMP_predicted-individual-fish-metric_total-abundance_", yr_suffix, ".png")))
+img <- png::readPNG(fish(paste0("_predicted-individual-fish-metric_total-abundance_", yr_suffix, ".png")))
 grid::grid.raster(img)
 ```
 
 {{< pagebreak >}}
+
+\newgeometry{top=2cm, bottom=2.1cm, left=2cm, right=2cm}
 
 ### Large Reef Fish Index\*
 
@@ -217,37 +272,37 @@ grid::grid.raster(img)
 \stepcounter{metric}
 ```
 
-#### Benchmarks
-
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
 #| fig-cap: "Demersal fish - Large Reef Fish Index\\*: benchmark plots by zone and depth contour from stereo-BRUV groundtruthing. ERMP = Eastern Recherche Marine Park (Commonwealth). \\*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays."
-p_control <- readRDS(here("plots/eastern-recherche/fish/eastern-rechercheAMP_control-plot_large-reef-fish-index-biomass-g-per-bruv.rds"))
+p_control <- readRDS(fish("_control-plot_large-reef-fish-index-biomass-g-per-bruv.rds"))
 p_control
 ```
 
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Demersal fish - Large Reef Fish Index\\*: top 10 greatest biomass species (pooled across deployments) from stereo-BRUV groundtruthing. ERMP = Eastern Recherche Marine Park (Commonwealth)."
-p_bar <- readRDS(here("plots/eastern-recherche/fish/eastern-rechercheAMP_top_b20_bar_plot.rds"))
+#| fig-cap: "Demersal fish - Large Reef Fish Index\\*: top 10 greatest biomass species (pooled across deployments) from stereo-BRUV groundtruthing. **Bold** species are unique within the 10 greatest biomass species by year. ERMP = Eastern Recherche Marine Park (Commonwealth)."
+p_bar <- readRDS(fish("_top_b20_bar_plot.rds"))
 p_bar
 ```
 
 {{< pagebreak >}}
 
-#### Spatial predictions
+:::{.content-hidden when-format="html"}
+### Large Reef Fish Index\* {.unlisted .unnumbered}
+:::
 
 ```{r}
 #| fig-width: 7
 #| fig-height: 4
 #| fig-cap: "Demersal fish - Large Reef Fish Index\\*: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-img <- png::readPNG(here(paste0("plots/eastern-recherche/fish/eastern-rechercheAMP_predicted-individual-fish-metric_large-reef-fish-index_", yr_suffix, ".png")))
+img <- png::readPNG(fish(paste0("_predicted-individual-fish-metric_large-reef-fish-index_", yr_suffix, ".png")))
 grid::grid.raster(img)
 ```
 
-{{< pagebreak >}}
+\restoregeometry
 
 ### Reef fish thermal index
 
@@ -255,32 +310,32 @@ grid::grid.raster(img)
 \stepcounter{metric}
 ```
 
-#### Benchmarks
-
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
 #| fig-cap: "Demersal fish - Reef Fish Thermal Index: benchmark plots by zone and depth contour, with monthly sea surface temperature (black line, grey band = SD) overlaid, from stereo-BRUV groundtruthing. ERMP = Eastern Recherche Marine Park (Commonwealth)."
-p_control <- readRDS(here("plots/eastern-recherche/fish/eastern-rechercheAMP_control-plot_community-thermal-index-c.rds"))
+p_control <- readRDS(fish("_control-plot_community-thermal-index-c.rds"))
 p_control
 ```
 
 ```{r}
-#| fig-width: 6
+#| fig-width: 8
 #| fig-height: 3
-#| fig-cap: "Demersal fish - Reef Fish Thermal Index: species thermal niche of top 10 most abundant species (pooled across deployments) from stereo-BRUV groundtruthing. ERMP = Eastern Recherche Marine Park (Commonwealth)."
-p_bar <- readRDS(here("plots/eastern-recherche/fish/eastern-rechercheAMP_top_maxn_cti_bar_plot.rds"))
+#| fig-cap: "Demersal fish - Reef Fish Thermal Index: species thermal niche of top 10 most abundant species (pooled across deployments) from stereo-BRUV groundtruthing. **Bold** species are unique within the 10 most abundant species by year. ERMP = Eastern Recherche Marine Park (Commonwealth)."
+p_bar <- readRDS(fish("_top_maxn_cti_bar_plot.rds"))
 p_bar
 ```
 
 {{< pagebreak >}}
 
-#### Spatial predictions
+:::{.content-hidden when-format="html"}
+### Reef fish thermal index {.unlisted .unnumbered}
+:::
 
 ```{r}
 #| fig-width: 7
 #| fig-height: 4
 #| fig-cap: "Demersal fish - Reef Fish Thermal Index: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-img <- png::readPNG(here(paste0("plots/eastern-recherche/fish/eastern-rechercheAMP_predicted-individual-fish-metric_cti_", yr_suffix, ".png")))
+img <- png::readPNG(fish(paste0("_predicted-individual-fish-metric_cti_", yr_suffix, ".png")))
 grid::grid.raster(img)
 ```

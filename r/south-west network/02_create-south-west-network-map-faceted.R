@@ -129,11 +129,53 @@ thin_breaks <- function(limits, step = 0.2) {
   b[seq(1, length(b), by = 2)]
 }
 
+# Places each Commonwealth AMP zone code (e.g. "npz04") at the geometric
+# centre of ONLY the portion of that zone visible within this panel's
+# extent. This guarantees every zone actually drawn on the panel gets a
+# label, even when the zone extends beyond plot_limits and its CAPAD-supplied
+# LONGITUDE/LATITUDE reference point falls outside the crop (which is what
+# was causing labels to silently disappear for zones cut off at the edge).
+get_panel_labels <- function(mp_amp, limits) {
+
+  if (nrow(mp_amp) == 0) return(capad_amp_labels[0, ])
+
+  box <- st_as_sfc(st_bbox(
+    c(xmin = limits[1], xmax = limits[2], ymin = limits[3], ymax = limits[4]),
+    crs = st_crs(4326)
+  ))
+
+  # Match each AMP zone to its correct CAPAD zone code using the FULL,
+  # uncropped zone geometry. Doing this on cropped fragments instead risks
+  # pulling in a NEIGHBOURING zone's label when several zones sit close
+  # together (e.g. the hpz03 / muz02 / npz04 cluster near Geographe), since
+  # a small cropped sliver of one zone can end up geometrically nearer to
+  # a different zone's CAPAD reference point than to its own.
+  mp_amp_labelled <- st_join(mp_amp, capad_amp_labels["label"], join = st_nearest_feature)
+
+  # Only now crop to the panel extent, so the label is placed at the centre
+  # of whatever portion of that (correctly-identified) zone is visible here
+  mp_amp_cropped <- suppressWarnings(st_intersection(mp_amp_labelled, box))
+
+  if (nrow(mp_amp_cropped) == 0) return(capad_amp_labels[0, ])
+
+  mp_amp_cropped %>%
+    dplyr::mutate(geometry = st_point_on_surface(geometry)) %>%
+    dplyr::select(label)
+}
+
 # ==============================================================================
 # 3. PANEL FUNCTION
 # ==============================================================================
+# NOTE: `label_buffer` pads the *visible* map extent slightly beyond
+# `plot_limits` so labels sitting near the panel edge aren't sliced off by
+# coord_sf(expand = FALSE). Tick breaks are still calculated from the
+# original plot_limits, so axis labelling is unaffected. We deliberately do
+# NOT use clip = "off" here — with cowplot::plot_grid() assembling panels
+# side by side, unclipped content bleeds outside its own panel into
+# neighbouring grid cells rather than just showing at the panel edge.
 
-make_zone_panel <- function(plot_limits, mp_amp, mp_state, label_data = NULL, break_step = 0.1) {
+make_zone_panel <- function(plot_limits, mp_amp, mp_state, label_data = NULL,
+                            break_step = 0.1, label_buffer = 0.03) {
 
   x_breaks <- thin_breaks(plot_limits[1:2], step = break_step)
   y_breaks <- thin_breaks(abs(plot_limits[3:4]), step = break_step) * -1
@@ -171,7 +213,8 @@ make_zone_panel <- function(plot_limits, mp_amp, mp_state, label_data = NULL, br
                                             title.position = "top"),
                       values = with(mp_amp, setNames(colour, zone)),
                       breaks = c("National Park Zone", "Habitat Protection Zone",
-                                 "Multiple Use Zone", "Special Purpose Zone")) +
+                                 "Multiple Use Zone", "Special Purpose Zone",
+                                 "Special Purpose Zone (Mining Exclusion)")) +
     new_scale_fill() +
 
     # Commonwealth AMP zone labels (last 5 characters of CAPAD RES_NUMBER,
@@ -210,8 +253,9 @@ make_zone_panel <- function(plot_limits, mp_amp, mp_state, label_data = NULL, br
                         guide  = guide_legend(order = 4,
                                               override.aes = list(linewidth = 0.8))) +
 
-    coord_sf(xlim = plot_limits[1:2], ylim = plot_limits[3:4],
-             crs = 4326, expand = FALSE) +
+    coord_sf(xlim   = c(plot_limits[1] - label_buffer, plot_limits[2] + label_buffer),
+             ylim   = c(plot_limits[3] - label_buffer, plot_limits[4] + label_buffer),
+             crs    = 4326, expand = FALSE) +
     scale_x_continuous(breaks = x_breaks) +
     scale_y_continuous(breaks = y_breaks) +
     labs(x = NULL, y = NULL) +
@@ -229,7 +273,7 @@ make_zone_panel <- function(plot_limits, mp_amp, mp_state, label_data = NULL, br
       panel.border     = element_rect(colour = "grey80", fill = NA, linewidth = 0.5),
       axis.ticks       = element_line(colour = "grey80", linewidth = 0.3),
       axis.text        = element_text(size = 8, colour = "grey40"),
-      plot.margin      = margin(2, 2, 2, 2)
+      plot.margin      = margin(4, 4, 4, 4)
     )
 }
 
@@ -239,17 +283,19 @@ make_zone_panel <- function(plot_limits, mp_amp, mp_state, label_data = NULL, br
 # Call functions
 tr_amp   <- filter_to_extent(marine_parks_amp,   tworocks_limits)
 tr_state <- filter_to_extent(marine_parks_state, tworocks_limits)
-tr_labels <- filter_to_extent(capad_amp_labels,  tworocks_limits)
+tr_labels <- get_panel_labels(tr_amp, tworocks_limits)
 
 geo_amp   <- filter_to_extent(marine_parks_amp,   geographe_limits)
 geo_state <- filter_to_extent(marine_parks_state, geographe_limits)
-geo_labels <- filter_to_extent(capad_amp_labels,  geographe_limits)
+geo_labels <- get_panel_labels(geo_amp, geographe_limits)
 
-p_tr  <- make_zone_panel(tworocks_limits,  tr_amp,  tr_state,  label_data = tr_labels,  break_step = 0.1)
-p_geo <- make_zone_panel(geographe_limits, geo_amp, geo_state, label_data = geo_labels, break_step = 0.1)
+p_tr  <- make_zone_panel(tworocks_limits,  tr_amp,  tr_state,  label_data = tr_labels,
+                         break_step = 0.1, label_buffer = 0.03)
+p_geo <- make_zone_panel(geographe_limits, geo_amp, geo_state, label_data = geo_labels,
+                         break_step = 0.1, label_buffer = 0.03)
 
 # Build the legend
-legend <- cowplot::get_legend(p_tr + theme(
+legend <- cowplot::get_legend(p_geo + theme(
   legend.position  = "left",
   legend.box       = "vertical",
   legend.direction = "vertical",
@@ -350,6 +396,7 @@ make_zone_plot_left_legend <- function(plot_limits,
                                        inset_xlim   = c(108, 138),
                                        inset_ylim   = c(-40, -24),
                                        break_step   = 0.2,
+                                       label_buffer = 0.03,
                                        show_inset   = TRUE,
                                        save_name    = NULL,
                                        width        = 10,
@@ -357,9 +404,10 @@ make_zone_plot_left_legend <- function(plot_limits,
 
   mp_amp    <- filter_to_extent(marine_parks_amp,   plot_limits)
   mp_state  <- filter_to_extent(marine_parks_state, plot_limits)
-  mp_labels <- filter_to_extent(capad_amp_labels,   plot_limits)
+  mp_labels <- get_panel_labels(mp_amp, plot_limits)
 
-  p_map <- make_zone_panel(plot_limits, mp_amp, mp_state, label_data = mp_labels, break_step = break_step)
+  p_map <- make_zone_panel(plot_limits, mp_amp, mp_state, label_data = mp_labels,
+                           break_step = break_step, label_buffer = label_buffer)
 
   # Legend
   legend_single <- cowplot::get_legend(p_map + theme(
