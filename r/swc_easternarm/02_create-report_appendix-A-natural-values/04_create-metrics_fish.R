@@ -1,9 +1,9 @@
 ###
-# Project: NESP 4.20 - Marine Park Dashboard reporting
+# Project: NESP 4.21 - Australian Marine Parks Natural Values Reporting
 # Data:    Fish data synthesis
 # Task:    Combine and format fish data for full subsets modelling
-# Author:  Claude Spencer
-# Date:    June 2024
+# Author:  Claude Spencer & Henry Evans
+# Date:    July 2026
 ###
 
 # Clear the environment
@@ -32,9 +32,15 @@ library(purrr)
 
 metadata_bathy_derivatives <- readRDS(paste0("data/", park, "/tidy/", name, "_metadata-bathymetry-derivatives.rds")) %>%
   clean_names() %>%
+  dplyr::select(-method) %>%
   glimpse()
 
-metadata <- readRDS(paste0("data/", park, "/raw/metadata.RDS"))
+# Fish are only sampled by BRUV, so the BOSS drops are dropped here. Without
+# this they would be carried into all_samples below and counted as BRUVs with
+# zero biomass
+metadata <- readRDS(paste0("data/", park, "/raw/metadata.RDS")) %>%
+  dplyr::filter(method %in% "BRUV") %>%
+  dplyr::select(-method)
 
 # This is formatted habitat from 03_create-metrics_habitat
 benthos <- readRDS(paste0("data/", park, "/tidy/", name, "_benthos-count.RDS")) %>%
@@ -83,8 +89,9 @@ count.wide <- count %>%
     values_fill = 0
   ) %>%
   left_join(
-    metadata %>% dplyr::select(sample, status, year),
-    by = "sample"
+    metadata %>% dplyr::select(campaignid, sample, status, Year = year) %>%
+      dplyr::mutate(Year = as.character(Year)),
+    by = c("campaignid", "sample")
   ) %>%
   dplyr::filter(!is.na(status))
 
@@ -95,7 +102,7 @@ count.wide <- count %>%
 make_sac_df <- function(df, year_name, status_name) {
 
   species_mat <- df %>%
-    dplyr::select(-campaignid, -sample, -year, -status)
+    dplyr::select(-campaignid, -sample, -Year, -status)
 
   species_pa <- vegan::decostand(species_mat, method = "pa")
 
@@ -136,11 +143,11 @@ make_sac_df <- function(df, year_name, status_name) {
 # -----------------------------
 
 sac_df <- count.wide %>%
-  dplyr::group_split(year, status) %>%
+  dplyr::group_split(Year, status) %>%
   purrr::map_dfr(function(x) {
     make_sac_df(
       x,
-      unique(x$year),
+      unique(x$Year),
       unique(x$status)
     )
   })
@@ -271,9 +278,14 @@ saveRDS(b20_species, file = paste0("data/", park, "/tidy/", name, "_b20-species.
 # -------------------------------------------------------------------------
 
 marine_parks_amp <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
-  dplyr::filter(name %in% c("South-west Corner")) %>% # TODO confirm correct park name for SWC eastern arm
   dplyr::filter(epbc %in% "Commonwealth") %>%
-  st_transform(4326)
+  st_transform(4326) %>%
+  # Keep only the parks the samples actually fall in
+  st_filter(metadata %>%
+              st_as_sf(coords = c("longitude_dd", "latitude_dd"), crs = 4326))
+
+# TODO Check these are the parks you expect
+unique(marine_parks_amp$name)
 
 metadata_amp <- metadata %>%
   distinct(campaignid, sample, .keep_all = TRUE) %>%
@@ -402,6 +414,38 @@ saveRDS(
   file = paste0("data/", park, "/tidy/", name, "_b20-species_amp.rds")
 )
 
+## The below is to work out which species are missing fishbase data
+# message(paste(length(which(!is.na(biomass$length_cm))), "measured lengths in data"))
+# message(paste(length(which(!is.na(biomass$adj_length))), "adjusted lengths in data"))
+# message(paste(length(which(!is.na(biomass$length_cm))) - length(which(!is.na(biomass$adj_length))),
+#               "measured lengths not converted to adjusted (missing)"))
+#
+# message(paste(length(which(!is.na(biomass$length_cm) &
+#                              is.na(biomass$fb_length_weight_measure))), "because fb_length_weight_measure is NA"))
+# message(paste(length(which(!is.na(biomass$length_cm) &
+#                              is.na(biomass$fb_ll_equation_type) &
+#                              biomass$fb_length_weight_measure == "TL")),
+#               "because fb_length_weight_measure = TL (good) but fb_ll_equation_type is missing"))
+# message(paste(length(which(biomass$fb_length_weight_measure == "SL" & !is.na(biomass$length_cm))),
+#               "because fb_length_weight_measure is SL (not FL or TL)"))
+#
+# message(paste("These 3x reasons added =", length(which(!is.na(biomass$length_cm) &
+#                                                          is.na(biomass$fb_length_weight_measure))) +
+#                 length(which(!is.na(biomass$length_cm) &
+#                                is.na(biomass$fb_ll_equation_type) &
+#                                biomass$fb_length_weight_measure == "TL")) +
+#                 length(which(biomass$fb_length_weight_measure == "SL" & !is.na(biomass$length_cm))),
+#               "accounting for all missing adjusted lengths"))
+#
+# missing_info <- biomass %>%
+#   dplyr::filter(class %in% "Actinopterygii") %>%
+#   dplyr::filter(length_cm >= 20) %>%
+#   filter(is.na(adj_length)) %>%
+#   distinct(scientific_name, australian_common_name, .keep_all = TRUE) %>%
+#   select(family, genus, species, australian_common_name, fb_length_weight_measure,
+#          fb_a, fb_b, fb_ll_equation_type)
+# write.csv(missing_info, file = paste0("data/", park, "/tidy/", name, "_b20_missing_info.csv"))
+
 b20_metadata <- biomass %>%
   distinct(year, sample) %>%
   glimpse()
@@ -451,4 +495,3 @@ b20_tidy <- biomass %>% # TODO this needs tweaking, not working 100% because som
 nrow(filter(b20_tidy, count > 0))/nrow(b20_tidy)
 
 saveRDS(b20_tidy, file = paste0("data/", park, "/tidy/", name, "_tidy-b20.rds"))
-

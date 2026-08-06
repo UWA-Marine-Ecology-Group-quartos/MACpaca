@@ -1,3 +1,5 @@
-name:          "swc_easternarmAMP"
-park:          "swc_easternarm"
-years:         [2022, 2024]
+name: "swc_easternarm"
+park: "Swc_easternarm"
+years: ["2022", "2024"]      # EVERY survey year
+combine_benthos: true       # true = pool benthos years into ONE
+                             # Combine benthos if years have samples in different spatial areas

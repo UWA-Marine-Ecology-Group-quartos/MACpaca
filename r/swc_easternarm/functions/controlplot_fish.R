@@ -1,4 +1,4 @@
-controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
+controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv = NULL,
                              metric_label = NULL,
                              depth_levels = c("Shallow (0 - 30 m)",
                                               "Mesophotic (30 - 70 m)",
@@ -23,55 +23,54 @@ controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
          paste(setdiff(req_cols, names(data)), collapse = ", "))
   }
 
+  # Commonwealth zones only, unless a state park abbreviation is supplied
+  zone_levels <- c(
+    paste(amp_abbrv, "HPZ"),
+    paste(amp_abbrv, "NPZ (IUCN II)"),
+    paste(amp_abbrv, "other zones")
+  )
+  zone_fills  <- c("#fff8a3", "#7bbc63", "#b9e6fb")
+  zone_shapes <- c(21, 21, 21)
+
+  if (!is.null(state_abbrv)) {
+    zone_levels <- c(zone_levels,
+                     paste(state_abbrv, "SZ (IUCN II)"),
+                     paste(state_abbrv, "other zones"))
+    zone_fills  <- c(zone_fills, "#bfd054", "#bddde1")
+    zone_shapes <- c(zone_shapes, 25, 25)
+  }
+
   plot_dat <- data %>%
     dplyr::filter(!is.na(.data[[mean_col]])) %>%
     dplyr::mutate(
       year = as.numeric(year),
       depth_class = factor(depth_class, levels = depth_levels),
-      zone_new = factor(
-        zone_new,
-        levels = c(
-          paste(amp_abbrv, "HPZ"),
-          paste(amp_abbrv, "NPZ (IUCN II)"),
-          paste(amp_abbrv, "other zones"),
-          paste(state_abbrv, "SZ (IUCN II)"),
-          paste(state_abbrv, "other zones")
-        )
-      )
+      zone_new = factor(zone_new, levels = zone_levels)
     )
+
+  # Warn if any zone label was not matched, rather than plotting it as NA
+  if (any(is.na(plot_dat$zone_new))) {
+    message("Dropping ", sum(is.na(plot_dat$zone_new)),
+            " rows with zone labels not in: ", paste(zone_levels, collapse = ", "))
+    plot_dat <- dplyr::filter(plot_dat, !is.na(zone_new))
+  }
+
+  # Only keep the zones actually present, so the legend matches the plot
+  plot_dat <- dplyr::mutate(plot_dat, zone_new = droplevels(zone_new))
 
   if (nrow(plot_dat) == 0) {
     message("No data available to plot for ", metric_label)
     return(NULL)
   }
 
-  fill_vals <- setNames(
-    c("#fff8a3", "#7bbc63", "#b9e6fb", "#bfd054", "#bddde1"),
-    c(
-      paste(amp_abbrv, "HPZ"),
-      paste(amp_abbrv, "NPZ (IUCN II)"),
-      paste(amp_abbrv, "other zones"),
-      paste(state_abbrv, "SZ (IUCN II)"),
-      paste(state_abbrv, "other zones")
-    )
-  )
-
-  shape_vals <- setNames(
-    c(21, 21, 21, 25, 25),
-    c(
-      paste(amp_abbrv, "HPZ"),
-      paste(amp_abbrv, "NPZ (IUCN II)"),
-      paste(amp_abbrv, "other zones"),
-      paste(state_abbrv, "SZ (IUCN II)"),
-      paste(state_abbrv, "other zones")
-    )
-  )
+  fill_vals  <- setNames(zone_fills,  zone_levels)
+  shape_vals <- setNames(zone_shapes, zone_levels)
 
   if (metric == "cti") {
 
     sst <- readRDS(
       paste0("data/", park, "/spatial/oceanography/",
-             name, "_SST_time-series.rds")
+             name, "_SST_time-series-recent.rds")
     ) %>%
       dplyr::mutate(year = as.numeric(year)) %>%
       dplyr::group_by(year) %>%
@@ -119,7 +118,7 @@ controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
         alpha = 0.8
       ) +
       geom_vline(
-        xintercept = 2018,
+        xintercept = 2018, # TODO set to your zoning/reference year
         linetype = "dashed",
         color = "black",
         linewidth = 0.5,
@@ -127,10 +126,10 @@ controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
       ) +
       facet_wrap(~depth_class, ncol = 1, scales = "free_y") +
       theme_classic() +
-      scale_x_continuous(breaks = c(2014, 2024)) +
-      coord_cartesian(xlim = c(2013, 2025)) +
-      scale_fill_manual(values = fill_vals, name = "Marine Parks", drop = FALSE) +
-      scale_shape_manual(values = shape_vals, name = "Marine Parks", drop = FALSE) +
+      scale_x_continuous(breaks = c(2014, 2024)) + # TODO set to your survey years
+      coord_cartesian(xlim = c(2013, 2025)) + # TODO set to your survey years
+      scale_fill_manual(values = fill_vals, name = "Marine Parks", drop = TRUE) +
+      scale_shape_manual(values = shape_vals, name = "Marine Parks", drop = TRUE) +
       labs(
         x = "Year",
         y = metric_label,
@@ -164,7 +163,7 @@ controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
         alpha = 0.8
       ) +
       geom_vline(
-        xintercept = 2018,
+        xintercept = 2018, # TODO set to your zoning/reference year
         linetype = "dashed",
         color = "black",
         linewidth = 0.5,
@@ -172,10 +171,10 @@ controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
       ) +
       facet_wrap(~depth_class, ncol = 1, scales = "free_y") +
       theme_classic() +
-      scale_x_continuous(breaks = c(2014, 2024)) +
-      coord_cartesian(xlim = c(2013, 2025), ylim = c(0, NA)) +
-      scale_fill_manual(values = fill_vals, name = "Marine Parks", drop = FALSE) +
-      scale_shape_manual(values = shape_vals, name = "Marine Parks", drop = FALSE) +
+      scale_x_continuous(breaks = c(2022, 2024)) + # TODO set to your survey years
+      coord_cartesian(xlim = c(2016, 2025), ylim = c(0, NA)) + # TODO set to your survey years
+      scale_fill_manual(values = fill_vals, name = "Marine Parks", drop = TRUE) +
+      scale_shape_manual(values = shape_vals, name = "Marine Parks", drop = TRUE) +
       labs(
         x = "Year",
         y = metric_label,
