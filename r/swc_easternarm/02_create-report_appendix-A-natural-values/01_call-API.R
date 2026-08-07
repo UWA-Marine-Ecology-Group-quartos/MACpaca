@@ -258,7 +258,7 @@ zones_by_campaign <- sample_zones %>%
   dplyr::distinct(campaignid, method, zone_short) %>%
   dplyr::arrange(campaignid, method, zone_short) %>%
   dplyr::group_by(campaignid, method) %>%
-  dplyr::summarise(amp_zones = paste(zone_short, collapse = ", "), .groups = "drop")
+  dplyr::summarise(areas = paste(zone_short, collapse = ", "), .groups = "drop")
 
 # Which data types were collected in each campaign? ----
 # Counts the samples in each campaign that have a row in each dataset. Fish
@@ -307,7 +307,7 @@ sampling_summary <- metadata %>%
   left_join(zones_by_campaign, by = c("campaignid", "method")) %>%
   left_join(data_types,        by = c("campaignid", "method")) %>%
   dplyr::arrange(date_start, campaignid) %>%
-  dplyr::select(dates, campaignid, method, amp_zones, n_samples,
+  dplyr::select(dates, campaignid, method, areas, n_samples,
                 habitat_count, fish_count, fish_length)
 
 # NOTE Column names are left as tidy snake_case here - the report labels
