@@ -110,7 +110,6 @@ metadata <- bind_rows(
   mutate(year   = as.character(year(date_time)),
          status = as.character(status),
          method = as.character(method)) %>%
-  # Both syntheses cover more than eastern Recherche
   filter(longitude_dd >= e[1], longitude_dd <= e[2],
          latitude_dd  >= e[3], latitude_dd  <= e[4])
 

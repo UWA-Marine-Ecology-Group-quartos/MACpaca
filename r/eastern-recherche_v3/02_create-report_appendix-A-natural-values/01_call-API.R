@@ -1,9 +1,9 @@
 ###
-# Project: NESP 4.20 - Marine Park Dashboard reporting
+# Project: NESP 4.21 - Australian Marine Parks Natural Values Reporting
 # Data:    Marine Park monitoring data syntheses
 # Task:    Call GlobalArchive API to download data syntheses
 # Author:  Annika Leunig
-# Date:    June 2024
+# Date:    July 2026
 ###
 rm(list = ls())
 
@@ -49,6 +49,36 @@ CheckEM::ga_api_all_data(synthesis_id = "70", # BRUV - fish and benthos
 # metadata and benthos endpoints directly instead.
 boss_metadata <- CheckEM::ga_api_metadata(token = token,
                                           synthesis_id = "77") # BOSS
+
+# Repair the BOSS coordinates ----
+# Synthesis 77 returns latitude_dd holding the longitudes and longitude_dd
+# entirely empty, so every BOSS sample fails the extent filter below and is
+# silently dropped. The real positions come from the field metadata sheet.
+# NOTE the GlobalArchive sample names carry an "NA_" prefix (the empty period
+# field pasted onto the opcode) that the field sheet does not, so the join is
+# done on a stripped key - sample itself is left untouched so the benthos join
+# in tidy_habitat still matches.
+boss_field_metadata <- read_csv(paste0("data/", park, "/raw/Salisbury_Investigator_MBH_BOSS_habitat_Metadata.csv"),
+                                show_col_types = FALSE) %>%
+  dplyr::select(sample_key = Sample,
+                longitude_field = Longitude,
+                latitude_field  = Latitude) %>%
+  dplyr::distinct(sample_key, .keep_all = TRUE)
+
+boss_metadata <- boss_metadata %>%
+  mutate(sample_key = str_remove(sample, "^NA_")) %>%
+  left_join(boss_field_metadata, by = "sample_key") %>%
+  mutate(longitude_dd = longitude_field,
+         latitude_dd  = latitude_field) %>%
+  dplyr::select(-sample_key, -longitude_field, -latitude_field)
+
+# TODO check how many BOSS samples got a position - the field sheet only covers
+# the Salisbury and Investigator campaigns, so any other campaign in synthesis
+# 77 will come back NA here and be dropped by the extent filter below
+boss_metadata %>%
+  summarise(n = n(),
+            no_position = sum(is.na(longitude_dd) | is.na(latitude_dd))) %>%
+  print()
 
 saveRDS(boss_metadata, paste0("data/", park, "/raw/boss_metadata.RDS"))
 
@@ -97,7 +127,12 @@ metadata <- bind_rows(
   readRDS(paste0("data/", park, "/raw/bruv_metadata.RDS")) %>%
     dplyr::select(any_of(meta_cols)) %>% mutate(method = "BRUV"),
   readRDS(paste0("data/", park, "/raw/boss_metadata.RDS")) %>%
-    dplyr::select(any_of(meta_cols)) %>% mutate(method = "BOSS")
+    dplyr::select(any_of(meta_cols)) %>%
+    # The BOSS synthesis returns date_time as an ISO 8601 character string - the
+    # BRUV synthesis returns a UTC datetime, and bind_rows() will not combine
+    # the two
+    mutate(date_time = lubridate::as_datetime(date_time, tz = "UTC")) %>%
+    mutate(method = "BOSS")
 ) %>%
   # Held as character until the status has been set spatially below, then
   # converted to factors
@@ -106,6 +141,12 @@ metadata <- bind_rows(
   # Both syntheses cover more than eastern Recherche
   filter(longitude_dd >= e[1], longitude_dd <= e[2],
          latitude_dd  >= e[3], latitude_dd  <= e[4])
+
+# BOSS was lost here once when the coordinates came back broken - fail loudly
+metadata %>% count(method) %>% print()
+if (!"BOSS" %in% metadata$method) {
+  warning("No BOSS samples survived the extent filter - check the BOSS coordinates")
+}
 
 # Set the status from the AMP zoning ----
 # Rather than trusting the status GlobalArchive returns, work it out spatially:
