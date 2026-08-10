@@ -28,6 +28,12 @@ individualbenthic_plot <- function(habitat_name,
     se_limits <- range(se_vals, na.rm = TRUE)
   }
 
+  # ---- Split AMP zones so National Park Zones draw on top of the other zones ----
+  # cwatr is added after both, so the coastal waters limit still sits above everything
+  npz_rows      <- grepl("National Park", marine_parks_amp$zone)
+  amp_other     <- marine_parks_amp[!npz_rows, ]
+  amp_nationalp <- marine_parks_amp[npz_rows, ]
+
   # ---- Theme variants ----
   theme_left <- theme(
     axis.title = element_blank(),
@@ -48,17 +54,19 @@ individualbenthic_plot <- function(habitat_name,
       axis.ticks.y = element_blank()
     )
 
-  # Top row (no x axis)
-  theme_top <- theme(
+  # No x axis (kept in case a stacked variant is needed again)
+  theme_nox <- theme(
     axis.text.x = element_blank(),
     axis.ticks.x = element_blank()
   )
 
   # ---- Base map builder ----
-  build_base <- function(i, show_x = TRUE) {
+  # show_y is now passed explicitly - with the blocks side by side the first
+  # panel of BOTH the prediction and the SE block needs latitude labels
+  build_base <- function(show_y = TRUE, show_x = TRUE) {
 
-    y_theme <- if (i == 1) theme_left else theme_inner
-    x_theme <- if (show_x) theme() else theme_top
+    y_theme <- if (show_y) theme_left else theme_inner
+    x_theme <- if (show_x) theme() else theme_nox
 
     list(
       geom_contour(
@@ -78,17 +86,31 @@ individualbenthic_plot <- function(habitat_name,
       ),
       scale_colour_manual(values = with(wasanc, setNames(colour, zone))),
       ggnewscale::new_scale_color(),
-      geom_sf(
-        data = marine_parks_amp,
-        aes(colour = zone),
-        fill = NA,
-        show.legend = FALSE,
-        linewidth = 0.6
-      ),
+      # All other AMP zones first...
+      if (nrow(amp_other) > 0) {
+        geom_sf(
+          data = amp_other,
+          aes(colour = zone),
+          fill = NA,
+          show.legend = FALSE,
+          linewidth = 0.6
+        )
+      },
+      # ...then National Park Zones on top of them
+      if (nrow(amp_nationalp) > 0) {
+        geom_sf(
+          data = amp_nationalp,
+          aes(colour = zone),
+          fill = NA,
+          show.legend = FALSE,
+          linewidth = 0.6
+        )
+      },
+      # Coastal waters limit stays above the National Park Zone outline
       geom_sf(data = cwatr, colour = "firebrick", linewidth = 0.6),
       scale_colour_manual(values = with(marine_parks_amp, setNames(colour, zone))),
-      scale_x_continuous(breaks = scales::breaks_width(0.2)),
-      scale_y_continuous(breaks = scales::breaks_width(0.2)),
+      scale_x_continuous(breaks = scales::breaks_width(0.4)),
+      scale_y_continuous(breaks = scales::breaks_width(0.4)),
       coord_sf(
         xlim = c(prediction_limits[1], prediction_limits[2]),
         ylim = c(prediction_limits[3], prediction_limits[4]),
@@ -105,7 +127,7 @@ individualbenthic_plot <- function(habitat_name,
     )
   }
 
-  # ---- Prediction panels (top row) ----
+  # ---- Prediction panels ----
   p_pred <- lapply(seq_along(yrs), function(i) {
     ggplot() +
       geom_spatraster(data = pred_list[[i]]) +
@@ -116,11 +138,10 @@ individualbenthic_plot <- function(habitat_name,
         limits = pred_limits,
         oob = scales::squish
       ) +
-      ggtitle(yrs[i]) +
-      build_base(i, show_x = FALSE)
+      build_base(show_y = (i == 1), show_x = TRUE)
   })
 
-  # ---- SE panels (bottom row) ----
+  # ---- SE panels ----
   p_se <- lapply(seq_along(yrs), function(i) {
     ggplot() +
       geom_spatraster(data = se_list[[i]]) +
@@ -131,29 +152,29 @@ individualbenthic_plot <- function(habitat_name,
         limits = se_limits,
         oob = scales::squish
       ) +
-      build_base(i, show_x = TRUE)  # keep x axis
+      build_base(show_y = (i == 1), show_x = TRUE)
   })
 
-  # ---- Row labels ----
-  row_label_plot <- function(label) {
+  # ---- Block headers (horizontal, above each block) ----
+  block_label_plot <- function(label) {
     ggplot() +
       theme_void() +
       annotate("text", x = 0.5, y = 0.5, label = label,
-               angle = 90, fontface = "bold", size = 4.5)
+               fontface = "bold", size = 4.5)
   }
 
-  pred_label <- row_label_plot("Prediction")
-  se_label   <- row_label_plot("Standard Error")
+  # ---- Combine: prediction block and SE block side by side ----
+  pred_block <- wrap_plots(p_pred, nrow = 1, guides = "collect")
+  se_block   <- wrap_plots(p_se,   nrow = 1, guides = "collect")
 
-  # ---- Combine ----
-  pred_row <- pred_label + wrap_plots(p_pred, nrow = 1, guides = "collect") +
-    plot_layout(widths = c(0.06, 1))
+  pred_col <- (block_label_plot("Prediction") / pred_block) +
+    plot_layout(heights = c(0.06, 1))
 
-  se_row <- se_label + wrap_plots(p_se, nrow = 1, guides = "collect") +
-    plot_layout(widths = c(0.06, 1))
+  se_col <- (block_label_plot("Standard Error") / se_block) +
+    plot_layout(heights = c(0.06, 1))
 
-  p_out <- (pred_row / se_row) +
-    plot_layout(heights = c(1, 1), guides = "collect") &
+  p_out <- (pred_col | se_col) +
+    plot_layout(widths = c(1, 1), guides = "collect") &
     theme(
       legend.position = "right",
       legend.box.margin = margin(l = 4, unit = "mm"),

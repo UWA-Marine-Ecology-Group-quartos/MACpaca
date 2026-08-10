@@ -237,12 +237,13 @@ summary(m_cti)
 # plot(m_cti)
 
 # B20 - geoscience_roughness + reef (delta AICc 0)
+# B20 - geoscience_depth + geoscience_roughness (delta AICc 1.08)
 m_b20 <- gam(count ~
-               s(geoscience_roughness, k = 3, bs = "cr") +
-               s(reef, k = 3, bs = "cr"),
+               s(geoscience_depth, k = 3, bs = "cr") +
+               s(geoscience_roughness, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "b20"),
              family = tw())
-summary(m_b20)
+
 # plot(m_b20, all.terms = TRUE)
 
 # Read predictor rasters to predict onto (bathymetry derivatives etc.)

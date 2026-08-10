@@ -32,13 +32,15 @@ library(purrr)
 
 metadata_bathy_derivatives <- readRDS(paste0("data/", park, "/tidy/", name, "_metadata-bathymetry-derivatives.rds")) %>%
   clean_names() %>%
-  dplyr::select(-method) %>%
+  dplyr::select(-any_of("method")) %>%
   glimpse()
 
-# Fish are only sampled by BRUV, so the BOSS drops are dropped here. Without
+metadata <- readRDS(paste0("data/", park, "/raw/metadata.RDS"))
+
+# Fish are only sampled by BRUV, so the BOSS drops are removed here. Without
 # this they would be carried into all_samples below and counted as BRUVs with
-# zero biomass
-metadata <- readRDS(paste0("data/", park, "/raw/metadata.RDS")) %>%
+# zero abundance and zero biomass
+metadata_fish <- metadata %>%
   dplyr::filter(method %in% "BRUV") %>%
   dplyr::select(-method)
 
@@ -58,17 +60,21 @@ spp_list <- count %>%
   dplyr::distinct(scientific_name, .keep_all = T) %>%
   dplyr::select(family, genus, species, scientific_name)
 
-write.csv(spp_list, file = paste0("data/", park, "/tidy/", name, "_species_list.csv"))
+write.csv(spp_list, file = paste0("data/", park, "/tidy/", name, "_species_list.csv"),
+          row.names = FALSE)
 
 ta.sr <- count %>%
   dplyr::select(-c(family, genus, species)) %>%
-  pivot_wider(names_from = "scientific_name", values_from = count) %>%
+  dplyr::group_by(campaignid, sample, scientific_name) %>%
+  dplyr::summarise(count = sum(count, na.rm = TRUE), .groups = "drop") %>%
+  pivot_wider(names_from = "scientific_name", values_from = count, values_fill = 0) %>%
   dplyr::mutate(
-    total_abundance = rowSums(across(-c(campaignid, sample)), na.rm = TRUE),
-    species_richness = rowSums(across(-c(campaignid, sample)) > 0)
+    species_richness = rowSums(across(-c(campaignid, sample)) > 0),
+    total_abundance  = rowSums(across(-c(campaignid, sample, species_richness)))
   ) %>%
   dplyr::select(campaignid, sample, total_abundance, species_richness) %>%
-  pivot_longer(cols = c("total_abundance", "species_richness"), names_to = "response", values_to = "count") %>%
+  pivot_longer(cols = c("total_abundance", "species_richness"),
+               names_to = "response", values_to = "count") %>%
   glimpse()
 
 # -----------------------------
@@ -89,7 +95,8 @@ count.wide <- count %>%
     values_fill = 0
   ) %>%
   left_join(
-    metadata %>% dplyr::select(campaignid, sample, status, Year = year) %>%
+    metadata_fish %>%
+      dplyr::select(campaignid, sample, status, Year = year) %>%
       dplyr::mutate(Year = as.character(Year)),
     by = c("campaignid", "sample")
   ) %>%
@@ -159,14 +166,17 @@ cti <- CheckEM::create_cti(data = count) %>%
   dplyr::mutate(response = "cti") %>%
   glimpse()
 
-tidy_maxn <- bind_rows(ta.sr, cti) %>% # TODO check which samples are removed in this chunk
+tidy_maxn <- bind_rows(ta.sr, cti) %>%
   dplyr::select(-c(log_count, w_sti)) %>%
-  dplyr::left_join(metadata) %>% # To join samples without valid bathymetry derivatives
+  dplyr::left_join(metadata_fish) %>% # To join samples without valid bathymetry derivatives
   dplyr::left_join(benthos) %>%
   dplyr::left_join(metadata_bathy_derivatives) %>%
   dplyr::filter(!is.na(reef),
-                !is.na(geoscience_aspect)) %>% # Not valid values for modelling so will remove them now
+                !is.na(geoscience_roughness)) %>% # Not valid values for modelling so will remove them now
   glimpse()
+
+message(dplyr::n_distinct(ta.sr$sample) - dplyr::n_distinct(tidy_maxn$sample),
+        " samples dropped from tidy_maxn for missing reef or bathymetry derivatives")
 
 saveRDS(tidy_maxn, file = paste0("data/", park, "/tidy/", name, "_tidy-count.rds"))
 
@@ -194,14 +204,24 @@ biomass <- b20_length %>%
       TRUE ~ NA_real_  # present but cannot compute biomass -> NA
     )
   ) %>%
-  left_join(metadata, by = c("campaignid","sample")) %>%
+  left_join(metadata_fish, by = c("campaignid","sample")) %>%
   left_join(metadata_bathy_derivatives,
             by = c("campaignid","sample","longitude_dd","latitude_dd","status","year"))
+
+b20_missing_summary <- biomass %>%
+  dplyr::filter(count > 0,
+                class %in% "Actinopterygii",
+                length_cm >= 20) %>%
+  dplyr::summarise(n_records = dplyr::n(),
+                   n_missing_mass = sum(is.na(mass_g)),
+                   percent_missing = n_missing_mass / n_records * 100)
+
+print(b20_missing_summary)
 
 # 2) Define inclusion + b20-specific biomass
 b20_mass <- biomass %>%
   mutate(
-    include_b20 = class == "Actinopterygii" &
+    include_b20 = class %in% "Actinopterygii" &
       (count == 0 | (length_cm >= 20 & length_cm <= 800)),
 
     b20_mass_g = case_when(
@@ -213,14 +233,17 @@ b20_mass <- biomass %>%
   )
 
 b20_mass_check <- b20_mass %>%
-  select(sample, year, scientific_name, b20_mass_g, length_cm)
+  select(campaignid, sample, year, scientific_name, b20_mass_g, length_cm)
 
 sp_watercol <- b20_mass %>%
   distinct(scientific_name, rls_water_column)
 
-# 3) Per sample × species B20 biomass
+all_samples <- metadata_fish %>%
+  distinct(campaignid, year, sample)
+
+# 3) Per sample x species B20 biomass
 b20_by_sample <- b20_mass %>%
-  group_by(year, sample, scientific_name) %>%
+  group_by(campaignid, year, sample, scientific_name) %>%
   summarise(
     present_n = sum(count, na.rm = TRUE),
 
@@ -234,16 +257,13 @@ b20_by_sample <- b20_mass %>%
   ) %>%
   left_join(sp_watercol, by = "scientific_name")
 
-
-# 4) Ensure every BRUV × species exists (zeros for absences)
-all_samples <- metadata %>%
-  distinct(year, sample)
-
+# 4) Ensure every BRUV x species exists (zeros for absences)
 b20_by_sample_complete <- b20_by_sample %>%
-  right_join(all_samples, by = c("year","sample")) %>%
-  tidyr::complete(nesting(year, sample), scientific_name,
+  right_join(all_samples, by = c("campaignid","year","sample")) %>%
+  tidyr::complete(nesting(campaignid, year, sample), scientific_name,
                   fill = list(b20_sample = 0, present_n = 0)) %>%
-  left_join(metadata %>% select(year, sample, status), by = c("year", "sample"))
+  left_join(metadata_fish %>% distinct(campaignid, year, sample, status),
+            by = c("campaignid", "year", "sample"))
 
 # 5) Species summaries per year
 b20_species_by_status <- b20_by_sample_complete %>%
@@ -272,22 +292,20 @@ b20_species <- bind_rows(b20_species_by_status, b20_species_combined) %>%
 
 saveRDS(b20_species, file = paste0("data/", park, "/tidy/", name, "_b20-species.rds"))
 
-
 # -------------------------------------------------------------------------
 # Commonwealth-only copy of metadata
 # -------------------------------------------------------------------------
-
 marine_parks_amp <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
   dplyr::filter(epbc %in% "Commonwealth") %>%
   st_transform(4326) %>%
   # Keep only the parks the samples actually fall in
-  st_filter(metadata %>%
+  st_filter(metadata_fish %>%
               st_as_sf(coords = c("longitude_dd", "latitude_dd"), crs = 4326))
 
 # TODO Check these are the parks you expect
 unique(marine_parks_amp$name)
 
-metadata_amp <- metadata %>%
+metadata_amp <- metadata_fish %>%
   distinct(campaignid, sample, .keep_all = TRUE) %>%
   st_as_sf(coords = c("longitude_dd", "latitude_dd"), crs = 4326, remove = FALSE) %>%
   st_join(
@@ -336,7 +354,7 @@ biomass_amp <- b20_length_amp %>%
 # 2) Define inclusion + b20-specific biomass
 b20_mass_amp <- biomass_amp %>%
   mutate(
-    include_b20 = class == "Actinopterygii" &
+    include_b20 = class %in% "Actinopterygii" &
       (count == 0 | (length_cm >= 20 & length_cm <= 800)),
 
     b20_mass_g = case_when(
@@ -348,14 +366,17 @@ b20_mass_amp <- biomass_amp %>%
   )
 
 b20_mass_check_amp <- b20_mass_amp %>%
-  select(sample, year, scientific_name, b20_mass_g, length_cm)
+  select(campaignid, sample, year, scientific_name, b20_mass_g, length_cm)
 
 sp_watercol_amp <- b20_mass_amp %>%
   distinct(scientific_name, rls_water_column)
 
-# 3) Per sample × species B20 biomass
+all_samples_amp <- metadata_amp %>%
+  distinct(campaignid, year, sample)
+
+# 3) Per sample x species B20 biomass
 b20_by_sample_amp <- b20_mass_amp %>%
-  group_by(year, sample, scientific_name) %>%
+  group_by(campaignid, year, sample, scientific_name) %>%
   summarise(
     present_n = sum(count, na.rm = TRUE),
 
@@ -369,19 +390,16 @@ b20_by_sample_amp <- b20_mass_amp %>%
   ) %>%
   left_join(sp_watercol_amp, by = "scientific_name")
 
-# 4) Ensure every BRUV × species exists (zeros for absences)
-all_samples_amp <- metadata_amp %>%
-  distinct(year, sample)
-
+# 4) Ensure every BRUV x species exists (zeros for absences)
 b20_by_sample_complete_amp <- b20_by_sample_amp %>%
-  right_join(all_samples_amp, by = c("year","sample")) %>%
+  right_join(all_samples_amp, by = c("campaignid","year","sample")) %>%
   tidyr::complete(
-    nesting(year, sample), scientific_name,
+    nesting(campaignid, year, sample), scientific_name,
     fill = list(b20_sample = 0, present_n = 0)
   ) %>%
   left_join(
-    metadata_amp %>% distinct(year, sample, status),
-    by = c("year", "sample")
+    metadata_amp %>% distinct(campaignid, year, sample, status),
+    by = c("campaignid", "year", "sample")
   )
 
 # 5) Species summaries per year
@@ -437,36 +455,21 @@ saveRDS(
 #                 length(which(biomass$fb_length_weight_measure == "SL" & !is.na(biomass$length_cm))),
 #               "accounting for all missing adjusted lengths"))
 #
-# missing_info <- biomass %>%
-#   dplyr::filter(class %in% "Actinopterygii") %>%
-#   dplyr::filter(length_cm >= 20) %>%
-#   filter(is.na(adj_length)) %>%
-#   distinct(scientific_name, australian_common_name, .keep_all = TRUE) %>%
-#   select(family, genus, species, australian_common_name, fb_length_weight_measure,
-#          fb_a, fb_b, fb_ll_equation_type)
-# write.csv(missing_info, file = paste0("data/", park, "/tidy/", name, "_b20_missing_info.csv"))
+missing_info <- biomass %>%
+  dplyr::filter(class %in% "Actinopterygii") %>%
+  dplyr::filter(length_cm >= 20) %>%
+  filter(is.na(adj_length)) %>%
+  distinct(scientific_name, australian_common_name, .keep_all = TRUE) %>%
+  select(family, genus, species, australian_common_name, fb_length_weight_measure,
+         fb_a, fb_b, fb_ll_equation_type)
 
-b20_metadata <- biomass %>%
-  distinct(year, sample) %>%
-  glimpse()
+write.csv(missing_info, file = paste0("data/", park, "/tidy/", name, "_b20_missing_info.csv"),
+          row.names = FALSE)
 
 # Calculate B20* for each sample
-b20_tidy <- biomass %>% # TODO this needs tweaking, not working 100% because some lengths have NA mass (fix in biomass)
-  mutate(
-    include_b20 = class == "Actinopterygii" &
-      # B20 size rule, but keep absences
-      (count == 0 | (length_cm >= 20 & length_cm <= 800)),
-
-    b20_mass_g = case_when(
-      count == 0 ~ 0,                        # absences
-      !include_b20 ~ 0,                      # excluded rows contribute zero to B20
-      include_b20 & !is.na(mass_g) ~ mass_g, # included + computable
-      include_b20 & is.na(mass_g) ~ NA_real_ # included but missing -> NA (flag)
-    )
-  ) %>%
-  group_by(year, sample) %>%
+b20_tidy <- b20_mass %>%
+  group_by(campaignid, year, sample) %>%
   summarise(
-    # if you want a diagnostic:
     n_present = sum(count > 0, na.rm = TRUE),
     n_present_included = sum(count > 0 & include_b20, na.rm = TRUE),
     n_missing_mass_included = sum(count > 0 & include_b20 & is.na(b20_mass_g), na.rm = TRUE),
@@ -478,20 +481,20 @@ b20_tidy <- biomass %>% # TODO this needs tweaking, not working 100% because som
 
     .groups = "drop"
   ) %>%
-  right_join(b20_metadata, by = c("year","sample")) %>%   # keep all BRUVs
-  mutate(
-    count = ifelse(is.na(count), 0, count),
-    response = "b20"
-  ) %>%
-  left_join(metadata, by = c("year","sample")) %>%
+  right_join(all_samples, by = c("campaignid","year","sample")) %>%   # keep all BRUVs
+  mutate(response = "b20") %>%
+  left_join(metadata_fish, by = c("campaignid","year","sample")) %>%
   left_join(metadata_bathy_derivatives,
             by = c("campaignid","sample","longitude_dd","latitude_dd","status","year")) %>%
   left_join(benthos, by = c("campaignid","sample","status","year")) %>%
   filter(!is.na(reef),
-         !is.na(geoscience_aspect)) %>%
+         !is.na(geoscience_roughness)) %>%
   glimpse()
 
+message(sum(is.na(b20_tidy$count)), " of ", nrow(b20_tidy),
+        " samples have unknown B20 (large fish present, no computable mass)")
+
 # Check number of samples that are > 0
-nrow(filter(b20_tidy, count > 0))/nrow(b20_tidy)
+nrow(filter(b20_tidy, count > 0)) / sum(!is.na(b20_tidy$count))
 
 saveRDS(b20_tidy, file = paste0("data/", park, "/tidy/", name, "_tidy-b20.rds"))

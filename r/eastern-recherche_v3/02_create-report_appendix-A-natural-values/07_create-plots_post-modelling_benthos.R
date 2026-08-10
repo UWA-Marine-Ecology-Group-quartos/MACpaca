@@ -229,7 +229,7 @@ ggsave(
   ),
   plot = p_dom_se,
   height = 7,
-  width = 8,
+  width = 10,
   dpi = 300,
   units = "in",
   bg = "white"
@@ -287,7 +287,7 @@ ggsave(
     "_predicted-reef-and-se_",
     paste(years, collapse = "-"), ".png"
   ),
-  plot = p_reef, height = 10, width = 6, dpi = 300, units = "in", bg = "white"
+  plot = p_reef, height = 5, width = 8, dpi = 300, units = "in", bg = "white"
 )
 
 saveRDS(p_reef,
@@ -325,8 +325,8 @@ for (habitat_name in names(habitat_lookup)) {
       paste(pred.labels, collapse = "-"), ".png"
     ),
     plot = p_hab,
-    height = 10,
-    width = 6,
+    height = 5,
+    width = 8,
     dpi = 300,
     units = "in",
     bg = "white"
@@ -515,8 +515,8 @@ ggsave(
     "plots/", park, "/habitat/", name, "_scatterpie_", benthos_label, ".png"
   ),
   plot = p_scatterpie,
-  height = 6,
-  width = 10,
+  height = 7,
+  width = 6,
   dpi = 300,
   bg = "white"
 )

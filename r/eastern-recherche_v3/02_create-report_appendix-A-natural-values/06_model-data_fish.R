@@ -65,7 +65,7 @@ print(table(tidy_maxn$year, useNA = "ifany"))
 
 # Re-set the predictors for modeling----
 names(tidy_maxn)
-pred.vars <- c("reef", "geoscience_depth","geoscience_aspect" , "geoscience_roughness", "geoscience_detrended")
+pred.vars <- c("reef", "geoscience_depth", "geoscience_roughness", "geoscience_detrended")
 
 # TODO Check for correlation of predictor variables- remove anything highly correlated (>0.95)---
 round(cor(tidy_maxn[ , pred.vars]), 2)
@@ -116,10 +116,9 @@ for(i in 1:length(resp.vars)){
                                   test.fit = Model1,
                                   pred.vars.cont = pred.vars,
                                   pred.vars.fact = factor.vars,
-                                  cyclic.vars = "geoscience_aspect",
                                   k = 3, # TODO check this, maybe add cov.cutoff
                                   factor.smooth.interactions = F, # TODO check this
-                                  max.predictors = 5 # TODO check this
+                                  max.predictors = 4 # TODO check this
   )
   out.list <- fit.model.set(model.set,
                             max.models = 600,
@@ -168,7 +167,7 @@ print(table(tidy_b20$year, useNA = "ifany"))
 
 # # Re-set the predictors for modeling----
 names(tidy_b20)
-pred.vars <- c("reef", "geoscience_depth","geoscience_aspect" , "geoscience_roughness", "geoscience_detrended")
+pred.vars <- c("reef", "geoscience_depth", "geoscience_roughness", "geoscience_detrended")
 
 # TODO Check for correlation of predictor variables- remove anything highly correlated (>0.95)---
 round(cor(tidy_b20[ , pred.vars]), 2)
@@ -206,10 +205,9 @@ for(i in 1:length(resp.vars)){
                                   test.fit = Model1,
                                   pred.vars.cont = pred.vars,
                                   pred.vars.fact = factor.vars,
-                                  cyclic.vars = "geoscience_aspect",
                                   k = 3, # TODO check this, maybe add cov.cutoff
                                   factor.smooth.interactions = F, # TODO check this
-                                  max.predictors = 5 # TODO check this
+                                  max.predictors = 4 # TODO check this
   )
   out.list=fit.model.set(model.set,
                          max.models=600,
@@ -261,18 +259,14 @@ stopifnot(all(year_levels %in% as.character(unique(fabund$year))))
 # predictor variables, factor variables, k and bs
 
 # Total abundance
-m_abundance <- gam(count ~ year +
-                     s(geoscience_aspect, k = 3, bs = "cc") +
-                     s(geoscience_roughness, k = 3, bs = "cr") +
+m_abundance <- gam(count ~ s(geoscience_roughness, k = 3, bs = "cr") +
                      s(reef, k = 3, bs = "cr"),
                    data = fabund %>% dplyr::filter(response %in% "total_abundance"),
                    family = tw())
 summary(m_abundance)
 
 # Species richness
-m_richness <- gam(count ~ year +
-                    s(geoscience_roughness, k = 3, bs = "cr") +
-                    s(reef, k = 3, bs = "cr"),
+m_richness <- gam(count ~ s(reef, k = 3, bs = "cr"),
                   data = fabund %>% dplyr::filter(response %in% "species_richness"),
                   family = tw())
 summary(m_richness)
@@ -287,7 +281,6 @@ summary(m_cti)
 
 # B20
 m_b20 <- gam(count ~ year +
-               s(geoscience_detrended, k = 3, bs = "cr") +
                s(reef, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "b20"),
              family = tw())
@@ -492,4 +485,3 @@ for (yi in seq_along(pred.years)) {
                      names(preddf_m), "_predicted_", this_year, ".tif"),
               overwrite = TRUE)
 }
-

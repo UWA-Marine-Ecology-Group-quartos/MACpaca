@@ -45,9 +45,9 @@ plot(bathy)
 
 # Create terrain metrics (bathymetry derivatives)
 preds <- terrain(bathy, neighbors = 8,
-                 v = c("aspect", "roughness"),
+                 v = c("roughness"),
                  unit = "degrees")
-names(preds) <- c("geoscience_aspect", "geoscience_roughness")
+names(preds) <- "geoscience_roughness"
 
 # Create detrended bathymetry
 zstar <- st_as_stars(bathy)
@@ -61,7 +61,7 @@ names(preds)[1] <- "geoscience_depth"
 
 # Save the bathymetry derivatives
 saveRDS(preds, file = paste0("data/", park, "/spatial/rasters/",
-                      name, "_bathymetry-derivatives.rds"))
+                             name, "_bathymetry-derivatives.rds"))
 
 # Read in the metadata
 metadata <- readRDS(paste0("data/", park, "/raw/metadata.RDS")) %>%
@@ -78,7 +78,7 @@ plot(metadata_sf, add = T)
 # Extract bathymetry derivatives at each of the samples
 metadata.bathy.derivatives   <- cbind(metadata,
                                       terra::extract(preds, metadata_sf)) %>%
-  filter(if_all(c(geoscience_depth, geoscience_aspect, geoscience_roughness, geoscience_detrended),
+  filter(if_all(c(geoscience_depth, geoscience_roughness, geoscience_detrended),
                 ~!is.na(.))) %>% # TODO Removes samples missing bathymetry derivatives - check these!
   dplyr::select(-ID) %>%
   glimpse()

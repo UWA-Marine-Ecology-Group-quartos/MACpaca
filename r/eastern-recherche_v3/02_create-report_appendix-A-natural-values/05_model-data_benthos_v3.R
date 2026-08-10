@@ -69,7 +69,7 @@ model_dat <- habi %>%
   glimpse()
 
 # Set predictor variables---
-pred.vars <- c("geoscience_depth", "geoscience_aspect", "geoscience_roughness", "geoscience_detrended")
+pred.vars <- c("geoscience_depth", "geoscience_roughness", "geoscience_detrended")
 
 # TODO Check for correlation of predictor variables- remove anything highly correlated (>0.95)---
 round(cor(model_dat[ , pred.vars]), 2)
@@ -117,10 +117,9 @@ for(i in 1:length(resp.vars)){
                                   test.fit = Model1,
                                   pred.vars.cont = pred.vars,
                                   pred.vars.fact = factor.vars,
-                                  cyclic.vars = c("geoscience_aspect"),
                                   k = 3, # TODO check this
                                   cov.cutoff = 0.7, # TODO need to check - Fisher recommends 0.28
-                                  max.predictors = 4 # TODO check this
+                                  max.predictors = 3 # TODO check this
   )
   out.list <- fit.model.set(model.set,
                             max.models = 600,
@@ -162,17 +161,10 @@ write.csv(all.var.imp,         file = paste0(outdir, name, "_abiotic_all.var.imp
 
 ## TODO Select best models from above then write them below (check all.mod.fits and all.var.imp)
 # For each response, carefully write the selected model choosing model type (family),
-# predictor variables, factor variables, k and bs
-#
-# ALL responses (sand/macroalgae/inverts/reef) are pooled across years - no
-# "year" term and no "by = year" smooths anywhere. Survey years sampled
-# different spatial areas, so a single combined benthos surface is the
-# defensible product. The fish script reuses this one reef surface for every
-# fish year.
+# predictor variables, factor variables, k and bs.
 
 # Sand - pooled across years
 m_sand <- gam(cbind(sand, total_pts - sand) ~
-                s(geoscience_aspect, k = 3, bs = "cc") +
                 s(geoscience_depth, k = 3, bs = "cr") +
                 s(geoscience_detrended, k = 3, bs = "cr") +
                 s(geoscience_roughness, k = 3, bs = "cr"),
@@ -181,7 +173,6 @@ summary(m_sand)
 
 # Rock - too rare to model, no candidate models returned
 # m_rock <- gam(cbind(rock, total_pts - rock) ~
-#                 s(geoscience_aspect, k = 5, bs = "cc")  +
 #                 s(geoscience_detrended, k = 5, bs = "cr") +
 #                 s(geoscience_roughness, k = 5, bs = "cr"),
 #               data = habi, method = "REML", family = binomial("logit"))
@@ -189,7 +180,6 @@ summary(m_sand)
 
 # Macroalgae - pooled across years
 m_macro <- gam(cbind(macroalgae, total_pts - macroalgae) ~
-                 s(geoscience_aspect, k = 3, bs = "cc") +
                  s(geoscience_depth, k = 3, bs = "cr") +
                  s(geoscience_detrended, k = 3, bs = "cr") +
                  s(geoscience_roughness, k = 3, bs = "cr"),
@@ -198,7 +188,6 @@ summary(m_macro)
 
 # Seagrass - not modelled (no candidate models returned)
 # m_seagrass <- gam(cbind(seagrasses, total_pts - seagrasses) ~
-#                     s(geoscience_aspect, k = 5, bs = "cc")  +
 #                     s(geoscience_depth, k = 5, bs = "cr") +
 #                     s(geoscience_detrended, k = 5, bs = "cr"),
 #                   data = habi, method = "REML", family = binomial("logit"))
@@ -206,7 +195,6 @@ summary(m_macro)
 
 # Inverts - pooled across years, simplest model within 2 delta AICc
 m_inverts <- gam(cbind(sessile_invertebrates, total_pts - sessile_invertebrates) ~
-                   s(geoscience_aspect, k = 3, bs = "cc") +
                    s(geoscience_depth, k = 3, bs = "cr") +
                    s(geoscience_detrended, k = 3, bs = "cr") +
                    s(geoscience_roughness, k = 3, bs = "cr"),
@@ -215,7 +203,6 @@ summary(m_inverts)
 
 # Reef - pooled across years, full model (all covariates important = 1).
 m_reef <- gam(cbind(reef, total_pts - reef) ~
-                s(geoscience_aspect, k = 3, bs = "cc") +
                 s(geoscience_depth, k = 3, bs = "cr") +
                 s(geoscience_detrended, k = 3, bs = "cr") +
                 s(geoscience_roughness, k = 3, bs = "cr"),

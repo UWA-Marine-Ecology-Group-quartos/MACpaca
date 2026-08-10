@@ -1,30 +1,10 @@
-dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_lookup,
-                                       x_breaks = 4, y_breaks = 4) {
+dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_lookup) {
 
   yrs <- names(dat_list)
 
   if (is.null(yrs) || any(yrs == "")) {
     stop("dat_list must be a named list")
   }
-
-  # ------------------------------------------------------------
-  # Graticule breaks
-  # ------------------------------------------------------------
-  # coord_sf() defaults to a fairly dense graticule, which collides once the
-  # panels are narrow. x_breaks / y_breaks take either a single number (a
-  # target count, passed to pretty(), which still chooses round values) or a
-  # vector of explicit degrees, e.g. y_breaks = seq(-35, -34, 0.5).
-  #
-  # Breaks sitting exactly on the extent are dropped: expand = FALSE would clip
-  # their labels in half at the panel edge.
-  resolve_breaks <- function(brks, lims) {
-    lims <- as.numeric(lims)
-    out  <- if (length(brks) > 1) brks else scales::breaks_pretty(n = brks)(lims)
-    out[out > min(lims) & out < max(lims)]
-  }
-
-  x_breaks <- resolve_breaks(x_breaks, c(prediction_limits[1], prediction_limits[2]))
-  y_breaks <- resolve_breaks(y_breaks, c(prediction_limits[3], prediction_limits[4]))
 
   # Gradient high colours for each habitat
   grad_high <- c(
@@ -157,8 +137,9 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
         override.aes = list(fill = NA, linewidth = 1),
         title.theme  = element_text(size = 9, face = "bold")
       )),
-      scale_x_continuous(breaks = x_breaks),
-      scale_y_continuous(breaks = y_breaks),
+      # Axis labels every 0.4 degrees
+      scale_x_continuous(breaks = scales::breaks_width(0.4)),
+      scale_y_continuous(breaks = scales::breaks_width(0.4)),
       coord_sf(
         xlim   = c(prediction_limits[1], prediction_limits[2]),
         ylim   = c(prediction_limits[3], prediction_limits[4]),

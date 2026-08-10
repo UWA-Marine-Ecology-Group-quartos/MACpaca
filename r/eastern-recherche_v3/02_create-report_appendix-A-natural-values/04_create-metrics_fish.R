@@ -35,7 +35,7 @@ metadata_bathy_derivatives <- readRDS(paste0("data/", park, "/tidy/", name, "_me
   glimpse()
 
 metadata <- readRDS(paste0("data/", park, "/raw/metadata.RDS"))
-metadata_fish <- metadata %>% dplyr::filter(method %in% "stereo-BRUVs")
+metadata_fish <- metadata %>% dplyr::filter(method %in% "BRUV")
 
 # This is formatted habitat from 03_create-metrics_habitat
 benthos <- readRDS(paste0("data/", park, "/tidy/", name, "_benthos-count.RDS")) %>%
@@ -169,7 +169,7 @@ tidy_maxn <- bind_rows(ta.sr, cti) %>% # TODO check which samples are removed in
   dplyr::left_join(benthos) %>%
   dplyr::left_join(metadata_bathy_derivatives) %>%
   dplyr::filter(!is.na(reef),
-                !is.na(geoscience_aspect)) %>% # Not valid values for modelling so will remove them now
+                !is.na(geoscience_roughness)) %>% # Not valid values for modelling so will remove them now
   glimpse()
 
 saveRDS(tidy_maxn, file = paste0("data/", park, "/tidy/", name, "_tidy-count.rds"))
@@ -487,7 +487,7 @@ b20_tidy <- biomass %>% # TODO this needs tweaking, not working 100% because som
             by = c("campaignid","sample","longitude_dd","latitude_dd","status","year")) %>%
   left_join(benthos, by = c("campaignid","sample","status","year")) %>%
   filter(!is.na(reef),
-         !is.na(geoscience_aspect)) %>%
+         !is.na(geoscience_roughness)) %>%
   glimpse()
 
 # Check number of samples that are > 0

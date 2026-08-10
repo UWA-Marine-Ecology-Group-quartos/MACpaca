@@ -44,15 +44,7 @@ dominantbenthos_plot_single <- function(pred_plot, prediction_limits, habitat_lo
         name     = legend_names[[hab]],
         na.value = "transparent",
         breaks   = c(0, 0.5, 1),
-        labels   = c("0", "0.5", "1"),
-        guide    = guide_colourbar(
-          direction      = "horizontal",
-          title.position = "top",
-          title.hjust    = 0.5,
-          barwidth       = unit(2.2, "cm"),
-          barheight      = unit(0.3, "cm"),
-          order          = i
-        )
+        labels   = c("0", "0.5", "1")
       )
   }
 
