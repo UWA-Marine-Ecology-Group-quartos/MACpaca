@@ -62,7 +62,7 @@ sf_use_s2(TRUE)
 
 # Set CRS and crop extent
 target_crs <- "EPSG:4326"
-e_wgs84    <- ext(109.0, 118.0, -36.0, -26.0)
+e_wgs84    <- ext(108.0, 118.0, -36.0, -26.0)
 
 # Output directory
 out_dir <- file.path("plots", park, "spatial", "Plots_for_MAC")
@@ -224,6 +224,121 @@ thin_breaks <- function(limits, step = 0.2) {
   b[seq(1, length(b), by = 2)]
 }
 
+# --- Helper: reference lines clipped to water shallower than 200 m ------------
+make_reference_lines <- function(limits,
+                                 lats      = c(-26.5, -28, -31, -33),
+                                 lons      = c(115.5),
+                                 lon_ymax  = -34,     # northern cutoff for vertical lines
+                                 lat_xmax  = c("-26.5" = 113.8),  # per-lat eastern cutoff
+                                 depth_min = -250,
+                                 depth_max = 0,
+                                 spacing   = 0.002,   # sampling step, degrees
+                                 min_pts   = 10) {    # drop slivers shorter than this
+
+  build_one <- function(coord, type) {
+
+    pts <- if (type == "lat") {
+      x_end <- limits[2]
+      key   <- as.character(coord)
+      if (!is.null(lat_xmax) && key %in% names(lat_xmax)) {
+        x_end <- min(x_end, lat_xmax[[key]])
+      }
+      if (x_end <= limits[1]) return(NULL)
+      data.frame(x = seq(limits[1], x_end, by = spacing), y = coord)
+    } else {
+      y_end <- min(limits[4], lon_ymax)
+      if (y_end <= limits[3]) return(NULL)
+      data.frame(x = coord, y = seq(limits[3], y_end, by = spacing))
+    }
+
+    pts$depth <- terra::extract(bathy[[1]], as.matrix(pts[, c("x", "y")]))[, 1]
+    pts$keep  <- !is.na(pts$depth) & pts$depth <= depth_max & pts$depth >= depth_min
+
+    # remove any points falling inside land polygons
+    if (any(pts$keep)) {
+      pts_sf  <- st_as_sf(pts[pts$keep, c("x", "y")], coords = c("x", "y"), crs = 4326)
+      on_land <- lengths(st_intersects(pts_sf, aus)) > 0
+      pts$keep[pts$keep] <- !on_land
+    }
+
+    if (!any(pts$keep)) return(NULL)
+
+    r       <- rle(pts$keep)
+    pts$run <- rep(seq_along(r$lengths), r$lengths)
+
+    out  <- pts[pts$keep, ]
+    keep_runs <- names(which(table(out$run) >= min_pts))
+    out  <- out[as.character(out$run) %in% keep_runs, ]
+    if (nrow(out) == 0) return(NULL)
+
+    data.frame(x     = out$x,
+               y     = out$y,
+               group = paste(type, coord, out$run, sep = "_"))
+  }
+
+  lats <- lats[lats >= limits[3] & lats <= limits[4]]
+  lons <- lons[lons >= limits[1] & lons <= limits[2]]
+
+  res <- c(lapply(lats, build_one, type = "lat"),
+           lapply(lons, build_one, type = "lon"))
+  res <- res[!vapply(res, is.null, logical(1))]
+
+  if (length(res) == 0) return(NULL)
+  do.call(rbind, res)
+}
+
+# --- Helper: scale bar drawn in data coordinates ------------------------------
+add_scalebar <- function(p, limits,
+                         breaks_km = c(0, 20, 50, 100),
+                         x_frac    = 0.03,   # left edge of bar, fraction of panel width
+                         y_frac    = 0.03,   # base of bar, fraction of panel height
+                         bar_h     = 0.008,  # bar height, fraction of panel height
+                         text_size = 3,
+                         box       = TRUE) {
+
+  xr <- limits[2] - limits[1]
+  yr <- limits[4] - limits[3]
+
+  x0 <- limits[1] + x_frac * xr
+  y0 <- limits[3] + y_frac * yr
+
+  # km -> degrees longitude at the scale bar's latitude
+  deg_per_km <- 1 / (111.320 * cos(y0 * pi / 180))
+  xs   <- x0 + breaks_km * deg_per_km
+  h    <- bar_h * yr
+  barw <- max(xs) - x0
+
+  segs <- data.frame(
+    xmin = head(xs, -1),
+    xmax = tail(xs, -1),
+    fill = rep(c("grey15", "white"), length.out = length(xs) - 1),
+    stringsAsFactors = FALSE
+  )
+
+  lab <- as.character(breaks_km)
+  lab[length(lab)] <- paste(lab[length(lab)], "km")
+
+  if (box) {
+    p <- p + annotate("rect",
+                      xmin      = x0 - 0.07 * barw,
+                      xmax      = max(xs) + 0.20 * barw,
+                      ymin      = y0 - 1.4 * h,
+                      ymax      = y0 + 4.6 * h,
+                      fill      = "white",
+                      colour    = "grey60",
+                      linewidth = 0.35)
+  }
+
+  p +
+    annotate("rect",
+             xmin = segs$xmin, xmax = segs$xmax,
+             ymin = y0,        ymax = y0 + h,
+             fill = segs$fill, colour = "grey15", linewidth = 0.25) +
+    annotate("text",
+             x = xs, y = y0 + 1.6 * h, label = lab,
+             size = text_size, colour = "grey15", vjust = 0, hjust = 0.5)
+}
+
 # --- Classify benthic habitat per cell ---
 classify_benthic <- function(nv_val, depth_val, prob_val,
                              reef_threshold = 0.5,
@@ -267,7 +382,18 @@ make_benthic_closures_map <- function(plot_limits,
                                                           rariphotic = -200),
                                       show_legend     = TRUE,
                                       legend_position = "bottomleft",
-                                      title           = NULL) {
+                                      title           = NULL,
+                                      show_ref_lines  = TRUE,
+                                      ref_lats        = c(-26.5, -28, -31, -33),
+                                      ref_lons        = c(115.5),
+                                      ref_lon_ymax    = -34,
+                                      ref_lat_xmax    = c("-26.5" = 113.5),
+                                      ref_colour      = "#1f4fd8",
+                                      ref_linetype    = "dashed",
+                                      ref_linewidth   = 0.45,
+                                      show_scalebar   = TRUE,
+                                      scalebar_x      = 0.03,
+                                      scalebar_y      = NULL) {
 
   require(tidyverse); require(terra); require(sf); require(ggnewscale)
 
@@ -420,6 +546,26 @@ make_benthic_closures_map <- function(plot_limits,
     geom_sf(data = marine_parks, fill = NA,
             colour = alpha("white", 0.65), linewidth = 0.3)
 
+  # Layer 8: reference lines, clipped to water shallower than 200 m
+  if (show_ref_lines) {
+    ref_df <- make_reference_lines(limits = plot_limits,
+                                   lats   = ref_lats,
+                                   lons   = ref_lons,
+                                   lon_ymax = ref_lon_ymax,
+                                   lat_xmax = ref_lat_xmax,
+                                   depth_min = -200,
+                                   depth_max = 0)
+    if (!is.null(ref_df) && nrow(ref_df) > 0) {
+      p <- p +
+        geom_path(data = ref_df,
+                  aes(x = x, y = y, group = group),
+                  colour    = ref_colour,
+                  linetype  = ref_linetype,
+                  linewidth = ref_linewidth,
+                  lineend   = "butt")
+    }
+  }
+
   p <- p +
     coord_sf(xlim   = plot_limits[1:2],
              ylim   = plot_limits[3:4],
@@ -455,6 +601,19 @@ make_benthic_closures_map <- function(plot_limits,
       else                       element_blank(),
       plot.margin = margin(t = 4, r = 6, b = 4, l = 4)
     )
+
+  # Scale bar — stacked in the same left column as the legend box
+  if (show_scalebar) {
+    if (is.null(scalebar_y)) {
+      scalebar_y <- if (legend_position == "topleft") 0.03 else 0.94
+    }
+    p <- add_scalebar(p,
+                      limits    = plot_limits,
+                      breaks_km = c(0, 20, 50, 100),
+                      x_frac    = scalebar_x,
+                      y_frac    = scalebar_y,
+                      box       = FALSE)
+  }
 
   return(p)
 }
@@ -610,13 +769,16 @@ ggsave(file.path(out_dir, paste0(name, "-benthic-closures-south.png")),
        height = 12,
        bg     = "white")
 
+
 # ── Figure 2: North ───────────────────────────────────────────────────────────
 p_north <- make_benthic_closures_map(
   plot_limits     = c(112, 116, -31.2, -26.3),
   reef_threshold  = 0.5,
   show_legend     = TRUE,
   legend_position = "bottomleft",
-  title           = NULL
+  title           = NULL,
+  scalebar_x      = 0.3,
+  scalebar_y      = 0.03
 )
 
 ggsave(file.path(out_dir, paste0(name, "-benthic-closures-north.png")),
@@ -628,11 +790,13 @@ ggsave(file.path(out_dir, paste0(name, "-benthic-closures-north.png")),
 
 # ── Figure 3: Combined ────────────────────────────────────────────────────────
 p_combined <- make_benthic_closures_map(
-  plot_limits     = c(110.7, 116, -34.9, -28),
+  plot_limits     = c(108.5, 117.2, -36, -26.1),
   reef_threshold  = 0.5,
   show_legend     = TRUE,
-  legend_position = "topleft",
-  title           = NULL
+  legend_position = "bottom left",
+  title           = NULL,
+  scalebar_x      = 0.32,
+  scalebar_y      = 0.03
 )
 
 ggsave(file.path(out_dir, paste0(name, "-benthic-closures-combined.png")),
