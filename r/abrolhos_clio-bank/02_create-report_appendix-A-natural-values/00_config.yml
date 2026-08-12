@@ -1,0 +1,5 @@
+name: "clio-bank"
+park: "abrolhos_clio-bank"
+years: ["2025"]      # EVERY survey year
+combine_benthos: false       # true = pool benthos years into ONE
+                             # Combine benthos if years have samples in different spatial areas

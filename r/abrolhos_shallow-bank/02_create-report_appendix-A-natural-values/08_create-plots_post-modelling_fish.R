@@ -22,10 +22,6 @@ name <- config$name
 park <- config$park
 years <- config$years
 
-# Fish models pool the survey years, so there is a single prediction surface
-# saved under this label by 06_model-data_fish.R
-fish_label <- paste(years, collapse = "_")
-
 # Load libraries
 library(tidyverse)
 library(terra)
@@ -62,7 +58,7 @@ marine_parks_state <- marine_parks %>%
   dplyr::filter(epbc %in% "State") %>%
   st_transform(4326)
 
-# State sanctuary zones. Abrolhos AMP is Commonwealth-only, so this is empty and
+# State sanctuary zones. Abrolhos AMP is Commonwealth-only, so this is NULL and
 # the plotting functions skip the state layers. Set to a filtered sf object for
 # parks that do have state reserves.
 wasanc <- NULL
@@ -90,6 +86,9 @@ names(bathy)[3] <- "Depth"
 # Spatial predictions limits
 prediction_limits <- c(113.15, 113.65, -28.25, -27.85)
 
+# TODO Bubble plots are zoomed in tighter than the prediction surface
+bubble_limits <- c(113.3, 113.6, -28.2, -27.95)
+
 # Pretty fish metric names mapped to raster layer stubs
 fish_metric_lookup <- c(
   "Whole assemblage" = "richness",
@@ -98,16 +97,24 @@ fish_metric_lookup <- c(
   "Total abundance" = "abundance"
 )
 
-# Read the single pooled prediction surface
-dat <- readRDS(
-  paste0("output/model-output/", park, "/fish/",
-         name, "_predicted-fish_", fish_label, ".rds")
-)
+# Read all years once
+dat_list <- setNames(vector("list", length(years)), years)
 
-if (!inherits(dat, "SpatRaster")) dat <- terra::rast(dat)
-terra::crs(dat) <- "EPSG:4326"
+for (yr in years) {
+  message("Reading year: ", yr)
 
-dat_list <- setNames(list(dat), fish_label)
+  dat <- readRDS(
+    paste0(
+      "output/model-output/", park, "/fish/",
+      name, "_predicted-fish_", yr, ".rds"
+    )
+  )
+
+  if (!inherits(dat, "SpatRaster")) dat <- terra::rast(dat)
+  terra::crs(dat) <- "EPSG:4326"
+
+  dat_list[[as.character(yr)]] <- dat
+}
 
 # =============================================================================
 # SST PROCESSING - run once to create the SST time series used by the Reef
@@ -217,7 +224,7 @@ for (metric_name in names(fish_metric_lookup)) {
 
   layer_stub <- fish_metric_lookup[[metric_name]]
 
-  # Only build plot if the prediction and SE layers both exist
+  # Only build plot if every year has both prediction and SE layers
   has_all_layers <- all(unlist(lapply(dat_list, function(x) {
     c(
       paste0("p_", layer_stub, ".fit") %in% names(x),
@@ -226,7 +233,7 @@ for (metric_name in names(fish_metric_lookup)) {
   })))
 
   if (!has_all_layers) {
-    message("Skipping ", metric_name, ": missing .fit or .se.fit layer")
+    message("Skipping ", metric_name, ": missing .fit or .se.fit layer in one or more years")
     next
   }
 
@@ -236,7 +243,7 @@ for (metric_name in names(fish_metric_lookup)) {
     dat_list = dat_list,
     prediction_limits = prediction_limits,
     pred_limits = NULL,   # set numeric vector if you want fixed limits
-    se_limits = NULL,     # auto-scale within metric
+    se_limits = NULL,     # auto-scale within metric across years
     wasanc = wasanc
   )
 
@@ -251,11 +258,11 @@ for (metric_name in names(fish_metric_lookup)) {
     filename = paste0(
       "plots/", park, "/fish/", name,
       "_predicted-individual-fish-metric_", out_name, "_",
-      fish_label, ".png"
+      paste(years, collapse = "-"), ".png"
     ),
     plot = p_metric,
     height = 5,
-    width = 9,
+    width = 8,
     dpi = 300,
     units = "in",
     bg = "white"
@@ -264,23 +271,28 @@ for (metric_name in names(fish_metric_lookup)) {
   saveRDS(p_metric,
           paste0("plots/", park, "/fish/", name,
                  "_predicted-individual-fish-metric_", out_name, "_",
-                 fish_label, ".rds")
+                 paste(years, collapse = "-"), ".rds")
   )
 }
 
 # -------------------------------------------------------------------
 # Control plots by metric, facetted by depth class
 # -------------------------------------------------------------------
-# Predictions are pooled across survey years, so there is a single surface. It
-# is labelled with the most recent survey year for the control plot x-axis.
 
-control_all <- list(
-  controldata_fish(
-    dat = dat_list[[fish_label]],
-    year = as.numeric(max(years)),
-    amp_abbrv = "ABMP"   # TODO park abbreviation
+control_all <- purrr::map(years, \(yy) {
+  dat_yy <- readRDS(
+    paste0(
+      "output/model-output/", park, "/fish/",
+      name, "_predicted-fish_", yy, ".rds"
+    )
   )
-)
+
+  if (!inherits(dat_yy, "SpatRaster")) dat_yy <- terra::rast(dat_yy)
+  terra::crs(dat_yy) <- "EPSG:4326"
+
+  controldata_fish(dat = dat_yy, year = as.numeric(yy),
+                   amp_abbrv = "ABMP")   # TODO park abbreviation
+})
 
 park_dat.shallow <- purrr::map_dfr(control_all, "shallow") %>%
   dplyr::mutate(depth_class = "Shallow (0 - 30 m)")
@@ -506,6 +518,7 @@ sac_individual <- ggplot(
   ) +
   base_theme
 
+# Stacked vertically
 sac_plot <- sac_sample / sac_individual +
   plot_layout(guides = "collect") +
   plot_annotation(
@@ -797,6 +810,10 @@ ggsave(
   bg     = "white"
 )
 
+saveRDS(bar_b20,
+        paste0("plots/", park, "/fish/", name, "_top_b20_bar_plot.rds")
+)
+
 # -------------------------------------------------------------------------
 # Plot 2: first survey year Combined, most recent split into Fished / No-Take
 # Use this when the earlier year has too few deployments in one status to
@@ -854,8 +871,7 @@ bubble_combined <- bubble_plots(
   marine_parks_amp    = marine_parks_amp,
   wasanc              = wasanc,
   prediction_limits   = prediction_limits,
-  # TODO Bubble plots are zoomed in tighter than the prediction surface
-  bubble_limits       = c(113.3, 113.6, -28.2, -27.95),
+  bubble_limits       = bubble_limits,
   size_range          = c(1, 9),
   n_size_breaks       = 6
 )

@@ -51,9 +51,9 @@ library(gt)
 park <- "abrolhos_shallow-bank"
 name <- "Shallow-bank"
 
-# Survey years, and the labels used in output filenames.
-# Benthos and fish are both POOLED across years at this park, so scripts 05-08
-# write a single combined-label output rather than one file per year.
+# Survey years, and the two label styles used in output filenames.
+#   pooled_label - benthos outputs, which are POOLED across years
+#   dash_label   - the reef figure and the fish spatial metric figures
 years        <- c("2021", "2025")
 pooled_label <- paste(years, collapse = "_")   # e.g. "2021_2025"
 dash_label   <- paste(years, collapse = "-")   # e.g. "2021-2025"
@@ -274,8 +274,8 @@ p_sac
 ```{r}
 #| fig-width: 8
 #| fig-height: 4
-#| fig-cap: "Demersal fish - Species richness: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing, pooled across the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-show_png(fish(paste0("_predicted-individual-fish-metric_whole-assemblage_", pooled_label, ".png")))
+#| fig-cap: "Demersal fish - Species richness: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing, shown separately for the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+show_png(fish(paste0("_predicted-individual-fish-metric_whole-assemblage_", dash_label, ".png")))
 ```
 
 {{< pagebreak >}}
@@ -311,8 +311,8 @@ p_bar
 ```{r}
 #| fig-width: 8
 #| fig-height: 4
-#| fig-cap: "Demersal fish - Total abundance: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing, pooled across the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-show_png(fish(paste0("_predicted-individual-fish-metric_total-abundance_", pooled_label, ".png")))
+#| fig-cap: "Demersal fish - Total abundance: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing, shown separately for the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+show_png(fish(paste0("_predicted-individual-fish-metric_total-abundance_", dash_label, ".png")))
 ```
 
 {{< pagebreak >}}
@@ -348,8 +348,8 @@ p_bar
 ```{r}
 #| fig-width: 8
 #| fig-height: 4
-#| fig-cap: "Demersal fish - Large Reef Fish Index\\*: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing, pooled across the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-show_png(fish(paste0("_predicted-individual-fish-metric_large-reef-fish-index_", pooled_label, ".png")))
+#| fig-cap: "Demersal fish - Large Reef Fish Index\\*: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing, shown separately for the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+show_png(fish(paste0("_predicted-individual-fish-metric_large-reef-fish-index_", dash_label, ".png")))
 ```
 
 {{< pagebreak >}}
@@ -385,6 +385,6 @@ p_bar
 ```{r}
 #| fig-width: 8
 #| fig-height: 4
-#| fig-cap: "Demersal fish - Reef Fish Thermal Index: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing, pooled across the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-show_png(fish(paste0("_predicted-individual-fish-metric_cti_", pooled_label, ".png")))
+#| fig-cap: "Demersal fish - Reef Fish Thermal Index: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing, shown separately for the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+show_png(fish(paste0("_predicted-individual-fish-metric_cti_", dash_label, ".png")))
 ```
