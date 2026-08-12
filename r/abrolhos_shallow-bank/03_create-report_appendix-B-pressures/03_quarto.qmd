@@ -1,0 +1,59 @@
+---
+title: "Appendix B - [TEMPLATE] Marine Park Pressures Report"
+subtitle: "South-west Marine Parks Network"
+format:
+  pdf:
+    output-file: "Project 4.21-[TEMPLATE]-2-Appendix B-q-Pressures.pdf"
+    fig-pos: 'H'
+    geometry:
+      - top=2cm
+      - bottom=2.5cm
+      - left=2cm
+      - right=2cm
+    include-in-header:
+      text: |
+        \usepackage{caption}
+        \renewcommand{\thefigure}{B.\arabic{figure}}
+        \captionsetup{indention=0pt}
+toc: true
+execute:
+  echo: false
+post-render: 11_move-pdf.R
+---
+
+```{r}
+#| include: false
+library(here)
+library(ggplot2)
+library(knitr)
+library(terra)
+library(tidyterra)
+```
+
+## Pressures
+
+Understanding of Pressures
+
+```{r}
+#| out-width: "100%"
+#| fig-cap: "Figure 1. Seasonal sea level anomaly, seasonal sea surface temperature and Degree Heating Weeks at the scale of the [TEMPLATE]. Solid lines represent mean values for sea level anomaly (SLA), sea surface temperature (SST) and Degree Heating Weeks (DHW). Confidence bounds represent standard errors. Red dashed vertical lines represent maximum DHW values that are plotted spatially in Figure 4."
+include_graphics(here("plots/[TEMPLATE]/pressures/TEMPLATEAMP_oceanography_time-series.png"))
+```
+
+```{r}
+#| out-width: "90%"
+#| fig-cap: "Figure 2. Sea level anomaly, as an index of upwelling, at the scale of the [TEMPLATE]. Heatmap values represent high (yellow) and low (blue) bimonthy sea level anomaly (SLA). Grey polygons represent State spatial management and Australian Marine Park boundaries."
+include_graphics(here("plots/[TEMPLATE]/pressures/TEMPLATEAMP_SLA.png"))
+```
+
+```{r}
+#| out-width: "90%"
+#| fig-cap: "Figure 3. Sea surface temperature at the scale of the [TEMPLATE]. Heatmap values represent high (yellow) and low (blue) bimonthy sea surface temperature (SST). Grey polygons represent State spatial management and Australian Marine Park boundaries."
+include_graphics(here("plots/[TEMPLATE]/pressures/TEMPLATEAMP_SST.png"))
+```
+
+```{r}
+#| out-width: "90%"
+#| fig-cap: "Figure 4. Maximum Degree Heating Weeks at the scale of the [TEMPLATE]. Heatmap values representing high (yellow) and low (blue) monthly Degree Heating Weeks (DHW) for the two most recent marine heatwave periods on record. Grey polygons represent State spatial management and Australian Marine Park boundaries."
+include_graphics(here("plots/[TEMPLATE]/pressures/TEMPLATEAMP_DHW.png"))
+```

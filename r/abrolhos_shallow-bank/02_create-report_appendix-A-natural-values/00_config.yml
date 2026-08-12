@@ -1,0 +1,5 @@
+name: "Shallow-bank"
+park: "abrolhos_shallow-bank"
+years: ["2021", "2025"]      # EVERY survey year
+combine_benthos: TRUE       # true = pool benthos years into ONE
+                             # Combine benthos if years have samples in different spatial areas

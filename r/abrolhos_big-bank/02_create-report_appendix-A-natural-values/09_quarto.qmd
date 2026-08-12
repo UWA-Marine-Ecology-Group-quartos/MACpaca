@@ -1,0 +1,398 @@
+---
+title: "Appendix A - Abrolhos Marine Park (Big Bank) Natural Values Report"
+subtitle: "South-west Marine Parks Network"
+filters:
+  - figure-numbering.lua
+format:
+  pdf:
+    output-file: "Project 4.21-Abrolhos-Big-Bank-2-Appendix A-q-Natural values.pdf"
+    fig-pos: 'H'
+    geometry: 
+      - top=2cm
+      - bottom=2.5cm
+      - left=2cm
+      - right=2cm
+    include-in-header:
+      text: |
+        \usepackage{caption}
+        \usepackage{float}
+        \usepackage{chngcntr}
+        \floatplacement{table}{H}
+        \newcounter{metric}
+        \counterwithin*{figure}{metric}
+        \captionsetup{format=plain, indention=0pt}
+  html:
+    output-file: "Project 4.21-Abrolhos-Big-Bank-2-Appendix A-q-Natural values.html"
+    fig-dpi: 96
+toc: true
+execute:
+  echo: false
+  warning: false
+  message: false
+post-render: 10_move-pdf.R
+---
+
+```{r}
+#| include: false
+library(here)
+library(ggplot2)
+library(knitr)
+library(terra)
+library(tidyterra)
+library(cowplot)
+library(png)
+library(grid)
+library(tidytext)
+library(ggtext)
+library(dplyr)
+library(gt)
+
+# Park folder and file prefix - must match 00_config.yml.
+park <- "abrolhos_big-bank"
+name <- "Big-bank"
+
+# Survey years. Big Bank is a single-year (2021) survey, so the year suffix on
+# the spatial-metric PNGs is just "2021" - script 08 saves them with
+# paste(years, collapse = "-").
+years     <- 2021
+yr_suffix <- paste(years, collapse = "-")
+
+# Path helpers - keeps the chunks below free of hardcoded park/name strings
+hab  <- function(f) here("plots", park, "habitat", paste0(name, "_", f))
+fish <- function(f) here("plots", park, "fish",    paste0(name, "_", f))
+
+# Draw a saved PNG at full chunk size
+draw_png <- function(path) grid::grid.raster(png::readPNG(path))
+```
+
+# Natural Values
+
+Understanding of natural values
+
+{{< pagebreak >}}
+
+## Sampling summary
+
+```{r}
+#| label: tbl-sampling-effort
+#| tbl-cap: "Summary of monitoring campaigns in the study area, showing the survey dates, sampling method, management zones sampled, and the number of samples with each data type. NPZ = National Park Zone, HPZ = Habitat Protection Zone, MUZ = Multiple Use Zone, SPZ = Special Purpose Zone."
+
+# LaTeX will not break a line at an underscore, so a long campaign ID would run
+# past its column. Swapping underscores for spaces lets the name wrap.
+sampling_summary <- readRDS(here("data", park, "tidy",
+                                 paste0(name, "_sampling-summary.RDS"))) %>%
+  mutate(campaignid = gsub("_", " ", campaignid))
+
+col_labels <- c("Date", "Campaign name", "Method", "Areas", "Samples",
+                "Count", "Count", "Length")
+
+sampling_summary %>%
+  gt() %>%
+  cols_label(dates         = col_labels[1],
+             campaignid    = col_labels[2],
+             method        = col_labels[3],
+             areas         = col_labels[4],
+             n_samples     = col_labels[5],
+             habitat_count = col_labels[6],
+             fish_count    = col_labels[7],
+             fish_length   = col_labels[8]) %>%
+  tab_spanner(label = "Habitat", columns = habitat_count) %>%
+  tab_spanner(label = "Fish",    columns = c(fish_count, fish_length)) %>%
+  sub_zero(zero_text = "-") %>%
+  cols_width(dates         ~ pct(14),
+             campaignid    ~ pct(20),
+             method        ~ pct(11),
+             areas         ~ pct(15),
+             n_samples     ~ pct(10),
+             habitat_count ~ pct(10),
+             fish_count    ~ pct(10),
+             fish_length   ~ pct(10)) %>%
+  cols_align(align = "left",
+             columns = c(dates, campaignid, areas)) %>%
+  cols_align(align = "center",
+             columns = c(method, n_samples, habitat_count, fish_count,
+                         fish_length)) %>%
+  opt_row_striping() %>%
+  tab_style(style = cell_text(weight = "bold"),
+            locations = list(cells_column_labels(),
+                             cells_column_spanners(spanners = everything()))) %>%
+  tab_options(table.width               = pct(100),
+              table.font.size           = px(11),
+              data_row.padding          = px(4),
+              latex.use_longtable       = TRUE,
+              column_labels.border.top.style = "none",
+              table.border.top.style    = "none",
+              table_body.hlines.style   = "none")
+```
+
+{{< pagebreak >}}
+
+## Benthic ecosystem extent
+### Observations
+
+```{r}
+#| fig-width: 8
+#| fig-height: 4
+#| fig-cap: "Habitat classes observed in spatially balanced stereo-BRUV and drop-camera imagery visualised as spatial pie charts. Australian Marine Park boundaries are shown. Bathymetric contours at 30, 70 and 200 m are shown."
+draw_png(hab(paste0("scatterpie_", yr_suffix, ".png")))
+```
+
+{{< pagebreak >}}
+
+### Dominant habitat types
+
+```{r}
+#| fig-width: 8
+#| fig-height: 5
+#| fig-cap: "Predicted dominant habitat type from stereo-BRUV groundtruthing. Australian Marine Park boundaries are shown. Bathymetric contours at 30, 70 and 200 m are shown."
+p_cat <- readRDS(hab(paste0("predicted-habitat-categorical_", yr_suffix, ".rds")))
+p_cat
+```
+
+{{< pagebreak >}}
+
+### Habitat distribution and probability
+
+```{r}
+#| fig-width: 5.5
+#| fig-height: 8
+#| fig-cap: "Predicted habitat distribution probability and uncertainty from stereo-BRUV groundtruthing. Australian Marine Park boundaries are shown. Bathymetric contours at 30, 70 and 200 m are shown."
+draw_png(hab(paste0("predicted-dominant-benthos-and-combined-se_", yr_suffix, ".png")))
+```
+
+{{< pagebreak >}}
+
+### Functional reef distribution and probability
+
+```{r}
+#| fig-width: 10
+#| fig-height: 4
+#| fig-cap: "Predicted reef distribution probability and uncertainty from stereo-BRUV groundtruthing. Australian Marine Park boundaries are shown. Bathymetric contours at 30, 70 and 200 m are shown."
+draw_png(hab(paste0("predicted-reef-and-se_", yr_suffix, ".png")))
+```
+
+{{< pagebreak >}}
+
+## Benchmarks of benthic natural values
+
+```{=latex}
+% Continue the running figure number into the benchmark sections, then switch
+% to <metric>.<plot> numbering. `metric` is seeded to the last benthic-extent
+% figure number so the majors carry on sequentially (4, 5, 6, ...).
+\setcounter{metric}{\value{figure}}
+\renewcommand{\thefigure}{\arabic{metric}.\arabic{figure}}
+```
+
+### Sand
+
+```{=latex}
+\stepcounter{metric}
+```
+
+```{r}
+#| fig-width: 7
+#| fig-height: 3
+#| fig-cap: "Sand: temporal plots by depth contour from stereo-BRUV groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+p_control <- readRDS(hab("control-plot_sand.rds"))
+p_control
+```
+
+```{r}
+#| fig-width: 10
+#| fig-height: 5
+#| fig-cap: "Sand: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth). Australian Marine Park boundaries are shown. Bathymetric contours at 30, 70 and 200 m are shown."
+draw_png(hab(paste0("predicted-individual-habitat_sand_", yr_suffix, ".png")))
+```
+
+{{< pagebreak >}}
+
+### Sessile invertebrates
+
+```{=latex}
+\stepcounter{metric}
+```
+
+```{r}
+#| fig-width: 7
+#| fig-height: 3
+#| fig-cap: "Sessile invertebrates: temporal plots by depth contour from stereo-BRUV groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+p_control <- readRDS(hab("control-plot_sessile-invertebrates.rds"))
+p_control
+```
+
+```{r}
+#| fig-width: 10
+#| fig-height: 5
+#| fig-cap: "Sessile invertebrates: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth). Australian Marine Park boundaries are shown. Bathymetric contours at 30, 70 and 200 m are shown."
+draw_png(hab(paste0("predicted-individual-habitat_sessile-invertebrates_", yr_suffix, ".png")))
+```
+
+{{< pagebreak >}}
+
+## Benchmarks of demersal fish natural values
+
+### Survey effort
+
+```{=latex}
+\stepcounter{metric}
+\renewcommand{\thefigure}{\arabic{metric}}
+```
+
+```{r}
+#| fig-width: 8
+#| fig-height: 8
+#| fig-cap: "Spatial distribution of observed species richness and total abundance (MaxN) per stereo-BRUV drop, pooled across all deployments. Australian Marine Park boundaries are shown."
+p_bubble <- readRDS(fish("bubbleplot_richness-abundance.rds"))
+p_bubble
+```
+
+{{< pagebreak >}}
+
+```{=latex}
+\renewcommand{\thefigure}{\arabic{metric}.\arabic{figure}}
+```
+
+### Species richness
+
+```{=latex}
+\stepcounter{metric}
+```
+
+```{r}
+#| fig-width: 6
+#| fig-height: 3
+#| fig-cap: "Demersal fish - Species richness: benchmark plots by zone and depth contour from stereo-BRUV groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+p_control <- readRDS(fish("control-plot_species-richness-per-bruv.rds"))
+p_control
+```
+
+```{r}
+#| fig-width: 6
+#| fig-height: 3
+#| fig-cap: "Demersal fish - Species richness: species accumulation curve from stereo-BRUV groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+p_bar <- readRDS(fish("SAC-sample.rds"))
+p_bar
+```
+
+{{< pagebreak >}}
+
+:::{.content-hidden when-format="html"}
+### Species richness {.unlisted .unnumbered}
+:::
+
+```{r}
+#| fig-width: 6
+#| fig-height: 7
+#| fig-cap: "Demersal fish - Species richness: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Australian Marine Park boundaries are shown. Bathymetric contours at 30, 70 and 200 m are shown."
+draw_png(fish(paste0("predicted-individual-fish-metric_whole-assemblage_", yr_suffix, ".png")))
+```
+
+{{< pagebreak >}}
+
+### Total abundance
+
+```{=latex}
+\stepcounter{metric}
+```
+
+```{r}
+#| fig-width: 6
+#| fig-height: 3
+#| fig-cap: "Demersal fish - Total abundance: benchmark plots by zone and depth contour from stereo-BRUV groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+p_control <- readRDS(fish("control-plot_total-abundance-per-bruv.rds"))
+p_control
+```
+
+```{r}
+#| fig-width: 6
+#| fig-height: 3
+#| fig-cap: "Demersal fish - Total abundance: top 10 most abundant species (pooled across deployments) from stereo-BRUV groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+p_bar <- readRDS(fish("top_maxn_bar_plot.rds"))
+p_bar
+```
+
+{{< pagebreak >}}
+
+:::{.content-hidden when-format="html"}
+### Total abundance {.unlisted .unnumbered}
+:::
+
+```{r}
+#| fig-width: 6
+#| fig-height: 7
+#| fig-cap: "Demersal fish - Total abundance: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Australian Marine Park boundaries are shown. Bathymetric contours at 30, 70 and 200 m are shown."
+draw_png(fish(paste0("predicted-individual-fish-metric_total-abundance_", yr_suffix, ".png")))
+```
+
+{{< pagebreak >}}
+
+### Large Reef Fish Index\*
+
+```{=latex}
+\stepcounter{metric}
+```
+
+```{r}
+#| fig-width: 6
+#| fig-height: 3
+#| fig-cap: "Demersal fish - Large Reef Fish Index\\*: benchmark plots by zone and depth contour from stereo-BRUV groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth). \\*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays."
+p_control <- readRDS(fish("control-plot_large-reef-fish-index-biomass-g-per-bruv.rds"))
+p_control
+```
+
+```{r}
+#| fig-width: 6
+#| fig-height: 3
+#| fig-cap: "Demersal fish - Large Reef Fish Index\\*: top 10 greatest biomass species (pooled across deployments) from stereo-BRUV groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+draw_png(fish("top_b20_bar_plot.png"))
+```
+
+{{< pagebreak >}}
+
+:::{.content-hidden when-format="html"}
+### Large Reef Fish Index\* {.unlisted .unnumbered}
+:::
+
+```{r}
+#| fig-width: 6
+#| fig-height: 7
+#| fig-cap: "Demersal fish - Large Reef Fish Index\\*: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Australian Marine Park boundaries are shown. Bathymetric contours at 30, 70 and 200 m are shown."
+draw_png(fish(paste0("predicted-individual-fish-metric_large-reef-fish-index_", yr_suffix, ".png")))
+```
+
+{{< pagebreak >}}
+
+### Reef fish thermal index
+
+```{=latex}
+\stepcounter{metric}
+```
+
+```{r}
+#| fig-width: 6
+#| fig-height: 3
+#| fig-cap: "Demersal fish - Reef Fish Thermal Index: benchmark plots by zone and depth contour, with monthly sea surface temperature (black line, grey band = SD) overlaid, from stereo-BRUV groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+p_control <- readRDS(fish("control-plot_community-thermal-index-c.rds"))
+p_control
+```
+
+```{r}
+#| fig-width: 6
+#| fig-height: 3
+#| fig-cap: "Demersal fish - Reef Fish Thermal Index: species thermal niche of top 10 most abundant species (pooled across deployments) from stereo-BRUV groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+p_bar <- readRDS(fish("top_maxn_cti_bar_plot.rds"))
+p_bar
+```
+
+{{< pagebreak >}}
+
+:::{.content-hidden when-format="html"}
+### Reef fish thermal index {.unlisted .unnumbered}
+:::
+
+```{r}
+#| fig-width: 6
+#| fig-height: 7
+#| fig-cap: "Demersal fish - Reef Fish Thermal Index: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Australian Marine Park boundaries are shown. Bathymetric contours at 30, 70 and 200 m are shown."
+draw_png(fish(paste0("predicted-individual-fish-metric_cti_", yr_suffix, ".png")))
+```
