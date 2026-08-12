@@ -1,7 +1,7 @@
 kef_plot <- function(plot_limits, annotation_labels) {
   ggplot() +
     geom_sf(data = ausc, fill = "seashell2", colour = "grey80", size = 0.1) +
-    geom_sf(data = terrnp, aes(fill = leg_catego), alpha = 4/5, colour = NA, show.legend = F) +
+    geom_sf(data = terrnp, aes(fill = TYPE), alpha = 4/5, colour = NA, show.legend = F) +
     labs(fill = "Terrestrial Managed Areas") +
     terr_fills +
     new_scale_fill() +
@@ -10,7 +10,7 @@ kef_plot <- function(plot_limits, annotation_labels) {
                       values = with(kef, setNames(colour, abbrv))) +
     # kef_fills +
     new_scale_fill() +
-    geom_sf(data = terrnp, aes(fill = leg_catego), colour = NA, alpha = 0.8, show.legend = F) +
+    geom_sf(data = terrnp, aes(fill = TYPE), colour = NA, alpha = 0.8, show.legend = F) +
     terr_fills +
     new_scale_fill() +
     geom_sf(data = marine_parks_state, aes(fill = zone), colour = NA) +

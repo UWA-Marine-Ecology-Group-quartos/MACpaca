@@ -45,7 +45,7 @@ file.sources <- list.files(pattern = "*.R", path = "functions/", full.names = T)
 sapply(file.sources, source, .GlobalEnv)
 
 # TODO Set cropping extent - larger than most zoomed out plot
-e <- ext(152.3,153.056,-32.69,-32.33)
+e <- ext(152.2,153.056,-32.75,-32.33)
 
 # Load necessary spatial files
 sf_use_s2(T)
@@ -71,9 +71,9 @@ marine_parks_state <- marine_parks %>%
   dplyr::filter(epbc %in% "State")
 
 # Terrestrial parks
-terrnp <- st_read("data/south-west network/spatial/shapefiles/Legislated_Lands_and_Waters_DBCA_011.shp") %>%  # Terrestrial reserves
-  dplyr::filter(leg_catego %in% c("Nature Reserve", "National Park"))
-plot(terrnp["leg_catego"])
+terrnp <- st_read("data/amp_shapefile/capad.shp") %>%  # Terrestrial reserves
+  dplyr::filter(TYPE %in% c("Nature Reserve", "National Park"))
+plot(terrnp["TYPE"])
 
 terr_fills <- scale_fill_manual(values = c("National Park" = "#c4cea6", # Set the colours for terrestrial parks
                                            "Nature Reserve" = "#e4d0bb"),
@@ -111,11 +111,11 @@ bathdf <- as.data.frame(bathy, xy = T)
 
 # 1. Location overview plot
 # Set plot inputs
-plot_limits <- c(114.4, 115.67, -33.3, -34.6) # TODO Extent of the main plot
-study_limits <- c(114.88, 115.67,-33.3, -33.67) # TODO Extent of sampling
-annotation_labels <- data.frame(x = c(115.6409, 115.3473, 115.1074, 115.0630, 115.1573), # TODO Labels for annotation e.g. nearby towns
-                                y = c(-33.3270,-33.65, -33.6177, -33.9535, -34.3110),
-                                label = c("Bunbury", "Busselton", "Dunsborough", "Margaret River", "Augusta"))
+plot_limits <- c(152.2,153.056,-32.8,-32.33) # TODO Extent of the main plot
+study_limits <- c(152.3,153.056,-32.69,-32.33) # TODO Extent of sampling
+annotation_labels <- data.frame(x = c(152.32044, 152.526341), # TODO Labels for annotation e.g. nearby towns
+                                y = c(-32.61745,-32.4391539),
+                                label = c("Boughton Island", "Seal Rocks"))
 # Create plot
 location_plot(plot_limits,
               study_limits,
@@ -129,7 +129,7 @@ metadata <- readRDS(paste0("data/", park, "/tidy/", name, "_metadata-bathymetry-
   st_as_sf(coords = c("longitude_dd", "latitude_dd"), crs = 4326) %>%
   glimpse()
 # Set plot inputs
-site_limits <- c(115.0, 115.67, -33.3, -33.65) # TODO Plot limits for subsequent plots - tighter zoom
+site_limits <- c(152.2,153.056,-32.75,-32.33) # TODO Plot limits for subsequent plots - tighter zoom
 # Create plot
 site_plot(site_limits, annotation_labels)
 # Save plot
@@ -162,7 +162,7 @@ ggsave(filename = paste(paste0('plots/', park, '/spatial/', name) , 'old-sea-lev
 
 # 5. Bathymetry cross sections
 # Create data
-bath_df1 <- dem_cross_section(115.096, 115.000, -33.804, -33.105, maxdist = 10) # TODO set coords
+bath_df1 <- dem_cross_section(152.2,153.056,-32.75,-32.33, maxdist = 10) # TODO set coords
 # Set plot inputs
 crosssection_labels <- data.frame(x = c(-33, 3), # TODO Labels for annotation
                                  y = c(-10, 145),
