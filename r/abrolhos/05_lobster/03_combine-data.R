@@ -15,6 +15,7 @@ config <- yaml::read_yaml("r/abrolhos/05_lobster/00_config.yml")
 name  <- config$name
 years <- config$years
 legal_size_mm <- config$legal_size_mm
+large_male_mm <- config$large_male_mm
 
 tidy_dir <- "data/abrolhos/tidy/lobster"
 
@@ -97,23 +98,37 @@ for (column in c("n_legal_male", "n_legal_female")) {
   if (!column %in% names(legal_by_sex)) legal_by_sex[[column]] <- 0L
 }
 
+# Large males are counted separately again. They are the part of the catch a
+# fishery removes first, so they are the most likely place to see an effect of
+# protection, and they are a subset of the legal males above.
+large_males <- measurements_zoned %>%
+  dplyr::filter(!is.na(carapace_length_mm),
+                sex %in% "Male",
+                carapace_length_mm >= large_male_mm) %>%
+  dplyr::count(year, date_retrieved, pot_number, name = "n_male_large")
+
 catch_per_pot <- measurements_zoned %>%
   dplyr::filter(!is.na(carapace_length_mm)) %>%
   dplyr::count(year, date_retrieved, pot_number, size_class, name = "count") %>%
   tidyr::pivot_wider(names_from = size_class, values_from = count,
                      values_fill = 0, names_prefix = "n_") %>%
   dplyr::full_join(legal_by_sex, by = c("year", "date_retrieved", "pot_number")) %>%
+  dplyr::full_join(large_males, by = c("year", "date_retrieved", "pot_number")) %>%
   dplyr::right_join(successful_pots, by = c("year", "date_retrieved", "pot_number")) %>%
   dplyr::mutate(across(starts_with("n_"), ~ replace_na(.x, 0)),
                 n_total = n_Legal + n_Sublegal) %>%
   dplyr::rename(n_legal = n_Legal, n_sublegal = n_Sublegal) %>%
   dplyr::select(campaign, year, date_retrieved, pot_number, zone,
                 longitude, latitude, depth_m, soak_time_hours,
-                n_legal, n_legal_male, n_legal_female, n_sublegal, n_total)
+                n_legal, n_legal_male, n_legal_female, n_male_large,
+                n_sublegal, n_total)
 
-# The sexes must partition the legal catch, give or take the unknowns
+# The sexes must partition the legal catch, give or take the unknowns, and the
+# large males must sit inside the legal males
 stopifnot(all(catch_per_pot$n_legal_male + catch_per_pot$n_legal_female <=
-                catch_per_pot$n_legal))
+                catch_per_pot$n_legal),
+          large_male_mm >= legal_size_mm,
+          all(catch_per_pot$n_male_large <= catch_per_pot$n_legal_male))
 
 catch_by_zone <- catch_per_pot %>%
   dplyr::group_by(year, zone) %>%
@@ -127,6 +142,8 @@ catch_by_zone <- catch_per_pot %>%
                    se_legal_male     = sd(n_legal_male) / sqrt(n()),
                    mean_legal_female = mean(n_legal_female),
                    se_legal_female   = sd(n_legal_female) / sqrt(n()),
+                   mean_male_large   = mean(n_male_large),
+                   se_male_large     = sd(n_male_large) / sqrt(n()),
                    .groups = "drop")
 
 write.csv(pots_zoned, file.path(tidy_dir, paste0(name, "_lobster-pots_all-years.csv")),

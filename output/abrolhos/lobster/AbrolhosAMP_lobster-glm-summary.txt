@@ -4,11 +4,12 @@ Abrolhos Marine Park, Yamatji Shallow Bank, 2025 and 2026
 
 Formula: <response> ~ status * year + depth_z  
 Family:  tweedie(link = "log")
-Responses: n_legal, n_sublegal, n_legal_male, n_legal_female 
+Responses: n_legal, n_sublegal, n_legal_male, n_legal_female, n_male_large, n_total 
 Pots used: 279 of 281 
 
-NOTE: the legal male and legal female models are subsets of the legal
-model, not independent tests of it.
+NOTE: the legal male, legal female and large male models are subsets of
+the legal model, not independent tests of it. The all lobsters model is the
+legal and sublegal responses added together, so it is not independent either.
 
 NOTE: the (1 | site) random effect specified by the supervisor is NOT
 included, because string identifiers are not recorded in either survey.
@@ -183,6 +184,88 @@ Predicted means (response scale):
 4 Legal female  Inside NPZ 2026 0.8963469 0.2048743 Inf 0.5726911 1.4029163
 
 
+----------------------------------------------------------------------
+MALE 100 MM+
+----------------------------------------------------------------------
+
+ Family: tweedie  ( log )
+Formula:          n_male_large ~ status * year + depth_z
+Data: model_data
+
+      AIC       BIC    logLik -2*log(L)  df.resid 
+    464.9     490.3    -225.5     450.9       272 
+
+
+Dispersion parameter for tweedie family (): 1.55 
+
+Conditional model:
+                          Estimate Std. Error z value Pr(>|z|)    
+(Intercept)                -0.8629     0.1920  -4.493 7.02e-06 ***
+statusInside NPZ            0.8339     0.2562   3.255  0.00113 ** 
+year2026                   -1.0723     0.3783  -2.835  0.00459 ** 
+depth_z                     0.2333     0.1118   2.088  0.03682 *  
+statusInside NPZ:year2026   0.1429     0.4898   0.292  0.77052    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Likelihood ratio test for the status x year interaction:
+Data: model_data
+Models:
+additive: n_male_large ~ status + year + depth_z, zi=~0, disp=~1
+full: n_male_large ~ status * year + depth_z, zi=~0, disp=~1
+         Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)
+additive  6 463.00 484.79 -225.50   451.00                         
+full      7 464.91 490.33 -225.46   450.91 0.0854      1     0.7701
+
+Predicted means (response scale):
+    size_class      status year      mean         se  df  asymp.LCL asymp.UCL
+1 Male 100 mm+ Outside NPZ 2025 0.4219481 0.08103301 Inf 0.28959436 0.6147917
+2 Male 100 mm+  Inside NPZ 2025 0.9714831 0.16803529 Inf 0.69215725 1.3635331
+3 Male 100 mm+ Outside NPZ 2026 0.1443995 0.04716707 Inf 0.07612492 0.2739080
+4 Male 100 mm+  Inside NPZ 2026 0.3835277 0.10060622 Inf 0.22935664 0.6413310
+
+
+----------------------------------------------------------------------
+ALL LOBSTERS
+----------------------------------------------------------------------
+
+ Family: tweedie  ( log )
+Formula:          n_total ~ status * year + depth_z
+Data: model_data
+
+      AIC       BIC    logLik -2*log(L)  df.resid 
+   1367.6    1393.0    -676.8    1353.6       272 
+
+
+Dispersion parameter for tweedie family (): 3.64 
+
+Conditional model:
+                          Estimate Std. Error z value Pr(>|z|)    
+(Intercept)                1.64691    0.12503  13.173  < 2e-16 ***
+statusInside NPZ          -0.12427    0.21144  -0.588  0.55671    
+year2026                  -0.53578    0.19779  -2.709  0.00675 ** 
+depth_z                    0.09778    0.08991   1.088  0.27680    
+statusInside NPZ:year2026 -0.15222    0.33221  -0.458  0.64680    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Likelihood ratio test for the status x year interaction:
+Data: model_data
+Models:
+additive: n_total ~ status + year + depth_z, zi=~0, disp=~1
+full: n_total ~ status * year + depth_z, zi=~0, disp=~1
+         Df    AIC    BIC  logLik deviance Chisq Chi Df Pr(>Chisq)
+additive  6 1365.8 1387.6 -676.91   1353.8                        
+full      7 1367.6 1393.0 -676.81   1353.6  0.21      1     0.6467
+
+Predicted means (response scale):
+    size_class      status year     mean        se  df asymp.LCL asymp.UCL
+1 All lobsters Outside NPZ 2025 5.190904 0.6489943 Inf  4.062761  6.632309
+2 All lobsters  Inside NPZ 2025 4.584304 0.7809119 Inf  3.283036  6.401342
+3 All lobsters Outside NPZ 2026 3.037795 0.4656732 Inf  2.249444  4.102437
+4 All lobsters  Inside NPZ 2026 2.303983 0.4768868 Inf  1.535658  3.456719
+
+
 DHARMa diagnostics - Legal 
 
 	DHARMa nonparametric dispersion test via sd of residuals fitted vs.
@@ -255,5 +338,43 @@ alternative hypothesis: two.sided
 
 data:  simulationOutput
 ratioObsSim = 1.0122, p-value = 0.842
+alternative hypothesis: two.sided
+
+
+
+DHARMa diagnostics - Male 100 mm+ 
+
+	DHARMa nonparametric dispersion test via sd of residuals fitted vs.
+	simulated
+
+data:  simulationOutput
+dispersion = 1.2781, p-value = 0.104
+alternative hypothesis: two.sided
+
+
+	DHARMa zero-inflation test via comparison to expected zeros with
+	simulation under H0 = fitted model
+
+data:  simulationOutput
+ratioObsSim = 1.0255, p-value = 0.542
+alternative hypothesis: two.sided
+
+
+
+DHARMa diagnostics - All lobsters 
+
+	DHARMa nonparametric dispersion test via sd of residuals fitted vs.
+	simulated
+
+data:  simulationOutput
+dispersion = 1.1712, p-value = 0.268
+alternative hypothesis: two.sided
+
+
+	DHARMa zero-inflation test via comparison to expected zeros with
+	simulation under H0 = fitted model
+
+data:  simulationOutput
+ratioObsSim = 0.98263, p-value = 0.88
 alternative hypothesis: two.sided
 

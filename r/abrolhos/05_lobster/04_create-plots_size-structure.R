@@ -137,10 +137,42 @@ ggplot(sex_percent, aes(x = bin, y = percent, fill = interaction(zone, sex))) +
 ggsave(file.path(plot_dir, paste0(name, "_lobster-size-distribution_sex_standardised.png")),
        height = 8, width = 8, dpi = 300, bg = "white")
 
+# Males on their own, year across and zone down, so the two zones sit one above
+# the other within a year and the size distributions can be read against each
+# other directly. Males are the size class the fishery removes first, so this is
+# where a difference between zones would be expected to show.
+male_percent <- bin_percent(dplyr::filter(measurements_sex, sex %in% "Male"),
+                            year, zone)
+
+panel_n_male <- male_percent %>%
+  dplyr::distinct(year, zone, n)
+
+# Same lighter-is-male shading as the by-sex plots above
+male_zone_colours <- setNames(colorspace::lighten(unname(zone_colours), 0.5),
+                              names(zone_colours))
+
+ggplot(male_percent, aes(x = bin, y = percent, fill = zone)) +
+  geom_col(width = binwidth, colour = "black", linewidth = 0.2) +
+  geom_vline(xintercept = legal_size_mm, colour = "red", linetype = "dashed") +
+  geom_text(data = panel_n_male, aes(x = Inf, y = Inf, label = paste0("n = ", n)),
+            hjust = 1.1, vjust = 1.5, size = 3, inherit.aes = FALSE) +
+  scale_fill_manual(values = male_zone_colours) +
+  facet_grid(zone ~ year) +
+  labs(x = "Carapace length (mm)", y = "Percentage of males measured (%)",
+       caption = paste0("Males only. Each panel sums to 100%. Dashed line shows the ",
+                        legal_size_mm, " mm legal minimum size")) +
+  theme_classic() +
+  theme(legend.position = "none")
+
+ggsave(file.path(plot_dir, paste0(name, "_lobster-size-distribution_male_zone-year_standardised.png")),
+       height = 6, width = 8, dpi = 300, bg = "white")
+
 # Confirm every panel sums to 100% before the plots are trusted
 stopifnot(all(abs(dplyr::summarise(dplyr::group_by(zone_year_percent, year, zone),
                                    total = sum(percent))$total - 100) < 1e-8))
 stopifnot(all(abs(dplyr::summarise(dplyr::group_by(sex_percent, year, sex, zone),
+                                   total = sum(percent))$total - 100) < 1e-8))
+stopifnot(all(abs(dplyr::summarise(dplyr::group_by(male_percent, year, zone),
                                    total = sum(percent))$total - 100) < 1e-8))
 
 # Catch rate by zone and year --------------------------------------------------

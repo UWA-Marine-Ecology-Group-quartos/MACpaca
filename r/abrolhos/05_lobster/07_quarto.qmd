@@ -26,6 +26,7 @@ library(knitr)
 config <- yaml::read_yaml(here("r/abrolhos/05_lobster/00_config.yml"))
 name <- config$name
 legal_size_mm <- config$legal_size_mm
+large_male_mm <- config$large_male_mm
 
 tidy_dir   <- here("data/abrolhos/tidy/lobster")
 plot_dir   <- here("plots/abrolhos/lobster")
@@ -42,12 +43,8 @@ catch_by_zone <- read.csv(file.path(tidy_dir, paste0(name, "_lobster-catch-by-zo
 
 ## Survey effort
 
-Pots were set on Yamatji Shallow Bank in April 2025 and April 2026, across the
-Abrolhos Marine Park National Park Zone (no take) and Special Purpose Zone
-(open to commercial and recreational fishing).
-
 ```{r}
-#| tbl-cap: "Pots deployed and lobsters measured, by year and zone"
+#| tbl-cap: "Summary of western rock lobster pot sampling on Yamatji Shallow Bank in the 2025 and 2026 surveys, showing the number of pots deployed, the number of pots that fished successfully and were counted, and the number of lobsters measured in each management zone. NPZ = National Park Zone (no take), SPZ = Special Purpose Zone (open to commercial and recreational fishing). Pots that were lost, had a missing trap door, or were flagged in the field as not countable are deployed but not counted."
 pots %>%
   group_by(Year = year, Zone = zone) %>%
   summarise(`Pots deployed` = n(),
@@ -61,20 +58,15 @@ pots %>%
   kable()
 ```
 
-Set times were not recorded in 2026, so soak time is available for 2025 only and
-catch is reported per pot rather than per pot-hour.
-
-## Pot locations
-
 ```{r}
-#| fig-cap: "Pot locations in each survey year, over marine park zones and 10 m depth contours"
+#| fig-cap: "Locations of lobster pots on Yamatji Shallow Bank, shown separately for the 2025 and 2026 surveys. Commonwealth marine park zone boundaries and 10 m depth contours are shown. ABMP = Abrolhos Marine Park (Commonwealth)."
 include_graphics(file.path(plot_dir, paste0(name, "_lobster-pot-locations_year.png")))
 ```
 
 ## Abundance
 
 ```{r}
-#| tbl-cap: "Catch rate per pot (mean and standard error), by year and zone"
+#| tbl-cap: "Western rock lobster catch rates by zone and survey year, showing the number of pots counted, the total number of lobsters caught, and the mean and standard error of the number of lobsters per pot for all lobsters and for legal sized lobsters. Pots that caught no lobsters are included as zeros. Catch is reported per pot rather than per pot-hour because set times were not recorded in 2026."
 catch_by_zone %>%
   transmute(Year = year, Zone = zone, `Pots` = n_pots,
             `Total lobsters` = total_lobsters,
@@ -86,27 +78,24 @@ catch_by_zone %>%
 ```
 
 ```{r}
-#| fig-cap: "Lobsters per pot by zone and year. Pots that caught nothing are included as zeros."
+#| fig-cap: "Western rock lobster catch rate (mean number of lobsters per pot, +/- standard error) by management zone and survey year, from pot sampling on Yamatji Shallow Bank. Sample sizes are the number of pots counted in each zone and year. Pots that caught no lobsters are included as zeros."
 include_graphics(file.path(plot_dir, paste0(name, "_lobster-catch-rate_zone-year.png")))
 ```
 
 ```{r}
-#| fig-cap: "Abundance per pot in each survey year. Crosses mark pots that caught no lobsters."
+#| fig-cap: "Spatial distribution of total western rock lobster abundance per pot, shown separately for the 2025 and 2026 surveys. Symbol size is scaled to the number of lobsters caught and crosses mark pots that caught no lobsters. Commonwealth marine park zone boundaries are shown."
 include_graphics(file.path(plot_dir, paste0(name, "_lobster-abundance-bubble_year.png")))
 ```
 
 ```{r}
-#| fig-cap: "Legal sized lobsters per pot in each survey year"
+#| fig-cap: "Spatial distribution of legal sized western rock lobster abundance per pot, shown separately for the 2025 and 2026 surveys. Symbol size is scaled to the number of legal sized lobsters caught. Legal size is a carapace length greater than 76 mm. Commonwealth marine park zone boundaries are shown."
 include_graphics(file.path(plot_dir, paste0(name, "_lobster-legal-bubble_year.png")))
 ```
 
 ## Size structure
 
-The minimum legal carapace length for western rock lobster is
-`r legal_size_mm` mm.
-
 ```{r}
-#| tbl-cap: "Carapace length summary, by year and zone"
+#| tbl-cap: "Summary of western rock lobster carapace length by zone and survey year, showing the number of lobsters measured, the mean, median, minimum and maximum carapace length, and the percentage of measured lobsters above the legal minimum size. The minimum legal carapace length for western rock lobster is 76 mm."
 measurements %>%
   filter(species %in% "Western Rock Lobster", !is.na(carapace_length_mm)) %>%
   group_by(Year = year, Zone = zone) %>%
@@ -121,42 +110,41 @@ measurements %>%
 ```
 
 ```{r}
-#| fig-cap: "Carapace length distribution by zone and year"
+#| fig-cap: "Carapace length frequency distribution of western rock lobster by management zone (columns) and survey year (rows), from pot sampling on Yamatji Shallow Bank. Bars are counts of lobsters in 5 mm length bins. The dashed red line shows the 76 mm legal minimum size."
 include_graphics(file.path(plot_dir, paste0(name, "_lobster-size-distribution_zone-year.png")))
 ```
 
 ```{r}
-#| fig-cap: "Carapace length distribution by sex. Zone sets the colour and sex sets the shade, with males the lighter bars."
+#| fig-cap: "Carapace length frequency distribution of western rock lobster by management zone (columns), survey year and sex (rows), from pot sampling on Yamatji Shallow Bank. Bars are counts of lobsters in 5 mm length bins, with zone setting the colour and sex the shade, and males shown as the lighter bars. Lobsters whose sex was not recorded are excluded. The dashed red line shows the 76 mm legal minimum size."
 include_graphics(file.path(plot_dir, paste0(name, "_lobster-size-distribution_sex.png")))
 ```
 
 ### Standardised size distributions
 
-Fewer lobsters were caught in 2026 than 2025, so the histograms above are
-dominated by differences in abundance. In the two figures below each panel is
-scaled to sum to 100%, which removes the abundance signal and shows only the
-shape of the size distribution. Sample sizes are given in each panel, as
-percentages from a small sample are considerably noisier.
-
 ```{r}
-#| fig-cap: "Carapace length distribution by zone and year, standardised so each panel sums to 100%"
+#| fig-cap: "Standardised carapace length frequency distribution of western rock lobster by management zone (columns) and survey year (rows), from pot sampling on Yamatji Shallow Bank. Each panel is scaled to sum to 100% so that the shape of the size distribution can be compared independently of the number of lobsters caught. Sample sizes are given in each panel, as percentages from a small sample are considerably noisier. The dashed red line shows the 76 mm legal minimum size."
 include_graphics(file.path(plot_dir, paste0(name, "_lobster-size-distribution_zone-year_standardised.png")))
 ```
 
 ```{r}
-#| fig-cap: "Carapace length distribution by sex, standardised so each panel sums to 100%. Males are the lighter bars."
+#| fig-cap: "Standardised carapace length frequency distribution of western rock lobster by management zone (columns), survey year and sex (rows), from pot sampling on Yamatji Shallow Bank. Each panel is scaled to sum to 100%, with zone setting the colour and sex the shade, and males shown as the lighter bars. Sample sizes are given in each panel. Lobsters whose sex was not recorded are excluded. The dashed red line shows the 76 mm legal minimum size."
 include_graphics(file.path(plot_dir, paste0(name, "_lobster-size-distribution_sex_standardised.png")))
 ```
 
 ```{r}
-#| fig-cap: "Legal and sublegal catch rates by zone and year"
+#| fig-cap: "Standardised carapace length frequency distribution of male western rock lobster only, by survey year (columns) and management zone (rows), from pot sampling on Yamatji Shallow Bank. Each panel is scaled to sum to 100%, with the two zones stacked within each year so that their size distributions can be compared directly. Sample sizes are given in each panel. The dashed red line shows the 76 mm legal minimum size."
+include_graphics(file.path(plot_dir, paste0(name, "_lobster-size-distribution_male_zone-year_standardised.png")))
+```
+
+```{r}
+#| fig-cap: "Legal and sublegal western rock lobster catch rate (mean number of lobsters per pot, +/- standard error) by management zone (bars) and survey year (columns), from pot sampling on Yamatji Shallow Bank. Legal size is a carapace length greater than 76 mm. Pots that caught no lobsters are included as zeros."
 include_graphics(file.path(plot_dir, paste0(name, "_lobster-catch-rate_legal-sublegal.png")))
 ```
 
 ## Modelling: catch inside vs outside the National Park Zone
 
-Legal and sublegal catch per pot were modelled separately with a Tweedie
-generalised linear model (log link), fitted in `glmmTMB`:
+Catch per pot was modelled with a Tweedie generalised linear model (log link),
+fitted in `glmmTMB`:
 
 `catch ~ status * year + depth_z`
 
@@ -165,14 +153,15 @@ and `depth_z` is pot depth standardised to zero mean and unit variance. Predicte
 means and standard errors for each status-by-year combination were obtained with
 `emmeans`, holding depth at its mean.
 
-The same model was then fitted to legal sized males and legal sized females
-separately, giving four models in total. Legal females outnumbered legal males
-roughly three to two, and the two sexes differ in behaviour and in how the
-fishery takes them, so a change in legal catch can be driven by one sex alone.
-The sex specific models are subsets of the legal model rather than independent
-tests of it: legal male and legal female catch together make up the legal catch,
-apart from `r sum(measurements$sex %in% "Unknown" & measurements$size_class %in% "Legal")`
-legal animals whose sex was not recorded.
+Six responses were modelled with this specification: legal catch, sublegal catch,
+legal males, legal females, males of `r large_male_mm` mm or more, and all
+lobsters combined. These are not independent tests of each other. Legal male and
+legal female catch together make up the legal catch, apart from
+`r sum(measurements$sex %in% "Unknown" & measurements$size_class %in% "Legal")`
+legal animals whose sex was not recorded; the large males are a subset of the
+legal males (`r sum(measurements$sex %in% "Male" & measurements$carapace_length_mm >= large_male_mm)`
+of `r sum(measurements$sex %in% "Male" & measurements$size_class %in% "Legal")`);
+and the all lobsters response is the legal and sublegal responses added together.
 
 ::: {.callout-important}
 ## Two limitations to read these results against
@@ -194,7 +183,7 @@ not separable from the effect of protection.
 :::
 
 ```{r}
-#| tbl-cap: "Predicted lobsters per pot from the Tweedie GLM, by status and year"
+#| tbl-cap: "Predicted western rock lobster catch per pot from the Tweedie generalised linear model, by size class, zoning status and survey year, with standard errors and asymptotic 95% confidence limits. Predictions are made with depth held at its mean. NPZ = National Park Zone."
 read.csv(file.path(output_dir, paste0(name, "_lobster-glm-predictions.csv"))) %>%
   transmute(`Size class` = size_class, Status = status, Year = year,
             `Per pot` = round(mean, 2),
@@ -205,22 +194,32 @@ read.csv(file.path(output_dir, paste0(name, "_lobster-glm-predictions.csv"))) %>
 ```
 
 ```{r}
-#| fig-cap: "Predicted catch per pot inside and outside the National Park Zone, for each of the four models. Points are model predictions with standard errors, depth held at its mean."
+#| fig-cap: "Predicted western rock lobster catch per pot inside and outside the National Park Zone across the size progression from sublegal to legal to large males, from the Tweedie generalised linear model. Points are predicted means with standard errors, with depth held at its mean. Note that each panel has its own y axis scale. Legal size is a carapace length greater than 76 mm. NPZ = National Park Zone."
+include_graphics(file.path(plot_dir, paste0(name, "_lobster-glm-control-plot_size-progression.png")))
+```
+
+```{r}
+#| fig-cap: "Predicted western rock lobster catch per pot inside and outside the National Park Zone for all five size class models, including legal males and legal females separately, from the Tweedie generalised linear model. Points are predicted means with standard errors, with depth held at its mean. Note that each panel has its own y axis scale. NPZ = National Park Zone."
 include_graphics(file.path(plot_dir, paste0(name, "_lobster-glm-control-plot.png")))
 ```
 
 ```{r}
-#| fig-cap: "The same predictions shown as bars"
+#| fig-cap: "Predicted total western rock lobster catch per pot, legal and sublegal combined, inside and outside the National Park Zone, from the Tweedie generalised linear model. Points are predicted means with standard errors, with depth held at its mean. This response is the sum of the legal and sublegal responses shown above rather than an independent size class. NPZ = National Park Zone."
+include_graphics(file.path(plot_dir, paste0(name, "_lobster-glm-control-plot_total.png")))
+```
+
+```{r}
+#| fig-cap: "Predicted western rock lobster catch per pot inside and outside the National Park Zone by size class and survey year, from the Tweedie generalised linear model, shown as bars with standard errors. Depth is held at its mean and each panel has its own y axis scale. NPZ = National Park Zone."
 include_graphics(file.path(plot_dir, paste0(name, "_lobster-glm-barplot.png")))
 ```
 
 ```{r}
-#| fig-cap: "Observed catch per pot, showing the spread behind the modelled means"
+#| fig-cap: "Observed western rock lobster catch per pot by size class, zoning status and survey year, showing the spread of the raw counts behind the modelled means. Boxes show the median and interquartile range with whiskers to 1.5 times the interquartile range. All panels share a y axis so that size classes can be compared against each other. Pots that caught no lobsters are included as zeros. NPZ = National Park Zone."
 include_graphics(file.path(plot_dir, paste0(name, "_lobster-catch-boxplot.png")))
 ```
 
 ```{r}
-#| tbl-cap: "Model coefficients on the log scale. Reference levels are outside the NPZ, 2025."
+#| tbl-cap: "Coefficients of the Tweedie generalised linear model of western rock lobster catch per pot, on the log scale, with standard errors, z statistics and p values. Reference levels are outside the National Park Zone in 2025, so the status term is the effect of protection in 2025 and the interaction term is the change in that effect by 2026. NPZ = National Park Zone."
 read.csv(file.path(output_dir, paste0(name, "_lobster-glm-coefficients.csv"))) %>%
   transmute(`Size class` = size_class, Term = term,
             Estimate = round(estimate, 3),
@@ -231,7 +230,7 @@ read.csv(file.path(output_dir, paste0(name, "_lobster-glm-coefficients.csv"))) %
 ```
 
 ```{r}
-#| tbl-cap: "Likelihood ratio test of the status by year interaction"
+#| tbl-cap: "Likelihood ratio test of the status by year interaction for each size class, comparing the full model with an additive model in which the difference between zones is held constant across years. A significant result would indicate that the difference between zones changed between 2025 and 2026."
 read.csv(file.path(output_dir, paste0(name, "_lobster-glm-interaction-tests.csv"))) %>%
   transmute(`Size class` = size_class,
             `Chi squared` = round(chisq, 3), df = df,
@@ -239,50 +238,19 @@ read.csv(file.path(output_dir, paste0(name, "_lobster-glm-interaction-tests.csv"
   kable()
 ```
 
-Legal catch fell sharply between years (`r round(exp(-1.185), 2)` times the 2025
-rate outside the zone, p < 0.001) and was higher inside the National Park Zone in
-both years, though that difference was not statistically significant on its own
-(p = 0.29). Sublegal catch showed the opposite pattern: substantially lower
-inside the zone (p = 0.002) and unchanged between years. Neither interaction was
-significant, meaning the difference between zones did not detectably change from
-2025 to 2026 — which is expected with only two years of data.
-
-Deeper pots caught more legal lobsters (p = 0.003) and slightly fewer sublegal
-lobsters (p = 0.057). Mean depth was almost identical inside and outside the zone
-(43.9 m and 43.0 m), so depth is not driving the status comparison.
-
-### Legal males and females
-
-Both sexes tell the same story as the combined legal model, and neither is
-driving it on its own. Legal catch fell by close to the same factor between years
-for males (`r round(exp(-1.184), 2)`) and females (`r round(exp(-1.182), 2)`),
-both p < 0.001. Both sexes were more abundant inside the National Park Zone in
-both years, and in neither case was that difference significant on its own
-(males p = 0.21, females p = 0.37), nor was either interaction (males p = 0.18,
-females p = 0.50). Deeper pots caught more of both sexes (males p = 0.011,
-females p = 0.005).
-
-The apparent zone effect is larger for males than females — inside the zone,
-predicted male catch was 1.28 times the outside rate in 2025 and 2.08 times in
-2026, against 1.20 and 1.55 for females — which is the direction expected if
-fishing pressure outside the zone falls more heavily on males. With only two
-years of data, neither the sex difference nor the zone difference itself is
-statistically supported, and the site caveat above applies equally here.
-
-DHARMa diagnostics were acceptable for three of the four models. The legal male
-model showed mild overdispersion (dispersion 1.34, p = 0.032) with no zero
-inflation, so its standard errors are likely slightly optimistic on top of the
-site limitation already noted.
-
 ## Data notes
 
 - Pots that were lost, had a missing trap door, or were flagged in the field as
   not countable are excluded from catch rates but retained in the pot table.
 - Pots that caught no lobsters are carried through the analysis as zeros.
+- Set times were not recorded in 2026, so soak time is available for 2025 only
+  and catch is reported per pot rather than per pot-hour.
 - 2026 includes six extra pots labelled `F3`, `F3-2` and `FIII`. These are kept
   as distinct pots rather than merged with the numbered pots.
 - Three 2026 pots lost GPS fix on retrieval; corrected positions were read from
   the field comments.
+- One 2026 pot was logged at 0 m depth, which is not a possible seabed depth
+  here. It is treated as missing and drops from the models.
 - Non-lobster catch from 2026 is written to a separate bycatch file and is not
   included in these results.
 - One 2025 measurement of 24 mm (National Park Zone, pot 2) sits well below the
