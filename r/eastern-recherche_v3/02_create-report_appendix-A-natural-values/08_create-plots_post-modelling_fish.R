@@ -39,9 +39,44 @@ library(CheckEM)
 # Load functions
 file.sources <- list.files(pattern = "*.R", path = paste0("r/", park, "/functions/"), full.names = TRUE)
 sapply(file.sources, source, .GlobalEnv)
+# Pretty fish metric names mapped to raster layer stubs
+fish_metric_lookup <- c(
+  "Whole assemblage" = "richness",
+  "CTI" = "cti",
+  "Large Reef Fish Index*" = "b20",
+  "Total abundance" = "abundance"
+)
 
-# TODO Set cropping extent - larger than most zoomed out plot
-e <- ext(123.1, 124.0, -35.1, -33.9)
+# Read all years once
+dat_list <- setNames(vector("list", length(years)), years)
+
+for (yr in years) {
+  message("Reading year: ", yr)
+
+  dat <- readRDS(
+    paste0(
+      "output/model-output/", park, "/fish/",
+      name, "_predicted-fish_", yr, ".rds"
+    )
+  )
+
+  if (!inherits(dat, "SpatRaster")) dat <- terra::rast(dat)
+  terra::crs(dat) <- "EPSG:4326"
+
+  dat_list[[as.character(yr)]] <- dat
+}
+
+# Spatial predictions limits, taken from the predictions. 02 masks the fish
+# predictions to a 10 km buffer around the BRUVs, so these limits change with
+# the samples and are tighter than the benthos limits used in 07.
+prediction_limits <- unname(as.vector(ext(dat_list[[1]])))
+print(prediction_limits)
+
+# Cropping extent - larger than most zoomed out plot
+e_pad <- 0.04
+
+e <- ext(prediction_limits[1] - e_pad, prediction_limits[2] + e_pad,
+         prediction_limits[3] - e_pad, prediction_limits[4] + e_pad)
 
 # Load necessary spatial files
 sf_use_s2(FALSE)
@@ -80,36 +115,6 @@ bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__
   as.data.frame(xy = TRUE, na.rm = TRUE)
 
 names(bathy)[3] <- "Depth"
-
-# Spatial predictions limits
-prediction_limits <- c(123.1, 124.0, -35.1, -33.9)
-
-# Pretty fish metric names mapped to raster layer stubs
-fish_metric_lookup <- c(
-  "Whole assemblage" = "richness",
-  "CTI" = "cti",
-  "Large Reef Fish Index*" = "b20",
-  "Total abundance" = "abundance"
-)
-
-# Read all years once
-dat_list <- setNames(vector("list", length(years)), years)
-
-for (yr in years) {
-  message("Reading year: ", yr)
-
-  dat <- readRDS(
-    paste0(
-      "output/model-output/", park, "/fish/",
-      name, "_predicted-fish_", yr, ".rds"
-    )
-  )
-
-  if (!inherits(dat, "SpatRaster")) dat <- terra::rast(dat)
-  terra::crs(dat) <- "EPSG:4326"
-
-  dat_list[[as.character(yr)]] <- dat
-}
 
 # -------------------------------------------------------------------
 # Fish metric plots
@@ -446,16 +451,16 @@ sac_sample <- ggplot(
     )
   ) +
   scale_colour_manual(name = "Status",
-    values = c(
-      "No-Take" = "#7bbc63",
-      "Fished" = "#b9e6fb"
-    )
+                      values = c(
+                        "No-Take" = "#7bbc63",
+                        "Fished" = "#b9e6fb"
+                      )
   ) +
   scale_fill_manual(name = "Status",
-    values = c(
-      "No-Take" = "#7bbc63",
-      "Fished" = "#b9e6fb"
-    )
+                    values = c(
+                      "No-Take" = "#7bbc63",
+                      "Fished" = "#b9e6fb"
+                    )
   ) +
   labs(
     x = "Number of BRUV deployments",
@@ -506,16 +511,16 @@ sac_individual <- ggplot(
     )
   ) +
   scale_colour_manual(name = "Status",
-    values = c(
-      "No-Take" = "#7bbc63",
-      "Fished" = "#b9e6fb"
-    )
+                      values = c(
+                        "No-Take" = "#7bbc63",
+                        "Fished" = "#b9e6fb"
+                      )
   ) +
   scale_fill_manual(name = "Status",
-    values = c(
-      "No-Take" = "#7bbc63",
-      "Fished" = "#b9e6fb"
-    )
+                    values = c(
+                      "No-Take" = "#7bbc63",
+                      "Fished" = "#b9e6fb"
+                    )
   ) +
   labs(
     x = "Cumulative MaxN individuals",
@@ -856,10 +861,20 @@ saveRDS(bar_b20_v2,
 
 # -------------------------------------------------------------------
 # Bubble plots
-# -------------------------------------------------------------------
-prediction_limits <- c(123.1, 124.1, -34.7, -33.9)
+# -------------------------------------------------------------------# Bubble plots are zoomed in tighter than the prediction surface so the bubbles
+# stay legible. Taken from the samples rather than the prediction extent.
+# TODO adjust bubble_pad if the bubbles run off the edge of the panel
+bubble_pad <- 0.05
+
 tidy_count <- readRDS(paste0("data/", park, "/tidy/", name, "_tidy-count.rds")) %>%
   semi_join(metadata_amp, by = c("campaignid", "sample"))
+
+bubble_limits <- c(
+  min(tidy_count$longitude_dd) - bubble_pad, max(tidy_count$longitude_dd) + bubble_pad,
+  min(tidy_count$latitude_dd)  - bubble_pad, max(tidy_count$latitude_dd)  + bubble_pad
+)
+
+print(bubble_limits)
 
 bubble_combined <- bubble_plots(
   dat                 = tidy_count,
@@ -867,7 +882,7 @@ bubble_combined <- bubble_plots(
   cwatr               = cwatr,
   marine_parks_amp    = marine_parks_amp,
   wasanc              = wasanc,
-  prediction_limits   = prediction_limits
+  prediction_limits   = bubble_limits
 )
 
 bubble_combined

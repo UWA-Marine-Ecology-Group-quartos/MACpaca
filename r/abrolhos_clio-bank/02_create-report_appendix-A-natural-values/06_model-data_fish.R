@@ -110,6 +110,7 @@ for(i in 1:length(resp.vars)){
 names(out.all) <- resp.vars
 names(var.imp) <- resp.vars
 all.mod.fits   <- do.call("rbind",out.all)
+
 all.var.imp    <- do.call("rbind",var.imp)
 write.csv(all.mod.fits[ , -2], file = paste(savedir, paste(name, "all.mod.fits.csv", sep = "_"), sep = "/"))
 write.csv(all.var.imp, file = paste(savedir, paste(name, "all.var.imp.csv", sep = "_"), sep = "/"))
@@ -206,16 +207,13 @@ fabund <- bind_rows(tidy_maxn, tidy_b20) %>%
 
 # Total abundance
 m_abundance <- gam(count ~ s(geoscience_detrended, k = 3, bs = "cr") +
-                     s(geoscience_roughness, k = 3, bs = "cr") +
-                     s(reef, k = 3, bs = "cr"),
+                     s(geoscience_roughness, k = 3, bs = "cr"),
                    data = fabund %>% dplyr::filter(response %in% "total_abundance"),
                    family = tw())
 summary(m_abundance)
 
 # Species richness
-m_richness <- gam(count ~ s(geoscience_detrended, k = 3, bs = "cr") +
-                    s(geoscience_roughness, k = 3, bs = "cr") +
-                    s(reef, k = 3, bs = "cr"),
+m_richness <- gam(count ~ s(geoscience_depth, k = 3, bs = "cr"),
                   data = fabund %>% dplyr::filter(response %in% "species_richness"),
                   family = tw())
 summary(m_richness)

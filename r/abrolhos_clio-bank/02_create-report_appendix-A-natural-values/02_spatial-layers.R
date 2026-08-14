@@ -30,11 +30,51 @@ library(tidyverse)
 library(RNetCDF)
 library(rerddap)
 
-# TODO Set the extent of the study
-e <- ext(114.03, 114.27, -29.33, -29.2)
+# Predictions are limited to within 10 km of any sample
+buffer_km <- 10
+
+# TODO Set the projected CRS used to buffer the samples in metres.
+# 32749 = UTM zone 49S (108-114E), 32750 = UTM zone 50S (114-120E).
+# Clio Bank sits at ~114.03-114.27E, so zone 50S.
+buffer_crs <- 32750
+
+# Padding (decimal degrees) added around the buffer before the bathymetry is
+# cropped. Keeps the terrain and detrending neighbourhoods clean at the buffer
+# edge - the pad is masked off again further down.
+e_pad <- 0.02
 
 # TODO Download AusBathyTopo 2024 from https://pid.geoscience.gov.au/dataset/ga/150050
 # and save in below folder
+
+# Read in the metadata
+metadata <- readRDS(paste0("data/", park, "/raw/metadata.RDS")) %>%
+  dplyr::select(campaignid, sample, longitude_dd, latitude_dd, status, year) %>%
+  glimpse()
+
+# Convert metadata to a spatial file
+metadata_sf <- st_as_sf(metadata, coords = c("longitude_dd", "latitude_dd"), crs = 4326)
+
+# Buffer the samples ----
+sample_buffer <- metadata_sf %>%
+  st_transform(buffer_crs) %>%              # project to metres
+  st_buffer(dist = buffer_km * 1000) %>%
+  st_union() %>%                            # merge overlapping discs
+  st_transform(4326) %>%
+  st_as_sf()
+
+# Alternative if you would rather not track UTM zones per park - s2 buffers
+# geodesically straight off lon/lat, in metres:
+# sample_buffer <- metadata_sf %>%
+#   st_buffer(dist = buffer_km * 1000) %>%
+#   st_union() %>%
+#   st_as_sf()
+
+# Study extent, derived from the buffer so the full 10 km is retained on all
+# sides rather than being clipped by a hard-coded extent
+bb <- st_bbox(sample_buffer)
+
+e <- ext(bb[["xmin"]] - e_pad, bb[["xmax"]] + e_pad,
+         bb[["ymin"]] - e_pad, bb[["ymax"]] + e_pad)
 
 # Load the bathymetry data (GA 250m resolution)
 bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
@@ -42,8 +82,11 @@ bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__
   clamp(upper = 0, lower = -250, values = F) %>%
   trim()
 plot(bathy)
+plot(st_geometry(sample_buffer), add = T, border = "red")
 
 # Create terrain metrics (bathymetry derivatives)
+# NOTE Derivatives are built on the padded extent, before the sample buffer is
+# applied, so that neighbourhood-based metrics are not affected by edge effects.
 preds <- terrain(bathy, neighbors = 8,
                  v = c("aspect", "roughness"),
                  unit = "degrees")
@@ -59,21 +102,41 @@ names(detre) <- c("geoscience_detrended", "lineartrend")
 preds <- rast(list(bathy, preds, detre[[1]]))
 names(preds)[1] <- "geoscience_depth"
 
+# Mask the predictions to the buffer, dropping the pad
+preds <- preds %>%
+  terra::mask(terra::vect(sample_buffer)) %>%
+  terra::trim()
+
+# Save the buffer and the sample points for mapping and methods reporting.
+# NOTE written as GeoPackage rather than shapefile - a gpkg is a single file, so
+# a failed write cannot leave a half-written file set that blocks the next run.
+# It also keeps factor levels and full-length field names. QGIS reads it fine.
+vector_dir <- paste0("data/", park, "/spatial/shapefiles")
+if (!dir.exists(vector_dir)) dir.create(vector_dir, recursive = TRUE)
+
+st_write(sample_buffer,
+         file.path(vector_dir, paste0(name, "_sample-buffer.gpkg")),
+         delete_dsn = TRUE, quiet = TRUE)
+
+st_write(metadata_sf,
+         file.path(vector_dir, paste0(name, "_samples.gpkg")),
+         delete_dsn = TRUE, quiet = TRUE)
+
+message("Wrote ", name, "_sample-buffer.gpkg and ", name, "_samples.gpkg")
+
+# TODO Check the masked prediction area covers all samples sensibly
+plot(preds[[1]])
+plot(st_geometry(sample_buffer), add = T, border = "red")
+plot(st_geometry(metadata_sf), add = T, pch = 20)
+
+# TODO Copy this into prediction_limits in scripts 07 and 08, and widen the
+# cropping extent `e` at the top of those scripts so it sits outside these limits
+message("prediction_limits <- c(",
+        paste(round(as.vector(ext(preds)), 4), collapse = ", "), ")")
+
 # Save the bathymetry derivatives
 saveRDS(preds, file = paste0("data/", park, "/spatial/rasters/",
-                      name, "_bathymetry-derivatives.rds"))
-
-# Read in the metadata
-metadata <- readRDS(paste0("data/", park, "/raw/metadata.RDS")) %>%
-  dplyr::select(campaignid, sample, longitude_dd, latitude_dd, status, year) %>%
-  glimpse()
-
-# Convert metadata to a spatial file and check alignment with bathymetry
-metadata_sf <- st_as_sf(metadata, coords = c("longitude_dd", "latitude_dd"), crs = 4326)
-
-# Check that samples align with bathymetry derivatives
-plot(preds[[1]])
-plot(metadata_sf, add = T)
+                             name, "_bathymetry-derivatives.rds"))
 
 # Extract bathymetry derivatives at each of the samples
 metadata.bathy.derivatives   <- cbind(metadata,
@@ -85,4 +148,3 @@ metadata.bathy.derivatives   <- cbind(metadata,
 
 # Save the metadata bathymetry derivatives
 saveRDS(metadata.bathy.derivatives, paste0("data/", park, "/tidy/", name, "_metadata-bathymetry-derivatives.rds"))
-

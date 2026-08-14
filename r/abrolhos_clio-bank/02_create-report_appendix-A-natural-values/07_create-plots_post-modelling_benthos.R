@@ -44,8 +44,19 @@ library(geos)
 file.sources <- list.files(pattern = "*.R", path = paste0("r/", park, "/functions/"), full.names = TRUE)
 sapply(file.sources, source, .GlobalEnv)
 
-# TODO Set cropping extent - larger than most zoomed out plot
-e <- ext(114.0, 114.3, -29.36, -29.17)
+# -------------------------------------------------------------------
+# Extents
+# -------------------------------------------------------------------
+# TODO Copy from the message printed at the end of 02_spatial-layers.R
+prediction_limits <- c(113.9676, 114.3476, -29.3899, -29.1349)
+
+e_pad <- 0.04
+
+e <- ext(prediction_limits[1] - e_pad, prediction_limits[2] + e_pad,
+         prediction_limits[3] - e_pad, prediction_limits[4] + e_pad)
+
+# TODO Scatterpie extent.
+site_limits <- c(114.03, 114.27, -29.33, -29.2)
 
 # Load necessary spatial files
 ausc <- st_read("data/south-west network/spatial/shapefiles/aus-shapefile-w-investigator-stokes.shp") %>%
@@ -104,9 +115,6 @@ hab_cols <- c(
   "Sessile invertebrates" = "plum"
 )
 
-# TODO Plot extent - must match the extent used in 02_spatial-layers.R
-prediction_limits <- c(114.03, 114.27, -29.33, -29.2)
-
 # Read all years once
 if (combine_benthos) {
   dat_list <- setNames(
@@ -127,6 +135,10 @@ if (combine_benthos) {
     )
   }
 }
+
+# TODO Check the prediction limits actually contain the predictions. If this
+# prints anything outside prediction_limits, re-copy them from 02.
+print(ext(dat_list[[1]]))
 
 # -------------------------------------------------------------------
 # PART 1: Single-year plots (categorical + dominant benthos)
@@ -288,7 +300,7 @@ ggsave(
     "_predicted-reef-and-se_",
     paste(years, collapse = "-"), ".png"
   ),
-  plot = p_reef, height = 9, width = 6, dpi = 500, units = "in", bg = "white"
+  plot = p_reef, height = 4, width = 11, dpi = 500, units = "in", bg = "white"
 )
 
 saveRDS(p_reef,
@@ -440,18 +452,9 @@ if (!combine_benthos && length(years) > 1) {
 # The scatterpie reads the raw benthos counts rather than the model output, so
 # every class scored is plotted here - including rock and seagrass, which were
 # too rare to model.
-
-# TODO Set the extent of the study
-e <- ext(114.0, 114.3, -29.36, -29.17)
-
-# Load the bathymetry data (GA 250m resolution)
-bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
-  crop(e) %>%
-  clamp(upper = 0, lower = -250, values = FALSE) %>%
-  trim() %>%
-  as.data.frame(xy = TRUE, na.rm = TRUE)
-
-names(bathy)[3] <- "Depth"
+#
+# NOTE the extent `e` and the bathymetry are already set at the top of the
+# script - no need to redefine them here.
 
 metadata_bathy_derivatives <- readRDS(
   paste0("data/", park, "/tidy/", name, "_metadata-bathymetry-derivatives.rds")
@@ -502,8 +505,6 @@ depth_fills <- scale_fill_manual(
   values = c("#a7cfe0", "#9acbec", "#98c4f7", "#a3bbff", "#81a1fc"),
   guide = "none"
 )
-
-site_limits <- c(114.03, 114.27, -29.33, -29.2)
 
 if (combine_benthos) {
 

@@ -52,14 +52,9 @@ library(FSSgam)
 library(CheckEM)
 
 tidy_maxn <- readRDS(paste0("data/", park, "/tidy/", name, "_tidy-count.rds")) %>%
-  # TODO roughness outlier filter left OFF to match the successful Eastern
-  # Recherche run - switch back on only if the diagnostics below justify it
-  # dplyr::filter(geoscience_roughness < 4) %>%
   dplyr::mutate(year = factor(as.character(year), levels = year_levels)) %>%
   glimpse()
 
-# Guard - year must match the config, otherwise the year terms and the
-# prediction grid below will not line up
 stopifnot(!any(is.na(tidy_maxn$year)))
 print(table(tidy_maxn$year, useNA = "ifany"))
 
@@ -272,22 +267,20 @@ m_richness <- gam(count ~ s(reef, k = 3, bs = "cr"),
 summary(m_richness)
 
 # CTI
-m_cti <- gam(count ~ year +
-               s(geoscience_detrended, k = 3, bs = "cr") +
-               s(reef, k = 3, bs = "cr"),
+m_cti <- gam(count ~ s(geoscience_depth, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "cti"),
              family = tw())
 summary(m_cti)
 
 # B20
-m_b20 <- gam(count ~ year +
+m_b20 <- gam(count ~ s(geoscience_detrended, k = 3, bs = "cr") +
                s(reef, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "b20"),
              family = tw())
 summary(m_b20)
 
 # Read predictor rasters to predict onto (bathymetry derivatives etc.)
-preds <- readRDS(paste0("data/", park, "/spatial/rasters/", name, "_bathymetry-derivatives.rds"))
+preds <- readRDS(paste0("data/", park, "/spatial/rasters/", name, "_bathymetry-derivatives-fish.rds"))
 plot(preds)
 
 # Predictors as a dataframe for modelling

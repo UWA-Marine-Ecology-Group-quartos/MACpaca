@@ -44,8 +44,20 @@ library(CheckEM)
 file.sources <- list.files(pattern = "*.R", path = paste0("r/", park, "/functions/"), full.names = TRUE)
 sapply(file.sources, source, .GlobalEnv)
 
-# TODO Set cropping extent - larger than most zoomed out plot
-e <- ext(114.0, 114.3, -29.36, -29.17)
+# -------------------------------------------------------------------
+# Extents
+# -------------------------------------------------------------------
+prediction_limits <- c(113.9676, 114.3476, -29.3899, -29.1349)
+
+e_pad <- 0.04
+
+e <- ext(prediction_limits[1] - e_pad, prediction_limits[2] + e_pad,
+         prediction_limits[3] - e_pad, prediction_limits[4] + e_pad)
+
+# TODO Bubble plots are zoomed in tighter than the prediction surface so the
+# bubbles stay legible. Samples span ~114.07-114.24 and -29.29 to -29.24 -
+# check and adjust.
+bubble_limits <- c(114.05, 114.26, -29.31, -29.22)
 
 # Load necessary spatial files
 sf_use_s2(FALSE)
@@ -85,13 +97,6 @@ bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__
 
 names(bathy)[3] <- "Depth"
 
-# Spatial predictions limits - must match the extent used in 02_spatial-layers.R
-prediction_limits <- c(114.03, 114.27, -29.33, -29.2)
-
-# TODO Bubble plots are zoomed in tighter than the prediction surface.
-# Samples span 114.07-114.24 and -29.29 to -29.24 - check and adjust.
-bubble_limits <- c(114.05, 114.26, -29.31, -29.22)
-
 # Pretty fish metric names mapped to raster layer stubs
 fish_metric_lookup <- c(
   "Whole assemblage" = "richness",
@@ -111,6 +116,10 @@ terra::crs(dat) <- "EPSG:4326"
 
 dat_list <- setNames(list(dat), as.character(years))
 
+# TODO Check the prediction limits actually contain the predictions. If this
+# prints anything outside prediction_limits, re-copy them from 02.
+print(ext(dat))
+
 # =============================================================================
 # SST PROCESSING - run once to create the SST time series used by the Reef
 # Fish Thermal Index (CTI) control plot.
@@ -122,6 +131,12 @@ dat_list <- setNames(list(dat), as.character(years))
 #
 # NOTE Kelvin is converted to Celsius ONCE, at extraction below. Do not subtract
 # 273.15 again in the climatology loop or the time-series summary.
+#
+# NOTE the SST file was downloaded to the OLD, narrower study window
+# (114.01-114.29, -29.35 to -29.17). The crop below now uses the wider
+# buffer-derived `e`, so it is effectively a no-op and the SST covers a smaller
+# area than the predictions. Fine for a park-wide climatology, but re-download
+# to the new window if you want them to match.
 # =============================================================================
 
 library(RNetCDF)
@@ -212,6 +227,10 @@ boxplot(sst_tsdf$sst ~ sst_tsdf$month)
 # -------------------------------------------------------------------
 # Fish metric plots
 # -------------------------------------------------------------------
+# NOTE reef dropped out of every fish model in 06 - it was the weakest
+# predictor for all four responses. None of these panels now inherit the MESS
+# holes from the script 05 reef surface, so all four should cover the same
+# window, subject to their own extrapolation masks.
 for (metric_name in names(fish_metric_lookup)) {
 
   message("Building fish metric plot for: ", metric_name)
