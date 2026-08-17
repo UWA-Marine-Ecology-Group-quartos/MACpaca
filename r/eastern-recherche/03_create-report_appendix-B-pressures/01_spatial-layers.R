@@ -10,7 +10,6 @@
 # TODO need to download the following from AODN portal
 # Download the entire time period for just your park extent (if you do all of aus it will take a long time to download)
 #
-#Extent for eastern-recherche: 123.2, 124.4, -34.9, -33.5
 # AODN portal link: https://portal.aodn.org.au/search
 # SST:  IMOS - Satellite Remote Sensing - SST - L3S - Single Sensor - 1 month - day and night time - Australia
 # SLA: IMOS - OceanCurrent - Gridded sea level anomaly - Near real time
@@ -45,11 +44,11 @@ library(RNetCDF)
 library(rerddap)
 
 # TODO Set the extent of the study
-e <- ext(123.2, 124.4, -34.9, -33.5)
+e <- ext(115.04, 115.60, -33.67, -33.346)
 
 # Oceanography/Pressures
 # ── Sea Surface Temperature ───────────────────────────────────────────────────────────────────────
-# Open NetCDF and extract variables
+# SST data can sometimes be read strangely so this way prevents it from switching long and lat columns
 nc_sst <- open.nc(paste0("data/", park, "/spatial/oceanography/SST.nc"))
 print.nc(nc_sst)
 
@@ -67,24 +66,21 @@ close.nc(nc_sst) # close before raster operations to avoid GDAL errors
 # Convert Kelvin to Celsius and fix dimension order [lon, lat, time] -> [lat, lon, time]
 sst_var       <- sst_var - 273.15
 sst_corrected <- aperm(sst_var, c(2, 1, 3))
-dim(sst_corrected) # should be [150, 170, 365]
 
 # Create raster stack
 rast_sst <- terra::rast(sst_corrected,
                         extent = terra::ext(min(lon), max(lon), min(lat), max(lat)),
                         crs = "EPSG:4326")
 
-# Assign dates and crop
+# Assign dates, crop and trim to study extent
 names(rast_sst) <- as.character(dates_sst)
 time(rast_sst)  <- dates_sst
-rast_sst        <- terra::crop(rast_sst, e)
+rast_sst        <- terra::crop(rast_sst, e) %>% terra::trim()
 
 # Check orientation - if upside down run: rast_sst <- terra::flip(rast_sst, "vertical")
 plot(rast_sst[[1]])
 
-# Subset to winter months (Jul-Sep)
 winter_sst_ts <- rast_sst[[which(month(dates_sst) %in% c(7, 8, 9))]]
-
 
 # Build monthly climatology
 # Average across years for each month and convert from Kelvin to Celsius

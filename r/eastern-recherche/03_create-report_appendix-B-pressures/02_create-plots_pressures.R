@@ -23,14 +23,14 @@ name <- config$name
 park <- config$park
 
 # TODO Set the extent of the study
-e <- ext(123.2, 124.4, -34.9, -33.5)
+e <- ext(115.04, 115.60, -33.67, -33.346)
 
 # Read in shapefile data for maps
 aus <- st_read("data/south-west network/spatial/shapefiles/aus-shapefile-w-investigator-stokes.shp")
 ausc <- st_crop(aus, e)
 
 marine_parks <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
-  dplyr::filter(name %in% c("Eastern Recherche")) # TODO select relevant parks
+  dplyr::filter(name %in% c("Geographe", "Ngari Capes")) # TODO select relevant parks
 marine_parks <- st_crop(marine_parks, e)
 
 # Spatial plots
@@ -41,11 +41,12 @@ names(sst)
 sst <- sst[[c("Jan", "Mar", "May", "Jul", "Sep", "Nov")]]
 names(sst)
 
-prediction_limits = c(123.2, 124.4, -34.9, -33.5)
+prediction_limits = c(115.05, 115.592, -33.67, -33.346)
 
 plot_sst(prediction_limits) +
-  scale_x_continuous(breaks = seq(123.5, 124.0, by = 0.5)) +
   theme(axis.text = element_text(size = 6))
+
+
 ggsave(paste0("plots/", park, "/pressures/", name, "_SST.png"),
        height = 4.5, width = 8, dpi = 600, bg = "white", units = "in")
 
@@ -55,7 +56,6 @@ sla <- rast(paste0("data/", park, "/spatial/oceanography/", name, "_SLA_raster.r
 names(sla)
 
 plot_sla(prediction_limits) +
-  scale_x_continuous(n.breaks = 3) +
   theme(axis.text = element_text(size = 6))
 
 ggsave(paste0("plots/", park, "/pressures/", name, "_SLA.png"),
@@ -66,7 +66,6 @@ dhw <- rast(paste0("data/", park, "/spatial/oceanography/", name, "_DHW_raster.r
 names(dhw)
 
 plot_dhw(prediction_limits) +
-  scale_x_continuous(n.breaks = 3) +
   theme(axis.text = element_text(size = 6))
 
 ggsave(paste0("plots/", park, "/pressures/", name, "_DHW.png"),

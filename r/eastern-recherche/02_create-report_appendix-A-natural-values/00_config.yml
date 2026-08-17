@@ -1,4 +1,5 @@
 name:          "eastern-rechercheAMP"
 park:          "eastern-recherche"
 years:         [2022, 2025]
-
+combine_benthos: TRUE       # true = pool benthos years into ONE
+                             # Combine benthos if years have samples in different spatial areas

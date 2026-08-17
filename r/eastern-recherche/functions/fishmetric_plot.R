@@ -38,12 +38,12 @@ fishmetric_plot <- function(metric_name,
   # ---- Theme variants ----
   theme_left <- theme(
     axis.title = element_blank(),
-    axis.text = element_text(size = 8),
+    axis.text = element_text(size = 9),
     axis.ticks = element_line(linewidth = 0.2),
     panel.grid.major = element_line(linewidth = 0.2, colour = "grey85"),
     panel.grid.minor = element_blank(),
-    legend.title = element_text(size = 8),
-    legend.text = element_text(size = 7),
+    legend.title = element_text(size = 9),
+    legend.text = element_text(size = 8),
     legend.key.height = unit(0.45, "cm"),
     legend.key.width = unit(0.45, "cm"),
     plot.margin = margin(2, 2, 2, 2, unit = "mm")
@@ -77,6 +77,15 @@ fishmetric_plot <- function(metric_name,
       ),
       geom_sf(data = ausc, fill = "seashell2", colour = "black", linewidth = 0.2),
       geom_sf(
+        data = wasanc,
+        aes(colour = zone),
+        fill = NA,
+        show.legend = FALSE,
+        linewidth = 0.6
+      ),
+      scale_colour_manual(values = with(wasanc, setNames(colour, zone))),
+      ggnewscale::new_scale_color(),
+      geom_sf(
         data = marine_parks_amp,
         aes(colour = zone),
         fill = NA,
@@ -85,9 +94,11 @@ fishmetric_plot <- function(metric_name,
       ),
       geom_sf(data = cwatr, colour = "firebrick", linewidth = 0.6),
       scale_colour_manual(
-        name = "Australian Marine Parks",
+
         values = with(marine_parks_amp, setNames(colour, zone))
       ),
+      scale_x_continuous(breaks = seq(123.2, 123.8, by = 0.5)),
+      scale_y_continuous(breaks = seq(-35.0, -34.0, by = 0.4)),
       coord_sf(
         xlim = c(prediction_limits[1], prediction_limits[2]),
         ylim = c(prediction_limits[3], prediction_limits[4]),
@@ -99,7 +110,7 @@ fishmetric_plot <- function(metric_name,
       y_theme,
       x_theme,
       theme(
-        plot.title = element_text(hjust = 0.5, face = "bold", size = 10)
+        plot.title = element_text(hjust = 0.5, face = "bold", size = 13)
       )
     )
   }
@@ -110,7 +121,7 @@ fishmetric_plot <- function(metric_name,
       geom_spatraster(data = pred_list[[i]]) +
       scale_fill_viridis_c(
         name = fill_title,
-        direction = -1,
+        direction = 1,
         na.value = "transparent",
         limits = pred_limits,
         oob = scales::squish
@@ -143,7 +154,7 @@ fishmetric_plot <- function(metric_name,
         label = label,
         angle = 90,
         fontface = "bold",
-        size = 4
+        size = 5
       )
   }
 
@@ -164,6 +175,8 @@ fishmetric_plot <- function(metric_name,
       panel.spacing = unit(0.5, "mm"),
       plot.margin = margin(2, 2, 2, 2, unit = "mm")
     )
+
+  p_out <- cowplot::plot_grid(p_out, marine_park_legend(), ncol = 1, rel_heights = c(1, 0.145))
 
   return(p_out)
 }

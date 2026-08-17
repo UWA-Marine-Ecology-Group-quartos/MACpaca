@@ -1,9 +1,9 @@
 ###
-# Project: NESP 4.20 - Marine Park Dashboard reporting
+# Project: NESP 4.21 - Australian Marine Parks Natural Values Reporting
 # Data:    Fish data synthesis & habitat models derived from FSSgam
 # Task:    Create post-modelling fish figures for marine park reporting
-# Author:  Claude Spencer
-# Date:    June 2024
+# Author:  Claude Spencer & Henry Evans
+# Date:    July 2026
 ###
 
 # Clear your environment
@@ -18,11 +18,11 @@ config <- yaml::read_yaml(
   file.path(script_dir, "00_config.yml")
 )
 
-name  <- config$name
-park  <- config$park
+name <- config$name
+park <- config$park
 years <- config$years
 
-# Load libraries ----
+# Load libraries
 library(tidyverse)
 library(terra)
 library(sf)
@@ -34,283 +34,20 @@ library(patchwork)
 library(tidyterra)
 library(tidytext)
 library(ggtext)
-library(lubridate)
 library(CheckEM)
-library(RNetCDF)
 
-# Load functions ----
+# Load functions
 file.sources <- list.files(pattern = "*.R", path = paste0("r/", park, "/functions/"), full.names = TRUE)
 sapply(file.sources, source, .GlobalEnv)
-
-# controlplot_fish() defined inline so the CTI panel carries the monthly SST
-# overlay (solid black line + grey SD ribbon). Defined after the source() loop,
-# so it overrides any controlplot_fish() in functions/.
-controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
-                             metric_label = NULL,
-                             depth_levels = c("Shallow (0 - 30 m)",
-                                              "Mesophotic (30 - 70 m)",
-                                              "Rariphotic (70 - 200 m)")) {
-
-  mean_col <- metric
-  se_col   <- paste0(metric, "_se")
-
-  if (is.null(metric_label)) {
-    metric_label <- dplyr::case_when(
-      metric == "richness"  ~ "Species richness (per BRUV)",
-      metric == "cti"       ~ "Community Thermal Index (\u00B0C)",
-      metric == "b20"       ~ "Large reef fish index* (biomass g per BRUV)",
-      metric == "abundance" ~ "Total abundance (per BRUV)",
-      TRUE ~ stringr::str_to_title(metric)
-    )
-  }
-
-  req_cols <- c("year", "zone_new", "depth_class", mean_col, se_col)
-  if (!all(req_cols %in% names(data))) {
-    stop("Data is missing one or more required columns: ",
-         paste(setdiff(req_cols, names(data)), collapse = ", "))
-  }
-
-  plot_dat <- data %>%
-    dplyr::filter(!is.na(.data[[mean_col]])) %>%
-    dplyr::mutate(
-      year = as.numeric(year),
-      depth_class = factor(depth_class, levels = depth_levels),
-      zone_new = factor(
-        zone_new,
-        levels = c(
-          paste(amp_abbrv, "HPZ"),
-          paste(amp_abbrv, "NPZ (IUCN II)"),
-          paste(amp_abbrv, "other zones"),
-          paste(state_abbrv, "SZ (IUCN II)"),
-          paste(state_abbrv, "other zones")
-        )
-      )
-    )
-
-  if (nrow(plot_dat) == 0) {
-    message("No data available to plot for ", metric_label)
-    return(NULL)
-  }
-
-  fill_vals <- setNames(
-    c("#fff8a3", "#7bbc63", "#b9e6fb", "#bfd054", "#bddde1"),
-    c(
-      paste(amp_abbrv, "HPZ"),
-      paste(amp_abbrv, "NPZ (IUCN II)"),
-      paste(amp_abbrv, "other zones"),
-      paste(state_abbrv, "SZ (IUCN II)"),
-      paste(state_abbrv, "other zones")
-    )
-  )
-
-  shape_vals <- setNames(
-    c(21, 21, 21, 25, 25),
-    c(
-      paste(amp_abbrv, "HPZ"),
-      paste(amp_abbrv, "NPZ (IUCN II)"),
-      paste(amp_abbrv, "other zones"),
-      paste(state_abbrv, "SZ (IUCN II)"),
-      paste(state_abbrv, "other zones")
-    )
-  )
-
-  # Year axis derived from the data (no hard-coded survey years) ----
-  yr_breaks <- sort(unique(plot_dat$year))
-
-  if (metric == "cti") {
-
-    # SST series supplied as <name>_SST_time-series.rds
-    # (columns: year, month, sst, sd, season). Aggregated to an annual mean below
-    # (matching the original code) and plotted as a line on the year x-axis.
-    # NOTE: the supplied sst column is offset by -273.15; +273.15 returns it to
-    # degrees C so it is comparable to CTI on the shared y-axis. Set to 0 to use
-    # the raw stored values.
-    sst_offset <- 273.15
-
-    sst <- readRDS(
-      paste0("data/", park, "/spatial/oceanography/",
-             name, "_SST_time-series.rds")
-    ) %>%
-      dplyr::mutate(
-        year = as.numeric(year),
-        sst  = sst + sst_offset
-      ) %>%
-      dplyr::filter(!is.na(sst), year >= 2016, year <= 2026) %>%
-      # annual mean SST (matches the original code) - avoids the busy monthly
-      # seasonal sawtooth. For a monthly line, drop this group_by/summarise and
-      # plot on a decimal-year x instead.
-      dplyr::group_by(year) %>%
-      dplyr::summarise(
-        sst = mean(sst, na.rm = TRUE),
-        sd  = mean(sd,  na.rm = TRUE),
-        .groups = "drop"
-      ) %>%
-      dplyr::arrange(year)
-
-    # fixed x range 2016-2026
-    x_lims <- c(2016, 2026)
-
-    p <- ggplot() +
-      # grey error mask (annual SD) - drawn first so it sits behind the line
-      geom_ribbon(
-        data = sst,
-        aes(x = year, ymin = sst - sd, ymax = sst + sd),
-        fill = "grey60",
-        alpha = 0.35
-      ) +
-      # solid black annual SST line
-      geom_line(
-        data = sst,
-        aes(x = year, y = sst),
-        colour = "black",
-        linewidth = 0.6
-      ) +
-      geom_errorbar(
-        data = plot_dat,
-        aes(
-          x = year,
-          y = .data[[mean_col]],
-          ymin = .data[[mean_col]] - .data[[se_col]],
-          ymax = .data[[mean_col]] + .data[[se_col]],
-          fill = zone_new,
-          shape = zone_new
-        ),
-        width = 0.8,
-        position = position_dodge(width = 0.6)
-      ) +
-      geom_point(
-        data = plot_dat,
-        aes(
-          x = year,
-          y = .data[[mean_col]],
-          fill = zone_new,
-          shape = zone_new
-        ),
-        size = 3,
-        position = position_dodge(width = 0.6),
-        stroke = 0.2,
-        color = "black",
-        alpha = 0.8
-      ) +
-      geom_vline(
-        xintercept = 2018,
-        linetype = "dashed",
-        color = "grey50",
-        linewidth = 0.5,
-        alpha = 0.7
-      ) +
-      facet_wrap(~depth_class, ncol = 1, scales = "free_y") +
-      theme_classic() +
-      scale_x_continuous(breaks = c(2018, 2022, 2025)) +
-      coord_cartesian(xlim = x_lims) +
-      scale_fill_manual(values = fill_vals, name = "Marine Parks", drop = TRUE) +
-      scale_shape_manual(values = shape_vals, name = "Marine Parks", drop = TRUE) +
-      labs(
-        x = "Year",
-        y = metric_label,
-        title = NULL
-      ) +
-      theme(
-        legend.position = "right",
-        strip.background = element_blank(),
-        strip.text = element_text(face = "bold")
-      )
-
-  } else {
-
-    p <- ggplot(
-      data = plot_dat,
-      aes(x = year, y = .data[[mean_col]], fill = zone_new, shape = zone_new)
-    ) +
-      geom_errorbar(
-        aes(
-          ymin = pmax(.data[[mean_col]] - .data[[se_col]], 0),
-          ymax = .data[[mean_col]] + .data[[se_col]]
-        ),
-        width = 0.8,
-        position = position_dodge(width = 0.6)
-      ) +
-      geom_point(
-        size = 3,
-        position = position_dodge(width = 0.6),
-        stroke = 0.2,
-        color = "black",
-        alpha = 0.8
-      ) +
-      geom_vline(
-        xintercept = 2018,
-        linetype = "dashed",
-        color = "grey50",
-        linewidth = 0.5,
-        alpha = 0.7
-      ) +
-      facet_wrap(~depth_class, ncol = 1, scales = "free_y") +
-      theme_classic() +
-      scale_x_continuous(breaks = c(2018, 2022, 2025)) +
-      coord_cartesian(xlim = c(2016, 2026), ylim = c(0, NA)) +
-      scale_fill_manual(values = fill_vals, name = "Marine Parks", drop = TRUE) +
-      scale_shape_manual(values = shape_vals, name = "Marine Parks", drop = TRUE) +
-      labs(
-        x = "Year",
-        y = metric_label,
-        title = NULL
-      ) +
-      theme(
-        legend.position = "right",
-        strip.background = element_blank(),
-        strip.text = element_text(face = "bold")
-      )
-  }
-
-  return(p)
-}
-
-# TODO Set cropping extent - larger than most zoomed out plot
-e <- ext(123.1, 124.0, -34.7, -33.9)
-
-# Load necessary spatial files ----
-sf_use_s2(FALSE)
-
-marine_parks <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
-  dplyr::filter(name %in% c("Eastern Recherche")) # TODO select relevant parks
-
-marine_parks_amp <- marine_parks %>%
-  dplyr::filter(epbc %in% "Commonwealth") %>%
-  st_transform(4326)
-
-marine_parks_state <- marine_parks %>%
-  dplyr::filter(epbc %in% "State") %>%
-  st_transform(4326)
-
-aus   <- st_read("data/south-west network/spatial/shapefiles/aus-shapefile-w-investigator-stokes.shp")
-ausc  <- aus %>%
-  st_crop(e) %>%
-  st_transform(4326)
-
-cwatr <- st_read("data/south-west network/spatial/shapefiles/amb_coastal_waters_limit.shp") %>%
-  st_make_valid() %>%
-  st_crop(e) %>%
-  st_transform(4326)
-
-bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
-  crop(e) %>%
-  clamp(upper = 0, lower = -250, values = FALSE) %>%
-  trim() %>%
-  as.data.frame(xy = TRUE, na.rm = TRUE)
-names(bathy)[3] <- "Depth"
-
-# Spatial prediction limits
-prediction_limits <- c(123.1, 124.0, -34.7, -33.9)
-
-# Pretty fish metric names mapped to raster layer stubs ----
+# Pretty fish metric names mapped to raster layer stubs
 fish_metric_lookup <- c(
-  "Whole assemblage"       = "richness",
-  "CTI"                    = "cti",
+  "Whole assemblage" = "richness",
+  "CTI" = "cti",
   "Large Reef Fish Index*" = "b20",
-  "Total abundance"        = "abundance"
+  "Total abundance" = "abundance"
 )
 
-# Read all years once ----
+# Read all years once
 dat_list <- setNames(vector("list", length(years)), years)
 
 for (yr in years) {
@@ -329,10 +66,82 @@ for (yr in years) {
   dat_list[[as.character(yr)]] <- dat
 }
 
+# Spatial predictions limits, taken from the predictions. 02 masks the fish
+# predictions to a 10 km buffer around the BRUVs, so these limits change with
+# the samples and are tighter than the benthos limits used in 07.
+prediction_limits <- unname(as.vector(ext(dat_list[[1]])))
+print(prediction_limits)
 
+# Cropping extent - larger than most zoomed out plot
+e_pad <- 0.04
+
+e <- ext(prediction_limits[1] - e_pad, prediction_limits[2] + e_pad,
+         prediction_limits[3] - e_pad, prediction_limits[4] + e_pad)
+
+# Load necessary spatial files
+sf_use_s2(FALSE)
+
+# Australian outline and state and commonwealth marine parks
+marine_parks <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
+  dplyr::filter(.data$name %in% "Eastern Recherche")
+
+marine_parks_amp <- marine_parks %>%
+  dplyr::filter(epbc %in% "Commonwealth") %>%
+  st_transform(4326)
+
+marine_parks_state <- marine_parks %>%
+  dplyr::filter(epbc %in% "State") %>%
+  st_transform(4326)
+
+npz    <- marine_parks[marine_parks$zone %in% "National Park Zone", ]
+wasanc <- marine_parks[marine_parks$zone %in% "Sanctuary Zone", ]
+
+# Australian outline
+aus <- st_read("data/south-west network/spatial/shapefiles/aus-shapefile-w-investigator-stokes.shp")
+ausc <- aus %>%
+  st_crop(e) %>%
+  st_transform(4326)
+
+cwatr <- st_read("data/south-west network/spatial/shapefiles/amb_coastal_waters_limit.shp") %>%
+  st_make_valid() %>%
+  st_crop(e) %>%
+  st_transform(4326)
+
+# Load the bathymetry data (GA 250m resolution)
+bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
+  crop(e) %>%
+  clamp(upper = 0, lower = -250, values = FALSE) %>%
+  trim() %>%
+  as.data.frame(xy = TRUE, na.rm = TRUE)
+
+names(bathy)[3] <- "Depth"
+
+# -------------------------------------------------------------------
+# Fish metric plots
+# -------------------------------------------------------------------
 # =============================================================================
-# SST PROCESSING — run once to create saved SST files used by controlplot_fish
+# SST PROCESSING - run once to create the SST time series used by the Reef
+# Fish Thermal Index (CTI) control plot.
+#
+# TODO Download the IMOS 6-day SST product (more recent coverage than the
+# 1-month product used in Appendix B - 03_create-report_appendix-B-pressures/
+# 01_spatial-layers.R): "IMOS - SRS - SST - L3S - Single Sensor - 6 day - day
+# and night time - Australia" from the AODN portal, and save it as:
+#   data/<park>/spatial/oceanography/SST_recent.nc
+# This file is large and can take a while to download, but gives more
+# up-to-date SST coverage than the monthly product (useful if your most
+# recent survey year is close to the current date).
+#
+# TODO point controlplot_fish() at "<name>_SST_time-series-recent.rds" (built
+# below) instead of the monthly "<name>_SST_time-series.rds" from Appendix B -
+# see the inline controlplot_fish() override in
+# r/eastern-recherche/02_create-report_appendix-A-natural-values/08_create-plots_post-modelling_fish.R
+# (defined after the source() loop above, so it overrides the default in
+# functions/controlplot_fish.R).
 # =============================================================================
+
+library(RNetCDF)
+library(lubridate)
 
 nc_sst <- open.nc(paste0("data/", park, "/spatial/oceanography/SST_recent.nc"))
 print.nc(nc_sst)
@@ -362,21 +171,24 @@ names(rast_sst) <- as.character(dates_sst)
 time(rast_sst)  <- dates_sst
 rast_sst        <- terra::crop(rast_sst, e) %>% terra::trim()
 
-# Remove 2025 data before any further processing
-rast_sst <- rast_sst[[year(time(rast_sst)) < 2025]]
-
 plot(rast_sst)
-# Check orientation — if upside down run: rast_sst <- terra::flip(rast_sst, "vertical")
+# Check orientation - if upside down run: rast_sst <- terra::flip(rast_sst, "vertical")
 plot(rast_sst[[1]])
 
-winter_sst_ts <- rast_sst[[which(month(dates_sst) %in% c(7, 8, 9))]]
+# Keep only calendar years with a full 12 months of coverage
+yrs_sst   <- year(time(rast_sst))
+mths_sst  <- month(time(rast_sst))
+full_yrs  <- names(which(tapply(mths_sst, yrs_sst, function(m) length(unique(m))) == 12))
+message("Complete SST years retained: ", paste(full_yrs, collapse = ", "))
+
+rast_sst <- subset(rast_sst, yrs_sst %in% full_yrs)
 
 # Build monthly climatology
 sst_list <- list()
+# in the climatology loop - drop the app() line entirely
 for (month in sort(unique(month(time(rast_sst))))) {
   monthly_rast <- subset(rast_sst, month(time(rast_sst)) == month) %>%
-    mean(na.rm = TRUE) %>%
-    app(fun = function(i) { i - 273.15 })
+    mean(na.rm = TRUE)
   names(monthly_rast) <- month.abb[month]
   sst_list[[month.abb[month]]] <- monthly_rast
 }
@@ -391,7 +203,7 @@ sst_tsdf <- terra::global(rast_sst, fun = "mean", na.rm = TRUE) %>%
   tidyr::separate(rowname, into = c("year", "month", "day"), sep = "-") %>%
   dplyr::group_by(year, month) %>%
   summarise(
-    sst = mean(mean, na.rm = TRUE) - 273.15, # Apply -273.15 offset (controlplot_fish adds it back)
+    sst = mean(mean, na.rm = TRUE),
     sd  = mean(sd,   na.rm = TRUE),
     .groups = "drop"
   ) %>%
@@ -408,10 +220,10 @@ saveRDS(sst_tsdf, paste0("data/", park, "/spatial/oceanography/", name, "_SST_ti
 
 boxplot(sst_tsdf$sst ~ sst_tsdf$month)
 
-# =============================================================================
-# PART 1: Fish metric spatial plots (prediction + SE side by side, per year)
-# =============================================================================
 
+# -------------------------------------------------------------------
+# Fish metric plots
+# -------------------------------------------------------------------
 for (metric_name in names(fish_metric_lookup)) {
 
   message("Building fish metric plot for: ", metric_name)
@@ -421,7 +233,7 @@ for (metric_name in names(fish_metric_lookup)) {
   # Only build plot if every year has both prediction and SE layers
   has_all_layers <- all(unlist(lapply(dat_list, function(x) {
     c(
-      paste0("p_", layer_stub, ".fit")    %in% names(x),
+      paste0("p_", layer_stub, ".fit") %in% names(x),
       paste0("p_", layer_stub, ".se.fit") %in% names(x)
     )
   })))
@@ -432,12 +244,12 @@ for (metric_name in names(fish_metric_lookup)) {
   }
 
   p_metric <- fishmetric_plot(
-    metric_name       = metric_name,
-    layer_stub        = layer_stub,
-    dat_list          = dat_list,
+    metric_name = metric_name,
+    layer_stub = layer_stub,
+    dat_list = dat_list,
     prediction_limits = prediction_limits,
-    pred_limits       = NULL,   # set numeric vector if you want fixed limits
-    se_limits         = NULL    # auto-scale within metric across years
+    pred_limits = NULL,   # set numeric vector if you want fixed limits
+    se_limits = NULL      # auto-scale within metric across years
   )
 
   print(p_metric)
@@ -453,247 +265,24 @@ for (metric_name in names(fish_metric_lookup)) {
       "_predicted-individual-fish-metric_", out_name, "_",
       paste(years, collapse = "-"), ".png"
     ),
-    plot   = p_metric,
-    height = 5,
-    width  = 8,
-    dpi    = 900,
-    units  = "in",
-    bg     = "white"
+    plot = p_metric,
+    height = 9,
+    width = 7.5,
+    dpi = 300,
+    units = "in",
+    bg = "white"
   )
 
-  saveRDS(
-    p_metric,
-    paste0(
-      "plots/", park, "/fish/", name,
-      "_predicted-individual-fish-metric_", out_name, "_",
-      paste(years, collapse = "-"), ".rds"
-    )
+  saveRDS(p_metric,
+          paste0( "plots/", park, "/fish/", name,
+                  "_predicted-individual-fish-metric_", out_name, "_",
+                  paste(years, collapse = "-"), ".rds")
   )
 }
 
-# =============================================================================
-# PART 2: Control plots by metric, facetted by depth class
-# =============================================================================
-controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
-                             metric_label = NULL,
-                             depth_levels = c("Shallow (0 - 30 m)",
-                                              "Mesophotic (30 - 70 m)",
-                                              "Rariphotic (70 - 200 m)")) {
-
-  mean_col <- metric
-  se_col   <- paste0(metric, "_se")
-
-  if (is.null(metric_label)) {
-    metric_label <- dplyr::case_when(
-      metric == "richness"  ~ "Species richness (per BRUV)",
-      metric == "cti"       ~ "Community Thermal Index (\u00B0C)",
-      metric == "b20"       ~ "Large reef fish index* (biomass g per BRUV)",
-      metric == "abundance" ~ "Total abundance (per BRUV)",
-      TRUE ~ stringr::str_to_title(metric)
-    )
-  }
-
-  req_cols <- c("year", "zone_new", "depth_class", mean_col, se_col)
-  if (!all(req_cols %in% names(data))) {
-    stop("Data is missing one or more required columns: ",
-         paste(setdiff(req_cols, names(data)), collapse = ", "))
-  }
-
-  plot_dat <- data %>%
-    dplyr::filter(!is.na(.data[[mean_col]])) %>%
-    dplyr::mutate(
-      year = as.numeric(year),
-      depth_class = factor(depth_class, levels = depth_levels),
-      zone_new = factor(
-        zone_new,
-        levels = c(
-          paste(amp_abbrv, "HPZ"),
-          paste(amp_abbrv, "NPZ (IUCN II)"),
-          paste(amp_abbrv, "other zones"),
-          paste(state_abbrv, "SZ (IUCN II)"),
-          paste(state_abbrv, "other zones")
-        )
-      )
-    )
-
-  if (nrow(plot_dat) == 0) {
-    message("No data available to plot for ", metric_label)
-    return(NULL)
-  }
-
-  fill_vals <- setNames(
-    c("#fff8a3", "#7bbc63", "#b9e6fb", "#bfd054", "#bddde1"),
-    c(
-      paste(amp_abbrv, "HPZ"),
-      paste(amp_abbrv, "NPZ (IUCN II)"),
-      paste(amp_abbrv, "other zones"),
-      paste(state_abbrv, "SZ (IUCN II)"),
-      paste(state_abbrv, "other zones")
-    )
-  )
-
-  shape_vals <- setNames(
-    c(21, 21, 21, 25, 25),
-    c(
-      paste(amp_abbrv, "HPZ"),
-      paste(amp_abbrv, "NPZ (IUCN II)"),
-      paste(amp_abbrv, "other zones"),
-      paste(state_abbrv, "SZ (IUCN II)"),
-      paste(state_abbrv, "other zones")
-    )
-  )
-
-  # Year axis derived from the data (no hard-coded survey years) ----
-  yr_breaks <- sort(unique(plot_dat$year))
-
-  if (metric == "cti") {
-
-    # SST series supplied as <name>_SST_time-series.rds
-    # (columns: year, month, sst, sd, season). Aggregated to an annual mean below
-    # (matching the original code) and plotted as a line on the year x-axis.
-    # NOTE: the supplied sst column is offset by -273.15; +273.15 returns it to
-    # degrees C so it is comparable to CTI on the shared y-axis. Set to 0 to use
-    # the raw stored values.
-    sst_offset <- 273.15
-
-    sst <- readRDS(
-      paste0("data/", park, "/spatial/oceanography/",
-             name, "_SST_time-series-recent.rds")
-    ) %>%
-      dplyr::mutate(
-        year = as.numeric(year),
-        sst  = sst + sst_offset
-      ) %>%
-      dplyr::filter(!is.na(sst), year >= 2016, year <= 2026) %>%
-      # annual mean SST (matches the original code) - avoids the busy monthly
-      # seasonal sawtooth. For a monthly line, drop this group_by/summarise and
-      # plot on a decimal-year x instead.
-      dplyr::group_by(year) %>%
-      dplyr::summarise(
-        sst = mean(sst, na.rm = TRUE),
-        sd  = mean(sd,  na.rm = TRUE),
-        .groups = "drop"
-      ) %>%
-      dplyr::arrange(year)
-
-    # fixed x range 2016-2026
-    x_lims <- c(2016, 2026)
-
-    p <- ggplot() +
-      # grey error mask (annual SD) - drawn first so it sits behind the line
-      geom_ribbon(
-        data = sst,
-        aes(x = year, ymin = sst - sd, ymax = sst + sd),
-        fill = "grey60",
-        alpha = 0.35
-      ) +
-      # solid black annual SST line
-      geom_line(
-        data = sst,
-        aes(x = year, y = sst),
-        colour = "black",
-        linewidth = 0.6
-      ) +
-      geom_errorbar(
-        data = plot_dat,
-        aes(
-          x = year,
-          y = .data[[mean_col]],
-          ymin = .data[[mean_col]] - .data[[se_col]],
-          ymax = .data[[mean_col]] + .data[[se_col]],
-          fill = zone_new,
-          shape = zone_new
-        ),
-        width = 0.8,
-        position = position_dodge(width = 0.6)
-      ) +
-      geom_point(
-        data = plot_dat,
-        aes(
-          x = year,
-          y = .data[[mean_col]],
-          fill = zone_new,
-          shape = zone_new
-        ),
-        size = 3,
-        position = position_dodge(width = 0.6),
-        stroke = 0.2,
-        color = "black",
-        alpha = 0.8
-      ) +
-      geom_vline(
-        xintercept = 2018,
-        linetype = "dashed",
-        color = "grey50",
-        linewidth = 0.5,
-        alpha = 0.7
-      ) +
-      facet_wrap(~depth_class, ncol = 1, scales = "free_y") +
-      theme_classic() +
-      scale_x_continuous(breaks = c(2018, 2022, 2025)) +
-      coord_cartesian(xlim = x_lims) +
-      scale_fill_manual(values = fill_vals, name = "Marine Parks", drop = TRUE) +
-      scale_shape_manual(values = shape_vals, name = "Marine Parks", drop = TRUE) +
-      labs(
-        x = "Year",
-        y = metric_label,
-        title = NULL
-      ) +
-      theme(
-        legend.position = "right",
-        strip.background = element_blank(),
-        strip.text = element_text(face = "bold")
-      )
-
-  } else {
-
-    p <- ggplot(
-      data = plot_dat,
-      aes(x = year, y = .data[[mean_col]], fill = zone_new, shape = zone_new)
-    ) +
-      geom_errorbar(
-        aes(
-          ymin = pmax(.data[[mean_col]] - .data[[se_col]], 0),
-          ymax = .data[[mean_col]] + .data[[se_col]]
-        ),
-        width = 0.8,
-        position = position_dodge(width = 0.6)
-      ) +
-      geom_point(
-        size = 3,
-        position = position_dodge(width = 0.6),
-        stroke = 0.2,
-        color = "black",
-        alpha = 0.8
-      ) +
-      geom_vline(
-        xintercept = 2018,
-        linetype = "dashed",
-        color = "grey50",
-        linewidth = 0.5,
-        alpha = 0.7
-      ) +
-      facet_wrap(~depth_class, ncol = 1, scales = "free_y") +
-      theme_classic() +
-      scale_x_continuous(breaks = c(2018, 2022, 2025)) +
-      coord_cartesian(xlim = c(2016, 2026), ylim = c(0, NA)) +
-      scale_fill_manual(values = fill_vals, name = "Marine Parks", drop = TRUE) +
-      scale_shape_manual(values = shape_vals, name = "Marine Parks", drop = TRUE) +
-      labs(
-        x = "Year",
-        y = metric_label,
-        title = NULL
-      ) +
-      theme(
-        legend.position = "right",
-        strip.background = element_blank(),
-        strip.text = element_text(face = "bold")
-      )
-  }
-
-  return(p)
-}
-
+# -------------------------------------------------------------------
+# Control plots by metric, facetted by depth class
+# -------------------------------------------------------------------
 
 control_all <- purrr::map(years, \(yy) {
   dat_yy <- readRDS(
@@ -706,7 +295,7 @@ control_all <- purrr::map(years, \(yy) {
   if (!inherits(dat_yy, "SpatRaster")) dat_yy <- terra::rast(dat_yy)
   terra::crs(dat_yy) <- "EPSG:4326"
 
-  controldata_fish(dat = dat_yy, year = yy, amp_abbrv = "ERMP", state_abbrv = "NCMP") # TODO park abbreviations
+  controldata_fish(dat = dat_yy, year = yy, amp_abbrv = "ERMP", state_abbrv = NULL) # TODO park abbreviations
 })
 
 park_dat.shallow <- purrr::map_dfr(control_all, "shallow") %>%
@@ -723,17 +312,6 @@ park_dat.control <- dplyr::bind_rows(
   park_dat.meso,
   park_dat.rari
 ) %>%
-  # Eastern Recherche has a single relevant zone — keep it labelled "ERMP other
-  # zones" so it maps to the blue filled-circle symbol (#b9e6fb, shape 21) in
-  # controlplot_fish(); drop = TRUE then hides every other zone from the legend.
-  dplyr::mutate(
-    zone_new = dplyr::case_when(
-      stringr::str_detect(zone_new, "NPZ")         ~ "ERMP NPZ (IUCN II)",
-      stringr::str_detect(zone_new, "other zones") ~ "ERMP other zones",
-      TRUE ~ zone_new
-    )
-  ) %>%
-  dplyr::filter(zone_new == "ERMP other zones") %>%
   dplyr::mutate(
     depth_class = factor(
       depth_class,
@@ -757,10 +335,13 @@ for (metric_code in names(metric_lookup)) {
   message("Building control plot for metric: ", metric_lookup[[metric_code]])
 
   p_metric <- controlplot_fish(
-    data         = park_dat.control,
-    metric       = metric_code,
-    amp_abbrv    = "ERMP", # TODO park abbreviation
-    state_abbrv  = "NCMP",
+    data = park_dat.control,
+    metric = metric_code,
+    amp_abbrv = "ERMP",
+    state_abbrv = NULL,
+    survey_years = c(2022, 2025),
+    x_start = 2016,
+    zoning_year = 2018,
     metric_label = metric_lookup[[metric_code]]
   )
 
@@ -779,43 +360,39 @@ for (metric_code in names(metric_lookup)) {
       filename = paste0(
         "plots/", park, "/fish/", name, "_control-plot_", out_name, ".png"
       ),
-      plot   = p_metric,
+      plot = p_metric,
       height = 4,
-      width  = 6,
-      dpi    = 300,
-      units  = "in",
-      bg     = "white"
+      width = 6,
+      dpi = 300,
+      units = "in",
+      bg = "white"
     )
 
-    saveRDS(
-      p_metric,
-      paste0("plots/", park, "/fish/", name, "_control-plot_", out_name, ".rds")
+    saveRDS(p_metric,
+            paste0("plots/", park, "/fish/", name, "_control-plot_", out_name, ".rds")
     )
   }
 }
 
-# =============================================================================
-# PART 3: Stacked plot themes
-# =============================================================================
 
-theme_collapse <- theme(
-  panel.grid.major = element_line(colour = "white"),
-  panel.grid.minor = element_line(colour = "white", size = 0.25),
-  plot.margin = grid::unit(c(0, 0, 0, 0), "in")
-)
+# Stacked plots
 
-theme.larger.text <- theme(
-  strip.text.x = element_text(size = 5, angle = 0),
+theme_collapse<-theme(
+  panel.grid.major=element_line(colour = "white"),
+  panel.grid.minor=element_line(colour = "white", size = 0.25),
+  plot.margin= grid::unit(c(0, 0, 0, 0), "in"))
+
+theme.larger.text<-theme(
+  strip.text.x = element_text(size = 5,angle = 0),
   strip.text.y = element_text(size = 5),
-  axis.title.x = element_text(vjust = -0.0, size = 10),
-  axis.title.y = element_text(vjust = 0.0, size = 10),
-  axis.text.x  = element_text(size = 8),
-  axis.text.y  = element_text(size = 8),
-  legend.title = element_text(size = 8),
-  legend.text  = element_text(size = 8)
-)
+  axis.title.x=element_text(vjust=-0.0, size=10),
+  axis.title.y=element_text(vjust=0.0,size=10),
+  axis.text.x=element_text(size=8),
+  axis.text.y=element_text(size=8),
+  legend.title = element_text(family="TN",size=8),
+  legend.text = element_text(family="TN",size=8))
 
-# STI lookup ----
+# read in STI
 sti <- CheckEM::australia_life_history %>%
   clean_names() %>%
   dplyr::select(family, genus, species, rls_thermal_niche) %>%
@@ -823,9 +400,9 @@ sti <- CheckEM::australia_life_history %>%
   dplyr::distinct() %>%
   glimpse()
 
-# Commonwealth waters metadata ----
+# Create DF filter for Commonwealth waters only
 marine_parks_amp <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
-  dplyr::filter(name %in% c("Eastern Recherche")) %>% # TODO select relevant parks
+  dplyr::filter(.data$name %in% "Eastern Recherche") %>% # TODO select relevant parks
   dplyr::filter(epbc == "Commonwealth") %>%
   st_transform(4326)
 
@@ -839,9 +416,9 @@ metadata_amp <- readRDS(paste0("data/", park, "/raw/metadata.RDS")) %>%
   ) %>%
   st_drop_geometry()
 
-# =============================================================================
-# PART 4: Species Accumulation Curves (facetted by year, split by status)
-# =============================================================================
+# -----------------------------
+# Species Accumulation Curves
+# -----------------------------
 
 sac_df <- readRDS(paste0("data/", park, "/tidy/", name, "_species-accumulation.rds"))
 
@@ -851,16 +428,19 @@ sac_sample <- ggplot(
   sac_df %>%
     filter(curve == "Sample-based detection/non-detection"),
   aes(
-    x        = x,
-    y        = richness,
-    colour   = status,
-    fill     = status,
+    x = x,
+    y = richness,
+    colour = status,
+    fill = status,
     linetype = Year
   )
 ) +
   geom_ribbon(
-    aes(ymin = richness - sd, ymax = richness + sd),
-    alpha  = 0.18,
+    aes(
+      ymin = richness - sd,
+      ymax = richness + sd
+    ),
+    alpha = 0.18,
     colour = NA
   ) +
   geom_line(linewidth = 1.2) +
@@ -870,45 +450,57 @@ sac_sample <- ggplot(
       as.character(years)
     )
   ) +
-  scale_colour_manual(
-    name   = "Status",
-    values = c("No-Take" = "#7bbc63", "Fished" = "#b9e6fb")
+  scale_colour_manual(name = "Status",
+                      values = c(
+                        "No-Take" = "#7bbc63",
+                        "Fished" = "#b9e6fb"
+                      )
   ) +
-  scale_fill_manual(
-    name   = "Status",
-    values = c("No-Take" = "#7bbc63", "Fished" = "#b9e6fb")
+  scale_fill_manual(name = "Status",
+                    values = c(
+                      "No-Take" = "#7bbc63",
+                      "Fished" = "#b9e6fb"
+                    )
   ) +
-  labs(x = "Number of BRUV deployments", y = "Species richness") +
+  labs(
+    x = "Number of BRUV deployments",
+    y = "Species richness"
+  ) +
   base_theme
 
 sac_sample
 
 ggsave(
   paste0("plots/", park, "/fish/", name, "_SAC-sample.png"),
-  plot   = sac_sample,
+  plot = sac_sample,
   height = 4,
-  width  = 7,
-  dpi    = 600,
-  units  = "in",
-  bg     = "white"
+  width = 7,
+  dpi = 300,
+  units = "in",
+  bg = "white"
 )
 
-saveRDS(sac_sample, paste0("plots/", park, "/fish/", name, "_SAC-sample.rds"))
+saveRDS(sac_sample,
+        paste0("plots/", park, "/fish/", name, "_SAC-sample.rds")
+)
 
 sac_individual <- ggplot(
   sac_df %>%
     filter(curve == "Individual-based rarefaction"),
   aes(
-    x        = x,
-    y        = richness,
-    colour   = status,
-    fill     = status,
+    x = x,
+    y = richness,
+    colour = status,
+    fill = status,
     linetype = Year
   )
 ) +
   geom_ribbon(
-    aes(ymin = richness - sd, ymax = richness + sd),
-    alpha  = 0.18,
+    aes(
+      ymin = richness - sd,
+      ymax = richness + sd
+    ),
+    alpha = 0.18,
     colour = NA
   ) +
   geom_line(linewidth = 1.2) +
@@ -918,73 +510,88 @@ sac_individual <- ggplot(
       as.character(years)
     )
   ) +
-  scale_colour_manual(
-    name   = "Status",
-    values = c("No-Take" = "#7bbc63", "Fished" = "#b9e6fb")
+  scale_colour_manual(name = "Status",
+                      values = c(
+                        "No-Take" = "#7bbc63",
+                        "Fished" = "#b9e6fb"
+                      )
   ) +
-  scale_fill_manual(
-    name   = "Status",
-    values = c("No-Take" = "#7bbc63", "Fished" = "#b9e6fb")
+  scale_fill_manual(name = "Status",
+                    values = c(
+                      "No-Take" = "#7bbc63",
+                      "Fished" = "#b9e6fb"
+                    )
   ) +
-  labs(x = "Cumulative MaxN individuals", y = "Species richness") +
+  labs(
+    x = "Cumulative MaxN individuals",
+    y = "Species richness"
+  ) +
   base_theme
+
 
 sac_plot <- sac_sample / sac_individual +
   plot_layout(guides = "collect") +
-  plot_annotation(tag_levels = "a", tag_suffix = ")") &
-  theme(legend.position = "right", plot.tag = element_text(face = "bold", size = 14))
+  plot_annotation(
+    tag_levels = "a",
+    tag_suffix = ")"
+  ) &
+  theme(
+    legend.position = "right",
+    plot.tag = element_text(face = "bold", size = 14)
+  )
 
 sac_plot
 
 ggsave(
   paste0("plots/", park, "/fish/", name, "_SAC-faceted.png"),
-  plot   = sac_plot,
+  plot = sac_plot,
   height = 8,
-  width  = 7,
-  dpi    = 600,
-  units  = "in",
-  bg     = "white"
+  width = 7,
+  dpi = 300,
+  units = "in",
+  bg = "white"
 )
 
-# =============================================================================
-# PART 5: Top 10 abundance bar plot (facetted by year)
-# =============================================================================
-
+# Read in maxn (Commonwealth only)
 maxn <- readRDS(paste0("data/", park, "/raw/_count-with-zeros.RDS")) %>%
   semi_join(metadata_amp, by = c("campaignid", "sample")) %>%
   mutate(year = year(date_time)) %>%
   left_join(sti, by = c("family", "genus", "species")) %>%
-  select(year, sample, scientific_name, family, genus, species, count, rls_thermal_niche) %>%
+  select(
+    year, sample, scientific_name, family, genus, species, count,
+    rls_thermal_niche
+  ) %>%
   glimpse()
 
 length(unique(maxn$sample)) * length(unique(maxn$scientific_name))
 
-# Mean MaxN per species — top 10 per year
+# workout mean maxn for each species ---
 maxn.10 <- maxn %>%
   mutate(scientific = paste(genus, species, sep = " ")) %>%
   group_by(year, scientific) %>%
   summarise(
     maxn = mean(count, na.rm = TRUE),
     se   = sd(count, na.rm = TRUE) / sqrt(dplyr::n()),
-    .groups = "drop"
-  ) %>%
+    .groups = "drop") %>%
   group_by(year) %>%
   slice_max(order_by = maxn, n = 10, with_ties = FALSE) %>%
   ungroup() %>%
-  left_join(sti)
+  left_join(sti) %>%
+  glimpse()
 
-# Species appearing in only one year's top 10 — bolded
-spy1 <- maxn.10 %>% filter(year == years[1]) %>% pull(scientific)
-spy2 <- maxn.10 %>% filter(year == years[2]) %>% pull(scientific)
-unique_species <- union(setdiff(spy1, spy2), setdiff(spy2, spy1))
+if (length(years) > 1) {
+  species_by_year <- split(maxn.10$scientific, maxn.10$year)
+  species_year_count <- table(unlist(lapply(species_by_year, unique)))
+  unique_species <- names(species_year_count[species_year_count == 1])
+} else {
+  unique_species <- character(0)
+}
 
 bar_maxn <- ggplot(
   maxn.10 %>%
-    mutate(scientific_label = if_else(
-      scientific %in% unique_species,
-      paste0("**", scientific, "**"),
-      scientific
-    )),
+    mutate(scientific_label = if_else(scientific %in% unique_species,
+                                      paste0("**", scientific, "**"),
+                                      scientific)),
   aes(x = reorder_within(scientific_label, maxn, year), y = maxn)
 ) +
   geom_col(colour = "black", linewidth = 0.25) +
@@ -994,81 +601,77 @@ bar_maxn <- ggplot(
   scale_x_reordered() +
   labs(
     x = "Species",
-    y = expression(Average~abundance~(MaxN~per~BRUV))
-  ) +
+    y = expression(Average~abundance~(MaxN~per~BRUV))) +
   theme_bw() +
   theme_collapse +
-  theme(
-    axis.text.y = element_markdown(),
-    panel.grid.major.x = element_line(color = "grey90")
-  )
+  theme(axis.text.y = element_markdown(),
+        panel.grid.major.x = element_line(color = "grey90"))
 
 bar_maxn
 
-ggsave(
-  paste0("plots/", park, "/fish/", name, "_top_maxn_bar_plot.png"),
-  plot   = bar_maxn,
-  height = 4,
-  width  = 9,
-  dpi    = 600,
-  units  = "in",
-  bg     = "white"
+ggsave(paste0("plots/", park, "/fish/", name, "_top_maxn_bar_plot.png"),
+       plot = bar_maxn, height = 4, width = 9, dpi = 300, units = "in", bg = "white")
+
+saveRDS(bar_maxn,
+        paste0("plots/", park, "/fish/", name, "_top_maxn_bar_plot.rds")
 )
 
-saveRDS(bar_maxn, paste0("plots/", park, "/fish/", name, "_top_maxn_bar_plot.rds"))
 
-# =============================================================================
-# PART 6: CTI bar plot (facetted by year)
-# =============================================================================
-
+# Thermal Index stacked plot
 cti.10 <- maxn %>%
   mutate(scientific = paste(genus, species, sep = " ")) %>%
   group_by(year, scientific) %>%
   summarise(
     maxn = mean(count, na.rm = TRUE),
     se   = sd(count, na.rm = TRUE) / sqrt(dplyr::n()),
-    .groups = "drop"
-  ) %>%
+    .groups = "drop") %>%
   left_join(sti) %>%
   filter(!is.na(rls_thermal_niche)) %>%
   group_by(year) %>%
   slice_max(order_by = maxn, n = 10, with_ties = FALSE) %>%
-  ungroup()
+  ungroup() %>%
+  glimpse()
 
-# Species appearing in only one year's top 10 — bolded
-sp.cti.y1 <- cti.10 %>% filter(year == years[1]) %>% pull(scientific)
-sp.cti.y2 <- cti.10 %>% filter(year == years[2]) %>% pull(scientific)
-
-unique_species_cti <- union(setdiff(sp.cti.y1, sp.cti.y2), setdiff(sp.cti.y2, sp.cti.y1))
+if (length(years) > 1) {
+  species_by_year_cti <- split(cti.10$scientific, cti.10$year)
+  species_year_count_cti <- table(unlist(lapply(species_by_year_cti, unique)))
+  unique_species_cti <- names(species_year_count_cti[species_year_count_cti == 1])
+} else {
+  unique_species_cti <- character(0)
+}
 
 log1p10_trans <- trans_new(
-  name      = "log10p1",
+  name = "log10p1",
   transform = function(x) log10(x + 1),
   inverse   = function(x) 10^x - 1
 )
 
-mid_niche    <- median(cti.10$rls_thermal_niche, na.rm = TRUE)
+# choose the centering statistic
+mid_niche <- median(cti.10$rls_thermal_niche, na.rm = TRUE)
+
+# global limits across both facets/years
 niche_limits <- range(cti.10$rls_thermal_niche, na.rm = TRUE)
 
 bar_cti <- ggplot(
   cti.10 %>%
     mutate(
-      scientific_label = if_else(
-        scientific %in% unique_species_cti,
-        paste0("**", scientific, "**"),
-        scientific
-      ),
+      scientific_label = if_else(scientific %in% unique_species_cti,
+                                 paste0("**", scientific, "**"),
+                                 scientific),
       niche_lab = scales::number(rls_thermal_niche, accuracy = 0.01)
     ),
   aes(
-    x    = reorder_within(scientific_label, rls_thermal_niche, year),
-    y    = maxn,
+    x = reorder_within(scientific_label, rls_thermal_niche, year),
+    y = maxn,
     fill = rls_thermal_niche
   )
 ) +
   geom_col(colour = "black", linewidth = 0.25) +
   geom_errorbar(
-    aes(ymin = pmax(maxn - se, 0), ymax = maxn + se),
+    aes(
+      ymin = pmax(maxn - se, 0),
+      ymax = maxn + se
+    ),
     width = 0.2
   ) +
   geom_text(aes(y = 23, label = niche_lab), hjust = 0, size = 3) +
@@ -1076,15 +679,18 @@ bar_cti <- ggplot(
   facet_wrap(~year, scales = "free_y") +
   scale_x_reordered() +
   scale_y_continuous(
-    trans   = log1p10_trans,
-    expand  = expansion(mult = c(0, 0.15)),
-    breaks  = c(0, 5, 10, 20),
-    labels  = scales::label_number()
+    trans = log1p10_trans,
+    expand = expansion(mult = c(0, 0.15)),
+    breaks = c(0, 5, 10, 20),
+    labels = scales::label_number()
   ) +
+  # centre GREY at the mean thermal niche
   scale_fill_gradientn(
-    colours  = c("#2b83ba", "grey", "#d7191c"),
-    values   = scales::rescale(c(niche_limits[1], mid_niche, niche_limits[2])),
-    limits   = niche_limits,
+    colours = c("#2b83ba", "grey", "#d7191c"),
+    values  = scales::rescale(c(niche_limits[1],
+                                mid_niche,
+                                niche_limits[2])),
+    limits = niche_limits,
     na.value = "grey80"
   ) +
   guides(fill = "none") +
@@ -1094,73 +700,109 @@ bar_cti <- ggplot(
   ) +
   theme_bw() +
   theme_collapse +
-  theme(
-    axis.text.y = element_markdown(),
-    panel.grid.major.x = element_line(color = "grey90")
-  )
+  theme(axis.text.y = element_markdown(),
+        panel.grid.major.x = element_line(color = "grey90"))
 
 bar_cti
 
-ggsave(
-  paste0("plots/", park, "/fish/", name, "_top_maxn_cti_bar_plot.png"),
-  plot   = bar_cti,
-  height = 4,
-  width  = 9,
-  dpi    = 600,
-  units  = "in",
-  bg     = "white"
+ggsave(paste0("plots/", park, "/fish/", name, "_top_maxn_cti_bar_plot.png"),
+       plot = bar_cti, height = 4, width = 9, dpi = 300, units = "in", bg = "white")
+
+saveRDS(bar_cti,
+        paste0("plots/", park, "/fish/", name, "_top_maxn_cti_bar_plot.rds")
 )
 
-saveRDS(bar_cti, paste0("plots/", park, "/fish/", name, "_top_maxn_cti_bar_plot.rds"))
+# B20 ---------------------------------------------------------------------
 
-# =============================================================================
-# PART 7: B20 bar plot (top 10 per year)
-# =============================================================================
+# read in b20 species summaries (already mean + sd per year x species)
 b20 <- readRDS(paste0("data/", park, "/tidy/", name, "_b20-species_amp.rds"))
 
+# top 10 b20 per year using combined values only
 b20.10 <- b20 %>%
   filter(status == "Combined") %>%
   group_by(year) %>%
   slice_max(order_by = b20, n = 10, with_ties = FALSE) %>%
   ungroup()
 
-# Species appearing in only one year's top 10 — bolded
-spy1_b20 <- b20.10 %>% filter(year == years[1]) %>% pull(scientific_name)
-spy2_b20 <- b20.10 %>% filter(year == years[2]) %>% pull(scientific_name)
-unique_species_b20 <- union(setdiff(spy1_b20, spy2_b20), setdiff(spy2_b20, spy1_b20))
+# species unique to either year's top 10 (for bold labels)
+if (length(years) > 1) {
+  species_by_year_b20 <- split(b20.10$scientific_name, b20.10$year)
+  species_year_count_b20 <- table(unlist(lapply(species_by_year_b20, unique)))
+  unique_species_b20 <- names(species_year_count_b20[species_year_count_b20 == 1])
+} else {
+  unique_species_b20 <- character(0)
+}
 
-bar_b20 <- ggplot(
-  b20.10 %>%
-    mutate(scientific_label = if_else(
-      scientific_name %in% unique_species_b20,
-      paste0("**", scientific_name, "**"),
-      scientific_name
-    )),
-  aes(x = reorder_within(scientific_label, b20, year), y = b20)
-) +
-  geom_col(colour = "black", linewidth = 0.25) +
-  geom_errorbar(
-    aes(ymin = pmax(b20 - se, 0), ymax = b20 + se),
-    width = 0.2
+# common plot function
+plot_b20_bars <- function(plot_data, fill_values, fill_breaks) {
+  ggplot(
+    plot_data %>%
+      mutate(
+        scientific_label = if_else(
+          scientific_name %in% unique_species_b20,
+          paste0("**", scientific_name, "**"),
+          scientific_name
+        )
+      ),
+    aes(
+      x = reorder_within(scientific_label, b20, year),
+      y = b20,
+      fill = status
+    )
   ) +
-  coord_flip() +
-  facet_wrap(~year, scales = "free_y") +
-  scale_x_reordered() +
-  scale_y_continuous(
-    trans   = scales::pseudo_log_trans(base = 10),
-    breaks  = c(0, 1, 10, 100, 1000),
-    labels  = scales::label_number()
-  ) +
-  labs(
-    x = "Species",
-    y = expression(Average~biomass~(B20~per~BRUV))
-  ) +
-  theme_bw() +
-  theme_collapse +
-  theme(
-    axis.text.y = element_markdown(),
-    panel.grid.major.x = element_line(color = "grey90")
+    geom_col(
+      position = position_dodge(width = 0.8),
+      width = 0.7,
+      colour = "black",
+      linewidth = 0.25
+    ) +
+    geom_errorbar(
+      aes(ymin = pmax(b20 - se, 0), ymax = b20 + se),
+      position = position_dodge(width = 0.8),
+      width = 0.2
+    ) +
+    coord_flip() +
+    scale_y_continuous(
+      trans = scales::pseudo_log_trans(base = 10),
+      breaks = c(0, 1, 10, 100, 1000),
+      labels = scales::label_number()
+    ) +
+    facet_wrap(~year, scales = "free_y") +
+    scale_x_reordered() +
+    scale_fill_manual(
+      values = fill_values,
+      breaks = fill_breaks
+    ) +
+    labs(
+      x = "Species",
+      y = expression(Average~biomass~(B20~per~BRUV)),
+      fill = "Status"
+    ) +
+    theme_bw() +
+    theme_collapse +
+    theme(
+      axis.text.y = element_markdown(),
+      panel.grid.major.x = element_line(color = "grey90")
+    )
+}
+
+# -------------------------------------------------------------------------
+# Plot 1: both years split into Fished / No-Take
+# -------------------------------------------------------------------------
+
+b20_plot_split <- b20 %>%
+  filter(status != "Combined") %>%
+  semi_join(b20.10, by = c("year", "scientific_name")) %>%
+  mutate(
+    status = if_else(status %in% "Fished", "Open", status),
+    status = factor(status, levels = c("Open", "No-Take"))
   )
+
+bar_b20 <- plot_b20_bars(
+  plot_data   = b20_plot_split,
+  fill_values = c("Open" = "white", "No-Take" = "grey40"),
+  fill_breaks = c("No-Take", "Open")
+)
 
 bar_b20
 
@@ -1169,26 +811,78 @@ ggsave(
   plot   = bar_b20,
   height = 4,
   width  = 9,
-  dpi    = 600,
+  dpi    = 300,
   units  = "in",
   bg     = "white"
 )
 
-saveRDS(bar_b20, paste0("plots/", park, "/fish/", name, "_top_b20_bar_plot.rds"))
+saveRDS(bar_b20,
+        paste0("plots/", park, "/fish/", name, "_top_b20_bar_plot.rds"))
+# -------------------------------------------------------------------------
+# Plot 2: 2014 Combined, 2024 split into Fished / No-Take
+# TODO check and edit status
+# -------------------------------------------------------------------------
+
+b20_plot_mixed <- b20 %>%
+  semi_join(b20.10, by = c("year", "scientific_name")) %>%
+  filter(
+    (year == years[1] & status == "Combined") |
+      (year == years[2] & status %in% c("Fished", "No-Take"))
+  ) %>%
+  mutate(
+    status = if_else(status %in% c("Combined", "Fished"), "Open", status),
+    status = factor(status, levels = c("Open", "No-Take"))
+  )
+
+bar_b20_v2 <- plot_b20_bars(
+  plot_data   = b20_plot_mixed,
+  fill_values = c(
+    "Open"   = "white",
+    "No-Take"  = "grey40"
+  ),
+  fill_breaks = c("No-Take", "Open")
+)
+
+bar_b20_v2
+
+ggsave(
+  paste0("plots/", park, "/fish/", name, "_top_b20_bar_plot_mixed.png"),
+  plot   = bar_b20_v2,
+  height = 4,
+  width  = 9,
+  dpi    = 300,
+  units  = "in",
+  bg     = "white"
+)
+
+saveRDS(bar_b20_v2,
+        paste0("plots/", park, "/fish/", name, "_top_b20_bar_plot_mixed.rds")
+)
 
 # -------------------------------------------------------------------
 # Bubble plots
-# -------------------------------------------------------------------
+# -------------------------------------------------------------------# Bubble plots are zoomed in tighter than the prediction surface so the bubbles
+# stay legible. Taken from the samples rather than the prediction extent.
+# TODO adjust bubble_pad if the bubbles run off the edge of the panel
+bubble_pad <- 0.05
 
 tidy_count <- readRDS(paste0("data/", park, "/tidy/", name, "_tidy-count.rds")) %>%
   semi_join(metadata_amp, by = c("campaignid", "sample"))
+
+bubble_limits <- c(
+  min(tidy_count$longitude_dd) - bubble_pad, max(tidy_count$longitude_dd) + bubble_pad,
+  min(tidy_count$latitude_dd)  - bubble_pad, max(tidy_count$latitude_dd)  + bubble_pad
+)
+
+print(bubble_limits)
 
 bubble_combined <- bubble_plots(
   dat                 = tidy_count,
   ausc                = ausc,
   cwatr               = cwatr,
   marine_parks_amp    = marine_parks_amp,
-  prediction_limits   = prediction_limits
+  wasanc              = wasanc,
+  prediction_limits   = bubble_limits
 )
 
 bubble_combined
@@ -1205,4 +899,3 @@ ggsave(
 
 saveRDS(bubble_combined,
         paste0("plots/", park, "/fish/", name, "_bubbleplot_richness-abundance.rds"))
-

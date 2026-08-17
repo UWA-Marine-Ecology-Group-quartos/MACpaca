@@ -247,7 +247,7 @@ m_b20 <- gam(count ~
 # plot(m_b20, all.terms = TRUE)
 
 # Read predictor rasters to predict onto (bathymetry derivatives etc.)
-preds <- readRDS(paste0("data/", park, "/spatial/rasters/", name, "_bathymetry-derivatives.rds"))
+preds <- readRDS(paste0("data/", park, "/spatial/rasters/", name, "_bathymetry-derivatives-fish.rds"))
 plot(preds)
 
 # Predictors as a dataframe for modelling
