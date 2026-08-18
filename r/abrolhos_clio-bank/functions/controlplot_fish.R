@@ -29,13 +29,13 @@ controlplot_fish <- function(data, metric, amp_abbrv,
 
   # Clio Bank sits entirely within the Special Purpose Zone, so there is no
   # NPZ in the prediction window and nothing to contrast against. Only the
-  # "other zones" level is drawn, and its legend is suppressed below.
+  # "other zones" level is drawn. The legend is still shown (as in the other
+  # parks, e.g. eastern-recherche) so readers can identify the zone.
   # For parks that do contain an NPZ, restore:
   #   zone_levels <- c(paste(amp_abbrv, "NPZ (IUCN II)"),
   #                    paste(amp_abbrv, "other zones"))
   #   fill_vals   <- setNames(c("#7bbc63", "#b9e6fb"), zone_levels)
   #   shape_vals  <- setNames(c(21, 21), zone_levels)
-  # and drop the guides() line from common_layers.
   zone_levels <- paste(amp_abbrv, "other zones")
 
   plot_dat <- data %>%
@@ -91,10 +91,9 @@ controlplot_fish <- function(data, metric, amp_abbrv,
     scale_x_continuous(breaks = survey_years),
     scale_fill_manual(values = fill_vals, name = "Marine Parks", drop = FALSE),
     scale_shape_manual(values = shape_vals, name = "Marine Parks", drop = FALSE),
-    # Single zone, so a one-swatch legend adds nothing
-    guides(fill = "none", shape = "none"),
     labs(x = "Year", y = metric_label, title = NULL),
     theme(
+      legend.position = "right",
       strip.background = element_blank(),
       strip.text = element_text(face = "bold")
     )
