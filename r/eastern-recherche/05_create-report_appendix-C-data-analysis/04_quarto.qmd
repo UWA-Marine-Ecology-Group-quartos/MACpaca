@@ -1,0 +1,182 @@
+---
+title: "Appendix C - Eastern Recherche Marine Park Data Analysis Report"
+subtitle: "South-west Marine Parks Network"
+format:
+  pdf:
+    output-file: "Project 4.21-Eastern Recherche-3-Appendix C-q-Data analysis.pdf"
+    fig-pos: 'H'
+    geometry:
+      - top=2cm
+      - bottom=2.5cm
+      - left=2cm
+      - right=2cm
+    include-in-header:
+      text: |
+        \usepackage{caption}
+        \usepackage{float}
+        \usepackage{chngcntr}
+        \floatplacement{table}{H}
+        \floatplacement{figure}{H}
+        % Appendix C numbers floats as "C <section>.<n>". The section counter is
+        % managed by hand (\stepcounter{sec} before each heading) because Quarto
+        % renders unnumbered headings, which do not advance \thesection.
+        \newcounter{sec}
+        \counterwithin*{figure}{sec}
+        \counterwithin*{table}{sec}
+        \renewcommand{\thefigure}{C \arabic{sec}.\arabic{figure}}
+        \renewcommand{\thetable}{C \arabic{sec}.\arabic{table}}
+        \captionsetup{format=plain, indention=0pt}
+toc: false
+execute:
+  echo: false
+  warning: false
+  message: false
+post-render: 05_move-pdf.R
+---
+
+```{r}
+#| include: false
+library(here)
+library(knitr)
+library(dplyr)
+library(gt)
+
+# Quarto sets the working directory to this folder, so both sources resolve
+# locally while here() still points at the project root for the data paths.
+source("02_load-model-selection.R")
+
+# gt builders for Table C 1.1 and C 2.1. Kept here rather than in a separate
+# file so the render has only one path to resolve.
+build_report_table <- function(df, show_aicc = FALSE) {
+
+  sel_rows <- which(df$selected)
+
+  # Last row of each response group (drop the final one; table already has a
+  # bottom border there) - used to draw dotted separators between responses.
+  grp_last <- utils::head(cumsum(rle(as.character(df$response))$lengths), -1)
+
+  tbl <- df %>%
+    dplyr::select(-selected) %>%
+    gt() %>%
+    cols_label(
+      response   = "Response",
+      model      = "Model",
+      delta_aicc = md("$\\Delta$ AICc"),   # if these render literally in the PDF,
+      omega_aicc = md("$\\omega$ AICc"),   # swap both for plain "Delta AICc" etc.
+      r2         = md("$R^2$"),
+      edf        = "EDF"
+    ) %>%
+    fmt_number(columns = c(delta_aicc, omega_aicc), decimals = 3,
+               drop_trailing_zeros = TRUE) %>%
+    fmt_number(columns = r2,  decimals = 5, drop_trailing_zeros = TRUE) %>%
+    fmt_number(columns = edf, decimals = 2) %>%
+    sub_missing(missing_text = "-") %>%
+    cols_align(align = "left",   columns = response) %>%
+    cols_align(align = "center", columns = c(model, delta_aicc, omega_aicc, r2, edf)) %>%
+    cols_width(response ~ pct(24), model ~ pct(30)) %>%
+    tab_style(style = cell_text(weight = "bold"),          # selected model in bold
+              locations = cells_body(columns = everything(), rows = sel_rows)) %>%
+    tab_style(style = cell_text(weight = "bold"),
+              locations = cells_column_labels()) %>%
+    tab_style(style = cell_borders(sides = "bottom", style = "dotted",
+                                   color = "black", weight = px(1)),
+              locations = cells_body(columns = everything(), rows = grp_last)) %>%
+    tab_options(
+      table.width                       = pct(100),
+      table.font.size                   = px(14),
+      data_row.padding                  = px(3),
+      column_labels.border.top.color    = "black",
+      column_labels.border.bottom.color = "black",
+      table.border.top.style            = "none",
+      table.border.bottom.color         = "black",
+      table_body.hlines.style           = "none",
+      row.striping.include_table_body   = FALSE
+    )
+
+  if (show_aicc) {
+    tbl <- tbl %>%
+      cols_label(aicc = "AICc") %>%
+      fmt_number(columns = aicc, decimals = 2) %>%
+      cols_align(align = "center", columns = aicc) %>%
+      cols_move(columns = aicc, after = omega_aicc)
+  }
+
+  tbl
+}
+
+build_habitat_model_table <- function(df) build_report_table(df, show_aicc = FALSE)
+build_fish_model_table    <- function(df) build_report_table(df, show_aicc = TRUE)
+
+habitat_table <- get_habitat_report_table()
+fish_table    <- get_fish_report_table()
+
+figdir <- file.path(appc_out, "figures")
+
+fig <- function(f) {
+  p <- file.path(figdir, paste0(name, "_", f))
+  if (!file.exists(p)) stop("Figure not found: ", p, "\nRun 03_create-figures.R first.")
+  p
+}
+```
+
+```{=latex}
+\stepcounter{sec}
+```
+
+# Benthic ecosystem extent
+
+```{r}
+#| label: tbl-c1-1
+#| tbl-cap: 'Habitat model selection results. Top generalised additive models (GAMs) for predicting the probability of occurrence of key habitats from full subset analyses. Differences between the lowest reported corrected Akaike Information Criterion ($\Delta$AICc), AICc weight ($\omega$AICc), variance explained (R$^2$) and effective degrees of freedom (EDF) are reported for model comparison. Model selection was based on the most parsimonious model (fewest variables - shown in bold) within two units of the lowest AICc.'
+build_habitat_model_table(habitat_table)
+```
+
+```{r}
+#| label: fig-c1-1
+#| out-width: "85%"
+#| fig-align: center
+#| fig-cap: 'Variable importance scores for predicting the probability of occurrence of main habitat categories. Response variables included in the most parsimonious top model are indicated (X), with the colour gradient representing positive (red), zero (white) and negative (blue) relationships.'
+knitr::include_graphics(fig("habitat-importance.png"))
+```
+
+{{< pagebreak >}}
+
+```{r}
+#| label: fig-c1-2
+#| out-width: "100%"
+#| fig-align: center
+#| fig-cap: 'Plots of the most parsimonious model found to predict the probability of occurrence of key habitat types. Individual panes display the predicted relationships between model covariates and the probability of occurrence of each habitat class. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value. Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data.'
+knitr::include_graphics(fig("habitat-response-curves.png"))
+```
+
+{{< pagebreak >}}
+
+```{=latex}
+\stepcounter{sec}
+```
+
+# Demersal fish assemblage
+
+```{r}
+#| label: tbl-c2-1
+#| tbl-cap: 'Demersal fish model selection results. Top generalised additive models (GAMs) for predicting the species and abundance distribution of metrics of interest from full subset analyses. Differences between the lowest reported corrected Akaike Information Criterion ($\Delta$AICc), AICc weight ($\omega$AICc), variance explained (R$^2$) and effective degrees of freedom (EDF) are reported for model comparison. Model selection was based on the best model (fewest variables - shown in bold) within two units of the lowest AICc. \*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays.'
+build_fish_model_table(fish_table)
+```
+
+```{r}
+#| label: fig-c2-1
+#| out-width: "85%"
+#| fig-align: center
+#| fig-cap: 'Variable importance scores for predicting the probability of demersal fish metrics. Response variables included in the most parsimonious top model are indicated (X), with the colour gradient representing positive (red), zero (white) and negative (blue) relationships. \*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays.'
+knitr::include_graphics(fig("fish-importance.png"))
+```
+
+{{< pagebreak >}}
+
+```{r}
+#| label: fig-c2-2
+#| out-width: "95%"
+#| fig-align: center
+#| fig-cap: 'Plots of the best model found to predict the probability of occurrence of key fish groups. Individual panes display the predicted relationships between model covariates and each demersal fish metric. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value. Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data. \*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays.'
+knitr::include_graphics(fig("fish-response-curves.png"))
+```

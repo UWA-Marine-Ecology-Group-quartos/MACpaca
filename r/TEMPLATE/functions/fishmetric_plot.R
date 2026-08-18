@@ -113,6 +113,10 @@ fishmetric_plot <- function(metric_name,
     )
   }
 
+  # One column per year, prediction row above standard error row. When there is
+  # only one year, prediction and SE are placed side by side and titled instead.
+  single_panel <- length(yrs) == 1
+
   # ---- Prediction panels (top row) ----
   p_pred <- lapply(seq_along(yrs), function(i) {
     ggplot() +
@@ -124,8 +128,8 @@ fishmetric_plot <- function(metric_name,
         limits = pred_limits,
         oob = scales::squish
       ) +
-      ggtitle(yrs[i]) +
-      build_base(i, show_x = FALSE)
+      ggtitle(if (single_panel) "Prediction" else yrs[i]) +
+      build_base(i, show_x = single_panel)
   })
 
   # ---- SE panels (bottom row) ----
@@ -139,7 +143,8 @@ fishmetric_plot <- function(metric_name,
         limits = se_limits,
         oob = scales::squish
       ) +
-      build_base(i, show_x = TRUE)
+      ggtitle(if (single_panel) "Standard Error" else NULL) +
+      build_base(if (single_panel) 2 else i, show_x = TRUE)
   })
 
   # ---- Row labels ----
@@ -156,18 +161,28 @@ fishmetric_plot <- function(metric_name,
       )
   }
 
-  pred_label <- row_label_plot("Prediction")
-  se_label   <- row_label_plot("Standard Error")
-
   # ---- Combine ----
-  pred_row <- pred_label + wrap_plots(p_pred, nrow = 1, guides = "collect") +
-    plot_layout(widths = c(0.06, 1))
+  if (single_panel) {
 
-  se_row <- se_label + wrap_plots(p_se, nrow = 1, guides = "collect") +
-    plot_layout(widths = c(0.06, 1))
+    p_out <- wrap_plots(c(p_pred, p_se), nrow = 1)
 
-  p_out <- (pred_row / se_row) +
-    plot_layout(heights = c(1, 1), guides = "collect") &
+  } else {
+
+    pred_label <- row_label_plot("Prediction")
+    se_label   <- row_label_plot("Standard Error")
+
+    pred_row <- pred_label + wrap_plots(p_pred, nrow = 1, guides = "collect") +
+      plot_layout(widths = c(0.06, 1))
+
+    se_row <- se_label + wrap_plots(p_se, nrow = 1, guides = "collect") +
+      plot_layout(widths = c(0.06, 1))
+
+    p_out <- (pred_row / se_row) +
+      plot_layout(heights = c(1, 1))
+  }
+
+  p_out <- p_out +
+    plot_layout(guides = "collect") &
     theme(
       legend.position = "right",
       panel.spacing = unit(0.5, "mm"),

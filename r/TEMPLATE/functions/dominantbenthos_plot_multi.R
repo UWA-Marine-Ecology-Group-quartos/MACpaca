@@ -189,9 +189,13 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
     }
 
     # Only add year title when there are multiple years
-    if (multi_year) p <- p + ggtitle(yrs[i])
+    if (multi_year) {
+      p <- p + ggtitle(yrs[i])
+    } else {
+      p <- p + ggtitle("Predicted Habitat Probability")
+    }
 
-    p + build_base(i, show_x = FALSE, show_park_legend = FALSE)
+    p + build_base(i, show_x = !multi_year, show_park_legend = FALSE)
   })
 
   # ------------------------------------------------------------
@@ -208,7 +212,8 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
         oob      = scales::squish
 
       ) +
-      build_base(i, show_x = TRUE, show_park_legend = FALSE)
+      ggtitle(if (multi_year) NULL else "Standard Error") +
+      build_base(if (multi_year) i else 2, show_x = TRUE, show_park_legend = FALSE)
   })
   # ------------------------------------------------------------
   # Row labels
@@ -223,20 +228,30 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
       )
   }
 
-  dom_label <- row_label_plot("Predicted Habitat Probability")
-  se_label  <- row_label_plot("Standard Error")
-
   # ------------------------------------------------------------
   # Combine
   # ------------------------------------------------------------
-  dom_row <- dom_label + wrap_plots(p_dom, nrow = 1, guides = "collect") +
-    plot_layout(widths = c(0.06, 1))
+  if (!multi_year) {
 
-  se_row <- se_label + wrap_plots(p_se, nrow = 1, guides = "collect") +
-    plot_layout(widths = c(0.06, 1))
+    p_out <- wrap_plots(c(p_dom, p_se), nrow = 1)
 
-  p_out <- (dom_row / se_row) +
-    plot_layout(heights = c(1, 1), guides = "collect") &
+  } else {
+
+    dom_label <- row_label_plot("Predicted Habitat Probability")
+    se_label  <- row_label_plot("Standard Error")
+
+    dom_row <- dom_label + wrap_plots(p_dom, nrow = 1, guides = "collect") +
+      plot_layout(widths = c(0.06, 1))
+
+    se_row <- se_label + wrap_plots(p_se, nrow = 1, guides = "collect") +
+      plot_layout(widths = c(0.06, 1))
+
+    p_out <- (dom_row / se_row) +
+      plot_layout(heights = c(1, 1))
+  }
+
+  p_out <- p_out +
+    plot_layout(guides = "collect") &
     theme(
       legend.position      = "bottom",
       legend.direction     = "horizontal",

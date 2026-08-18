@@ -37,11 +37,43 @@ CheckEM::ga_api_all_data(synthesis_id = "47", # TODO change synthesis ID for dif
                          dir = paste0("data/", park, "/raw/"), # Check the directory
                          include_zeros = TRUE)
 
+# Method is set per source so BOSS can be added below. Kept as character until
+# after the optional combine, then converted to a factor with year and status
 metadata <- readRDS(paste0("data/", park, "/raw/metadata.RDS")) %>%
-  # TODO Set the method for this synthesis. If you add a second synthesis later,
-  # delete this line and set method inside the bind_rows() that combines them
-  mutate(method = as.factor("BRUV"),
-         year = as.factor(year(date_time)),
+  mutate(method = "BRUV")
+
+# TODO BOSS: not every campaign has BOSS (drop-camera) benthos. If this one
+# does, unhash the block below to load it and combine it with the BRUV data.
+# TODO - also please note if BOSS samples spatial extent is very different from
+# the fish samples, you will need to edit the prediction buffer for fish models
+# to use a different prediction limit than the benthos
+
+# boss_metadata <- CheckEM::ga_api_metadata(token = token,
+#                                           synthesis_id = "TODO") %>% # BOSS
+#   mutate(method = "BOSS")
+#
+# saveRDS(boss_metadata, paste0("data/", park, "/raw/boss_metadata.RDS"))
+#
+# boss_benthos_summarised <- CheckEM::ga_api_habitat(token = token,
+#                                                    synthesis_id = "TODO") %>% # BOSS
+#   semi_join(boss_metadata, by = "sample_url")
+#   # TODO The BOSS habitat may need the same summarising the BRUV synthesis
+#   # applies before it will bind - see eastern-recherche for the full pipeline
+#
+# saveRDS(boss_benthos_summarised, paste0("data/", park, "/raw/boss_benthos_summarised.RDS"))
+#
+# # Combine the BRUV and BOSS metadata
+# metadata <- bind_rows(metadata, boss_metadata)
+#
+# # Combine the BRUV and BOSS benthos - bind_rows leaves NAs where a class was
+# # absent in one method; these are true zeros
+# benthos_summarised <- bind_rows(benthos_summarised, boss_benthos_summarised) %>%
+#   mutate(across(where(is.numeric), ~ replace_na(.x, 0)))
+
+# Convert to factors now that any BOSS data has been combined in
+metadata <- metadata %>%
+  mutate(method = as.factor(method),
+         year   = as.factor(year(date_time)),
          status = as.factor(status)) %>%
   glimpse()
 

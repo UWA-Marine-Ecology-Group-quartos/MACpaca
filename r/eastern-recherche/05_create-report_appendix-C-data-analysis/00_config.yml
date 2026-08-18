@@ -1,0 +1,9 @@
+name:            "eastern-rechercheAMP"
+park:            "eastern-recherche"
+years:           [2022, 2025]
+combine_benthos: TRUE       # must match the Appendix A config - controls which
+                            # pooled benthos label the tidy data is read under
+
+# Appendix C output name. Must match the `output-file:` in 04_quarto.qmd,
+# minus the extension.
+report_name:     "Project 4.21-Eastern Recherche-3-Appendix C-q-Data analysis"
