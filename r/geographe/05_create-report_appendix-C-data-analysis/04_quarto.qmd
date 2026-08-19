@@ -1,0 +1,180 @@
+---
+title: "Appendix C - Geographe Marine Park Data Analysis Report"
+subtitle: "South-west Marine Parks Network"
+filters:
+  - appendix-c-numbering.lua
+format:
+  pdf:
+    output-file: "Project 4.21-Geographe-3-Appendix C-q-Data analysis.pdf"
+    fig-pos: 'H'
+    geometry:
+      - top=2cm
+      - bottom=2.5cm
+      - left=2cm
+      - right=2cm
+    include-in-header:
+      text: |
+        \usepackage{caption}
+        \usepackage{float}
+        \usepackage{chngcntr}
+        \usepackage{arydshln}
+        \renewcommand{\arraystretch}{1.35}
+        \floatplacement{table}{H}
+        \floatplacement{figure}{H}
+        % Appendix C numbers floats as "C <section>.<n>". The section counter is
+        % managed by hand (\stepcounter{sec} before each heading) because Quarto
+        % renders unnumbered headings, which do not advance \thesection.
+        \newcounter{sec}
+        % Scratch counter used to hold a figure's number while its sub-figures
+        % (C 1.2.1, C 1.2.2) are numbered off the figure counter - see the raw
+        % LaTeX blocks around the habitat response-curve figures.
+        \newcounter{parentfig}
+        \counterwithin*{figure}{sec}
+        \counterwithin*{table}{sec}
+        \renewcommand{\thefigure}{C \arabic{sec}.\arabic{figure}}
+        \renewcommand{\thetable}{C \arabic{sec}.\arabic{table}}
+        \captionsetup{format=plain, indention=0pt}
+  html:
+    output-file: "Project 4.21-Geographe-3-Appendix C-q-Data analysis.html"
+    fig-dpi: 96
+    embed-resources: true
+toc: true
+execute:
+  echo: false
+  warning: false
+  message: false
+post-render: 05_move-pdf.R
+---
+
+```{r}
+#| include: false
+library(here)
+library(knitr)
+library(dplyr)
+library(gt)
+
+# Quarto sets the working directory to this folder, so both sources resolve
+# locally while here() still points at the project root for the data paths.
+source("02_load-model-selection.R")
+
+# gt builders for Table C 1.1 and C 2.1 live in Gt_model_tables.R so the qmd
+# and any standalone use share a single definition (build_report_table,
+# build_habitat_model_table, build_fish_model_table). Quarto sets the working
+# directory to this folder, so the relative path resolves during render.
+source("Gt_model_tables.R")
+
+habitat_table <- get_habitat_report_table()
+fish_table    <- get_fish_report_table()
+
+figdir_src <- file.path(appc_out, "figures")
+
+# HTML cannot load an image by absolute filesystem path the way LaTeX can, so
+# each figure is copied into a `figures/` folder beside this document and
+# referenced relatively. That path works for both output formats.
+figdir_local <- "figures"
+dir.create(figdir_local, showWarnings = FALSE)
+
+fig <- function(f) {
+  src <- file.path(figdir_src, paste0(name, "_", f))
+  if (!file.exists(src)) stop("Figure not found: ", src, "\nRun 03_create-figures.R first.")
+  dest <- file.path(figdir_local, paste0(name, "_", f))
+  file.copy(src, dest, overwrite = TRUE)
+  dest
+}
+
+# Years the response curves are drawn at. The habitat figures (C 1.2.1 /
+# C 1.2.2) show one year each; the fish figure still shows a single year and
+# must match factor_ref in 03_create-figures.R.
+curve_years  <- as.character(sort(unlist(config$years)))
+curve_year   <- curve_years[1]
+curve_status <- "open to fishing"
+```
+
+# Data Analysis
+
+Statistical methods and model selection results underpinning the natural values
+reported in Appendix A.
+
+{{< pagebreak >}}
+
+```{=latex}
+\stepcounter{sec}
+```
+
+## Benthic ecosystem extent
+
+```{r}
+#| label: tbl-c1-1
+#| tbl-cap: 'Habitat model selection results. Top generalised additive models (GAMs) for predicting the probability of occurrence of key habitats from full subset analyses. Differences between the lowest reported corrected Akaike Information Criterion ($\Delta$AICc), AICc weight ($\omega$AICc), variance explained (R$^2$) and effective degrees of freedom (EDF) are reported for model comparison. Model selection was based on the most parsimonious model (fewest variables - shown in bold) within two units of the lowest AICc.'
+build_habitat_model_table(habitat_table)
+```
+
+```{r}
+#| out-width: "85%"
+#| fig-align: center
+#| fig-cap: 'Variable importance scores for predicting the probability of occurrence of main habitat categories. Response variables included in the most parsimonious top model are indicated (X), with the colour gradient representing positive (red), zero (white) and negative (blue) relationships. Aspect is a circular variable, so the direction of its relationship should be read from the response curves rather than the colour gradient.'
+knitr::include_graphics(fig("habitat-importance.png"))
+```
+
+{{< pagebreak >}}
+
+```{=latex}
+% C 1.2 is split into one figure per survey year. Stash the number this figure
+% would have taken (parentfig), then reset the figure counter so it counts the
+% sub-figures instead - giving C 1.2.1 and C 1.2.2. Restored after the pair.
+\setcounter{parentfig}{\numexpr\value{figure}+1\relax}
+\setcounter{figure}{0}
+\renewcommand{\thefigure}{C \arabic{sec}.\arabic{parentfig}.\arabic{figure}}
+```
+
+```{r}
+#| out-width: "100%"
+#| fig-align: center
+#| fig-cap: !expr paste0('Plots of the most parsimonious model found to predict the probability of occurrence of key habitat types in ', curve_years[1], '. Individual panes display the predicted relationships between model covariates and the probability of occurrence of each habitat class. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value. Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data. Axis limits are held constant across ', curve_years[1], ' and ', curve_years[2], ' to allow direct comparison.')
+knitr::include_graphics(fig(paste0("habitat-response-curves_", curve_years[1], ".png")))
+```
+
+{{< pagebreak >}}
+
+```{r}
+#| out-width: "100%"
+#| fig-align: center
+#| fig-cap: !expr paste0('Plots of the most parsimonious model found to predict the probability of occurrence of key habitat types in ', curve_years[2], '. Individual panes display the predicted relationships between model covariates and the probability of occurrence of each habitat class. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value. Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data. Axis limits are held constant across ', curve_years[1], ' and ', curve_years[2], ' to allow direct comparison.')
+knitr::include_graphics(fig(paste0("habitat-response-curves_", curve_years[2], ".png")))
+```
+
+```{=latex}
+% Hand the figure counter back, so anything after this continues from C <sec>.3
+\setcounter{figure}{\value{parentfig}}
+\renewcommand{\thefigure}{C \arabic{sec}.\arabic{figure}}
+```
+
+{{< pagebreak >}}
+
+```{=latex}
+\stepcounter{sec}
+```
+
+## Demersal fish assemblage
+
+```{r}
+#| label: tbl-c2-1
+#| tbl-cap: 'Demersal fish model selection results. Top generalised additive models (GAMs) for predicting the species and abundance distribution of metrics of interest from full subset analyses. Differences between the lowest reported corrected Akaike Information Criterion ($\Delta$AICc), AICc weight ($\omega$AICc), variance explained (R$^2$) and effective degrees of freedom (EDF) are reported for model comparison. Model selection was based on the best model (fewest variables - shown in bold) within two units of the lowest AICc. \*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays.'
+build_fish_model_table(fish_table)
+```
+
+```{r}
+#| out-width: "85%"
+#| fig-align: center
+#| fig-cap: 'Variable importance scores for predicting the probability of demersal fish metrics. Response variables included in the most parsimonious top model are indicated (X), with the colour gradient representing positive (red), zero (white) and negative (blue) relationships. Aspect is a circular variable, so the direction of its relationship should be read from the response curves rather than the colour gradient. \*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays.'
+knitr::include_graphics(fig("fish-importance.png"))
+```
+
+{{< pagebreak >}}
+
+```{r}
+#| out-width: "95%"
+#| fig-align: center
+#| fig-cap: !expr paste0('Plots of the best model found to predict the probability of occurrence of key fish groups. Individual panes display the predicted relationships between model covariates and each demersal fish metric. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value, with year held at ', curve_year, ' and zone status held at areas ', curve_status, '. Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data from all survey years and zones. \\*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays.')
+knitr::include_graphics(fig("fish-response-curves.png"))
+```

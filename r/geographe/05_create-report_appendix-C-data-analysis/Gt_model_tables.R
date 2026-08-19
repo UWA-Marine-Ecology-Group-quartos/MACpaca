@@ -37,11 +37,17 @@ report_font_size    <- 10
 # Column widths as fractions of \linewidth. Each set sums to 1, so the table
 # spans the full text block and therefore matches the caption width exactly.
 # Order matches the rendered column order (aicc sits after omega_aicc).
+#
+# GEOGRAPHE: the models carry factor terms, so Model strings run longer than the
+# Eastern Recherche ones (e.g. "detrended+aspect+Z+year" rather than
+# "detrended+roughness+Z"). The model column is widened accordingly, taken out
+# of the numeric columns. If a Model string still wraps awkwardly, take another
+# 0.02 off r2 and give it to model - just keep each set summing to 1.
 report_col_fracs <- list(
-  habitat = c(response = 0.16, model = 0.30, delta_aicc = 0.13,
-              omega_aicc = 0.13, r2 = 0.15, edf = 0.13),
-  fish    = c(response = 0.15, model = 0.27, delta_aicc = 0.12,
-              omega_aicc = 0.12, aicc = 0.12, r2 = 0.12, edf = 0.10)
+  habitat = c(response = 0.16, model = 0.34, delta_aicc = 0.12,
+              omega_aicc = 0.12, r2 = 0.14, edf = 0.12),
+  fish    = c(response = 0.14, model = 0.30, delta_aicc = 0.11,
+              omega_aicc = 0.11, aicc = 0.12, r2 = 0.12, edf = 0.10)
 )
 
 # Text block width, from the qmd geometry: letter (21.59cm) less 2cm margins.
@@ -143,11 +149,19 @@ build_report_gt <- function(df, show_aicc = FALSE) {
                                    color = report_rule_colour, weight = px(1)),
               locations = cells_body(rows = idx$grp_last))
 
-  # same proportions as the PDF
-  for (nm in names(fracs)) {
-    tbl <- tbl %>% cols_width(all_of(nm) ~ pct(100 * fracs[[nm]]))
-  }
-  tbl
+  # same proportions as the PDF.
+  # The width specs are built as complete formulas and passed as arguments,
+  # rather than looped over with cols_width(all_of(nm) ~ ...). gt resolves the
+  # left-hand side inside tidyselect's own data mask, where a loop variable
+  # called `nm` is not visible - hence "object 'nm' not found".
+  width_specs <- lapply(names(fracs), function(cn) {
+    stats::as.formula(
+      paste0("`", cn, "` ~ pct(", 100 * fracs[[cn]], ")"),
+      env = environment()
+    )
+  })
+
+  do.call(gt::cols_width, c(list(tbl), width_specs))
 }
 
 # =============================================================================
@@ -160,7 +174,9 @@ build_report_gt <- function(df, show_aicc = FALSE) {
 #
 # centre_response = TRUE merges each response label into a \multirow spanning
 # its candidate models, vertically centred. Used for Table C 2.1, where the
-# groups are several rows deep; C 1.1 is one row per response so it is a no-op.
+# groups are several rows deep. For Geographe it is also worth switching on for
+# C 1.1 if the habitat groups come back more than one row deep - pass
+# centre_response = TRUE in build_habitat_model_table() below.
 build_report_kable <- function(df, show_aicc = FALSE, centre_response = FALSE) {
 
   idx  <- report_row_index(df)

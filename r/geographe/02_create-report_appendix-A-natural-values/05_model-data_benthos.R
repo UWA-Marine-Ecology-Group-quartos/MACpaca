@@ -154,7 +154,7 @@ m_sand <- gam(cbind(sand, total_pts - sand) ~
               data = habi, method = "REML", family = binomial("logit"))
 summary(m_sand)
 
-# Rock - too rare to model
+# Rock
 m_rock <- gam(cbind(rock, total_pts - rock) ~
                 year +
                 s(geoscience_aspect, by = year, k = 5, bs = "cc")  +
@@ -464,3 +464,4 @@ for (this_year in pred.years) {
     overwrite = TRUE
   )
 }
+
