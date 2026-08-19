@@ -39,6 +39,8 @@ library(tidyterra)
 library(ggnewscale)
 library(cowplot)
 library(metR)
+library(ggpattern) #abbey
+#install.packages("ggpattern")
 
 # Set cropping and plot extents
 e                <- ext(106.0, 145.0, -45.0, -22.0)
@@ -87,6 +89,11 @@ marine_parks <- st_read("data/south-west network/spatial/shapefiles/south-and-we
 marine_parks_amp <- marine_parks %>%
   dplyr::filter(epbc %in% "Commonwealth")
 
+spz_colour <- unique(marine_parks_amp$colour[marine_parks_amp$zone == "Special Purpose Zone"])[1] #abbey
+
+marine_parks_amp <- marine_parks_amp %>%
+  dplyr::mutate(colour = if_else(zone == "Special Purpose Zone (Mining Exclusion)", #abbey
+                                 spz_colour, colour))
 
 marine_parks_state <- marine_parks %>%
   dplyr::filter(epbc %in% "State") %>%
@@ -206,16 +213,43 @@ make_zone_panel <- function(plot_limits, mp_amp, mp_state, label_data = NULL,
     # Landmass
     geom_sf(data = aus, fill = "seashell2", colour = "grey80", linewidth = 0.1) +
 
-    # Australian Marine Parks
-    geom_sf(data = mp_amp, aes(fill = zone), colour = NA, alpha = 0.8) +
+    # Australian Marine Parks - ABBEY you greyed this out
+    # geom_sf(data = mp_amp, aes(fill = zone), colour = NA, alpha = 0.8) +
+    # scale_fill_manual(name   = "Australian Marine Parks",
+    #                   guide  = guide_legend(order = 1, ncol = 1,
+    #                                         title.position = "top"),
+    #                   values = with(mp_amp, setNames(colour, zone)),
+    #                   breaks = c("National Park Zone", "Habitat Protection Zone",
+    #                              "Multiple Use Zone", "Special Purpose Zone",
+    #                              "Special Purpose Zone (Mining Exclusion)")) +
+    # new_scale_fill() +
+
+    ggpattern::geom_sf_pattern(
+      data          = mp_amp,
+      aes(fill = zone, pattern = zone),
+      colour        = NA, alpha = 0.8,
+      pattern_fill  = "white", pattern_colour = NA,
+      pattern_angle = 45, pattern_density = 0.25,
+      pattern_spacing = 0.015, pattern_size = 0.2) +
     scale_fill_manual(name   = "Australian Marine Parks",
                       guide  = guide_legend(order = 1, ncol = 1,
-                                            title.position = "top"),
+                                            title.position = "top",
+                                            override.aes = list(
+                                              pattern = c("none", "none", "none",
+                                                          "none", "stripe"))),
                       values = with(mp_amp, setNames(colour, zone)),
                       breaks = c("National Park Zone", "Habitat Protection Zone",
                                  "Multiple Use Zone", "Special Purpose Zone",
-                                 "Special Purpose Zone (Mining Exclusion)")) +
-    new_scale_fill() +
+                                 "Special Purpose Zone (Mining Exclusion)"),
+                      drop   = FALSE) +
+    scale_pattern_manual(values = c("National Park Zone" = "none",
+                                    "Habitat Protection Zone" = "none",
+                                    "Multiple Use Zone" = "none",
+                                    "Special Purpose Zone" = "none",
+                                    "Special Purpose Zone (Mining Exclusion)" = "stripe"),
+                         guide = "none",
+                         drop  = FALSE) +
+    new_scale_fill() + #abbey added this chunk
 
     # Commonwealth AMP zone labels (last 5 characters of CAPAD RES_NUMBER,
     # e.g. "npz03"), placed at each zone's CAPAD reference point
