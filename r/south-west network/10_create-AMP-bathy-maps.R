@@ -318,6 +318,7 @@ build_and_save(bbox_network,
                x_breaks = seq(110, 140, by = 5),
                y_breaks = seq(-40, -25, by = 5))
 
+
 # ==============================================================================
 # 5. ZOOM-IN MAP FUNCTION (LEGEND ON LEFT)
 # ==============================================================================
@@ -467,7 +468,26 @@ network_map_wms_zoomed <- function(
 
     guides(fill = guide_legend(ncol = 1))
 
-  # Extract legend
+  # Depth legend (same image as Figure 1)
+  legend_img  <- png::readPNG(depth_legend_png)
+  img_h_px    <- nrow(legend_img)
+  img_w_px    <- ncol(legend_img)
+  img_ratio   <- img_w_px / img_h_px   # width:height
+
+  # Build as a tiny ggplot in relative (0-1) coordinates so cowplot can
+  # scale it via rel_heights, instead of a fixed-inch grob that can get
+  # clipped/misplaced when the allocated cell size differs (as it did here).
+  depth_legend_panel <- ggplot() +
+    annotation_raster(
+      legend_img,
+      xmin = 0, xmax = img_ratio,
+      ymin = 0, ymax = 1,
+      interpolate = TRUE
+    ) +
+    coord_cartesian(xlim = c(0, img_ratio), ylim = c(0, 1), expand = FALSE) +
+    theme_void()
+
+  # Extract TP legend
   legend_single <- cowplot::get_legend(
     p_map +
       theme(
@@ -524,12 +544,24 @@ network_map_wms_zoomed <- function(
         panel.border = element_rect(colour = "grey70")
       )
 
+  }
+
+  # --- Assembly: Option B -----------------------------------------------
+  # Left column: TP legend + inset stacked, narrow
+  # Then: depth legend (full map height), then the map, all in one row
+  p_map_nl <- p_map +
+    theme(
+      legend.position = "none",
+      plot.margin = margin(0, 0, 0, 15)
+    )
+
+  if (show_inset) {
+
     left_col <- cowplot::plot_grid(
       legend_single,
-      NULL,
       p_inset,
       ncol = 1,
-      rel_heights = c(1, 0.1, 0.45)
+      rel_heights = c(1, 0.7)   # TP legend vs inset height balance
     )
 
   } else {
@@ -541,19 +573,21 @@ network_map_wms_zoomed <- function(
 
   }
 
-  # Assembly
-  p_map_nl <- p_map +
-    theme(
-      legend.position = "none",
-      plot.margin = margin(0, 0, 0, 15)
-    )
-
   fig <- cowplot::plot_grid(
     left_col,
+    NULL,
+    depth_legend_panel,
+    NULL,
     p_map_nl,
     nrow = 1,
-    rel_widths = c(0.32, 1)
-  ) +
+    rel_widths = c(0.19, 0.05, 0.1, 0.05, 0.95)
+    # left column | spacer | depth legend | spacer | map
+    # the two spacers are equal so the legend sits centred between the two;
+    # 0.05 was taken from left_col (was 0.24) and from map (was 1) so the
+    # total width is unchanged — only tune the two spacer values together
+  )
+
+  fig <- fig +
     theme(
       plot.background = element_rect(
         fill = "white",
@@ -572,7 +606,6 @@ network_map_wms_zoomed <- function(
 
   invisible(fig)
 }
-
 # ==============================================================================
 # 6. FIGURES 2-14: INDIVIDUAL PARK ZOOM-INS (assemble and save)
 # ==============================================================================
