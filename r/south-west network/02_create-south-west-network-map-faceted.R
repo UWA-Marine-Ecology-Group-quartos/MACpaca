@@ -560,7 +560,7 @@ make_zone_plot_left_legend <- function(plot_limits,
     theme(plot.background = element_rect(fill = "white", colour = NA),
           plot.margin     = margin(5, 5, 5, 5))
 
-  print(fig)
+ # print(fig)
 
   if (!is.null(save_name)) {
     dir.create(paste0("plots/", park, "/spatial/MPA_zoom-ins/"), recursive = TRUE, showWarnings = FALSE)
@@ -612,7 +612,7 @@ make_zone_plot_left_legend(
   show_inset = TRUE,
   save_name   = "tworocks-MPs",
   width       = 9,
-  height      = 5
+  height      = 4.5
 )
 
 # ── Rottnest Island Canyon ────────────────────────────────────────────────────
@@ -635,20 +635,20 @@ make_zone_plot_left_legend(
   break_step  = 0.1,
   show_inset = TRUE,
   save_name   = "Geographe-MPs",
-  width       = 10,
-  height      = 6
+  width       = 11,
+  height      = 5.5
 )
 
 # ── Bremer Bay ────────────────────────────────────────────────────────────────
 make_zone_plot_left_legend(
-  plot_limits = c(119.3, 120.3, -35.3, -33.9),
+  plot_limits = c(119.3, 120.3, -35.3, -34),
   inset_xlim  = c(108, 138),
   inset_ylim  = c(-40, -24),
   break_step  = 0.2,
   show_inset  = TRUE,
   save_name   = "bremer-MPs",
-  width       = 8,
-  height      = 8
+  width       = 10.25,
+  height      = 9.5
 )
 
 # ── SWC Eastern arm ───────────────────────────────────────────────────────────
@@ -663,6 +663,17 @@ make_zone_plot_left_legend(
   height      = 6
 )
 
+make_zone_plot_left_legend(
+  plot_limits = c(120.2, 122.4, -38, -33.7),
+  inset_xlim  = c(108, 138),
+  inset_ylim  = c(-40, -24),
+  break_step  = 0.2,
+  show_inset = TRUE,
+  save_name   = "swc-east-full-extent-MPs",
+  width       = 8.5,
+  height      = 9
+)
+
 # ── Eastern Recherche ─────────────────────────────────────────────────────────
 make_zone_plot_left_legend(
   plot_limits = c(123.2, 124.4, -34.9, -33.5),
@@ -671,43 +682,43 @@ make_zone_plot_left_legend(
   break_step  = 0.2,
   show_inset = TRUE,
   save_name   = "eastern-recherche-MPs",
-  width       = 8,
+  width       = 8.5,
   height      = 8
 )
 
 make_zone_plot_left_legend(
-  plot_limits = c(123.2, 124.4, -37.8, -33.5),
+  plot_limits = c(122.2, 125.3, -37.8, -33.5),
   inset_xlim  = c(108, 138),
   inset_ylim  = c(-40, -24),
   break_step  = 0.2,
   show_inset = TRUE,
   save_name   = "eastern-recherche_full-extent-MPs",
-  width       = 8,
-  height      = 10
+  width       = 7,
+  height      = 8
 )
 
 
 # ── Great Aus Bight ───────────────────────────────────────────────────────────
 make_zone_plot_left_legend(
-  plot_limits = c(128.7, 132.5, -33.6, -31.3),
+  plot_limits = c(128.7, 132.4, -33.6, -31.3),
   inset_xlim  = c(108, 138),
   inset_ylim  = c(-40, -24),
   break_step  = 0.2,
   show_inset = TRUE,
   save_name   = "great-aus-bight-MPs",
-  width       = 9,
-  height      = 5
+  width       = 10.5,
+  height      = 5.5
 )
 
 make_zone_plot_left_legend(
-  plot_limits = c(128.7, 132.5, -37.8, -31.3),
+  plot_limits = c(128.7, 132.45, -37.1, -31.3),
   inset_xlim  = c(108, 138),
   inset_ylim  = c(-40, -24),
-  break_step  = 0.2,
+  break_step  = 0.5,
   show_inset = TRUE,
   save_name   = "great-aus-bight_full-extent-MPs",
-  width       = 8,
-  height      = 9
+  width       = 10.5,
+  height      = 9.5
 )
 # ── Murat and Western Eyre ────────────────────────────────────────────────────
 make_zone_plot_left_legend(
@@ -722,7 +733,7 @@ make_zone_plot_left_legend(
 )
 
 make_zone_plot_left_legend(
-  plot_limits = c(132.45, 135.5, -39.4, -31.9),
+  plot_limits = c(132.2, 136, -39.3, -31.9),
   inset_xlim  = c(108, 138),
   inset_ylim  = c(-40, -24),
   break_step  = 0.4,
@@ -733,13 +744,13 @@ make_zone_plot_left_legend(
 )
 
 make_zone_plot_left_legend(
-  plot_limits = c(132.3, 133, -33.2, -32.2),
+  plot_limits = c(132.3, 132.9, -33.0, -32.2),
   inset_xlim  = c(108, 138),
   inset_ylim  = c(-40, -24),
-  break_step  = 0.2,
+  break_step  = 0.1,
   show_inset = TRUE,
   save_name   = "murat-MPs",
-  width       = 8,
+  width       = 7,
   height      = 7
 )
 
@@ -751,20 +762,20 @@ make_zone_plot_left_legend(
   break_step  = 0.2,
   show_inset = TRUE,
   save_name   = "kangaroo-island-MPs",
-  width       = 9,
-  height      = 6
+  width       = 10.75,
+  height      = 5.5
 )
 
 # ── Twilight Marine Park ──────────────────────────────────────────────────────
 make_zone_plot_left_legend(
-  plot_limits = c(125.2, 127.15, -33.3, -32.1),
+  plot_limits = c(125.2, 127, -33.3, -32.1),
   inset_xlim  = c(108, 138),
   inset_ylim  = c(-40, -24),
   break_step  = 0.2,
   show_inset = TRUE,
   save_name   = "twilight-MPs",
-  width       = 9,
-  height      = 5
+  width       = 10.25,
+  height      = 5.5
 )
 
 # ── SWC Full Extent ───────────────────────────────────────────────────────────
