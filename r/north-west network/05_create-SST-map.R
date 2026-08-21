@@ -49,7 +49,7 @@ e     <- ext(106, 133, -28, -11)
 e_vec <- c(106, 133, -28, -11)
 
 # Final map panel extent
-plot_limits <- c(109, 130, -26.5, -12.5)
+plot_limits <- c(109, 130, -26.5, -12.0)
 
 # ── Load spatial files ────────────────────────────────────────────────────────
 # Terrestrial parks
