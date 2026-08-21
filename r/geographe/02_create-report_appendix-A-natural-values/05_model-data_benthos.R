@@ -148,7 +148,7 @@ write.csv(all.var.imp,         file = paste0(outdir, name, "_abiotic_all.var.imp
 # Sand
 m_sand <- gam(cbind(sand, total_pts - sand) ~
                 year +
-                s(geoscience_aspect, by = year, k = 5, bs = "cc")  +
+                s(geoscience_roughness, k = 5, bs = "cr") +
                 s(geoscience_depth, by = year, k = 5, bs = "cr") +
                 s(geoscience_detrended, by = year, k = 5, bs = "cr"),
               data = habi, method = "REML", family = binomial("logit"))
@@ -157,8 +157,8 @@ summary(m_sand)
 # Rock
 m_rock <- gam(cbind(rock, total_pts - rock) ~
                 year +
-                s(geoscience_aspect, by = year, k = 5, bs = "cc")  +
-                s(geoscience_detrended, by = year, k = 5, bs = "cr") +
+                s(geoscience_detrended, k = 5, bs = "cr") +
+                s(geoscience_depth, by = year, k = 5, bs = "cr") +
                 s(geoscience_roughness, by = year, k = 5, bs = "cr"),
               data = habi, method = "REML", family = binomial("logit"))
 summary(m_rock)
@@ -166,7 +166,7 @@ summary(m_rock)
 # Macroalgae
 m_macro <- gam(cbind(macroalgae, total_pts - macroalgae) ~
                  year +
-                 s(geoscience_aspect, by = year, k = 5, bs = "cc")  +
+                 s(geoscience_roughness, k = 5, bs = "cr") +
                  s(geoscience_depth, by = year, k = 5, bs = "cr") +
                  s(geoscience_detrended, by = year, k = 5, bs = "cr"),
                data = habi, method = "REML", family = binomial("logit"))
@@ -184,18 +184,18 @@ summary(m_seagrass)
 # Inverts
 m_inverts <- gam(cbind(sessile_invertebrates, total_pts - sessile_invertebrates) ~
                    year +
-                   s(geoscience_aspect, by = year, k = 5, bs = "cc")  +
-                   s(geoscience_depth, by = year, k = 5, bs = "cr") +
-                   s(geoscience_roughness, by = year, k = 5, bs = "cr"),
+                   s(geoscience_aspect, k = 5, bs = "cc") +
+                   s(geoscience_depth, k = 5, bs = "cr") +
+                   s(geoscience_roughness, k = 5, bs = "cr"),
                  data = habi, method = "REML", family = binomial("logit"))
 summary(m_inverts)
 
 # Reef
 m_reef <- gam(cbind(reef, total_pts - reef) ~
                 year +
-                s(geoscience_aspect, by = year, k = 5, bs = "cc")  +
-                s(geoscience_detrended, by = year, k = 5, bs = "cr") +
-                s(geoscience_roughness, by = year, k = 5, bs = "cr"),
+                s(geoscience_roughness, k = 5, bs = "cr") +
+                s(geoscience_depth, by = year, k = 5, bs = "cr") +
+                s(geoscience_detrended, by = year, k = 5, bs = "cr"),
               data = habi, method = "REML", family = binomial("logit"))
 summary(m_reef)
 

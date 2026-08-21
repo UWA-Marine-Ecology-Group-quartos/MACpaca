@@ -14,10 +14,26 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
   pred_list <- lapply(dat_list, function(x) x[["p_reef.fit"]])
   se_list   <- lapply(dat_list, function(x) x[["p_reef.se.fit"]])
 
-  # Shared SE limits across years (probability stays fixed 0-1)
-  if (is.null(se_limits)) {
-    se_vals   <- unlist(lapply(se_list, terra::values))
-    se_limits <- range(se_vals, na.rm = TRUE)
+  # p_reef.se.fit is the RAW standard error, not normalised like mean_se in the
+  # benthos plots, so rescale it here against the pooled range across years.
+  # That keeps both years on one scale and lets the legend use the same
+  # 0 / 0.5 / 1 breaks as the reef probability bar above. Passing se_limits
+  # explicitly skips the rescaling and plots the raw SE on your own limits
+  rescale_se <- is.null(se_limits)
+
+  if (rescale_se) {
+    se_rng <- range(unlist(lapply(se_list, terra::values)), na.rm = TRUE)
+
+    if (!isTRUE(all.equal(se_rng[1], se_rng[2]))) {
+      se_list <- lapply(se_list, function(x) (x - se_rng[1]) / (se_rng[2] - se_rng[1]))
+    }
+
+    se_limits <- c(0, 1)
+    se_breaks <- c(0, 0.5, 1)
+    se_labels <- c("0", "0.5", "1")
+  } else {
+    se_breaks <- ggplot2::waiver()
+    se_labels <- ggplot2::waiver()
   }
 
   # ------------------------------------------------------------
@@ -158,7 +174,10 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
         na.value = "transparent",
         name     = "Normalised\nSE",
         limits   = se_limits,
-        oob      = scales::squish
+        breaks   = se_breaks,
+        labels   = se_labels,
+        oob      = scales::squish,
+        guide    = guide_colorbar(title.hjust = 0, title.vjust = 0.5, label.hjust = 0)
       ) +
       build_base(i, show_x = TRUE, show_park_legend = FALSE)
   })

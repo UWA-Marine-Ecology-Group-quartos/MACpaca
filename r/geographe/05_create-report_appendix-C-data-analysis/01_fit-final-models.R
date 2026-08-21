@@ -6,6 +6,12 @@
 # Date:    August 2026
 ###
 # =============================================================================
+# The model formulas below are copied VERBATIM from the "select best models"
+# block at the bottom of 05_model-data_benthos.R and 06_model-data_fish.R. If
+# those selections change, change them here too - 02_ matches each fitted model
+# back to its FSS candidate row by predictor set, so a mismatch shows up as a
+# "does not match any FSS candidate row" warning and an unbolded table row.
+# =============================================================================
 
 rm(list = ls())
 
@@ -68,27 +74,31 @@ stopifnot(!any(is.na(habi$year)))
 
 # ---- FINAL MODELS (verbatim from 05_model-data_benthos.R) -------------------
 
+# Sand
 m_sand <- gam(cbind(sand, total_pts - sand) ~
                 year +
-                s(geoscience_aspect, by = year, k = 5, bs = "cc")  +
+                s(geoscience_roughness, k = 5, bs = "cr") +
                 s(geoscience_depth, by = year, k = 5, bs = "cr") +
                 s(geoscience_detrended, by = year, k = 5, bs = "cr"),
               data = habi, method = "REML", family = binomial("logit"))
 
+# Rock
 m_rock <- gam(cbind(rock, total_pts - rock) ~
                 year +
-                s(geoscience_aspect, by = year, k = 5, bs = "cc")  +
-                s(geoscience_detrended, by = year, k = 5, bs = "cr") +
+                s(geoscience_detrended, k = 5, bs = "cr") +
+                s(geoscience_depth, by = year, k = 5, bs = "cr") +
                 s(geoscience_roughness, by = year, k = 5, bs = "cr"),
               data = habi, method = "REML", family = binomial("logit"))
 
+# Macroalgae
 m_macro <- gam(cbind(macroalgae, total_pts - macroalgae) ~
                  year +
-                 s(geoscience_aspect, by = year, k = 5, bs = "cc")  +
+                 s(geoscience_roughness, k = 5, bs = "cr") +
                  s(geoscience_depth, by = year, k = 5, bs = "cr") +
                  s(geoscience_detrended, by = year, k = 5, bs = "cr"),
                data = habi, method = "REML", family = binomial("logit"))
 
+# Seagrass
 m_seagrass <- gam(cbind(seagrasses, total_pts - seagrasses) ~
                     year +
                     s(geoscience_aspect, by = year, k = 5, bs = "cc")  +
@@ -96,18 +106,20 @@ m_seagrass <- gam(cbind(seagrasses, total_pts - seagrasses) ~
                     s(geoscience_detrended, by = year, k = 5, bs = "cr"),
                   data = habi, method = "REML", family = binomial("logit"))
 
+# Inverts
 m_inverts <- gam(cbind(sessile_invertebrates, total_pts - sessile_invertebrates) ~
                    year +
-                   s(geoscience_aspect, by = year, k = 5, bs = "cc")  +
-                   s(geoscience_depth, by = year, k = 5, bs = "cr") +
-                   s(geoscience_roughness, by = year, k = 5, bs = "cr"),
+                   s(geoscience_aspect, k = 5, bs = "cc") +
+                   s(geoscience_depth, k = 5, bs = "cr") +
+                   s(geoscience_roughness, k = 5, bs = "cr"),
                  data = habi, method = "REML", family = binomial("logit"))
 
+# Reef
 m_reef <- gam(cbind(reef, total_pts - reef) ~
                 year +
-                s(geoscience_aspect, by = year, k = 5, bs = "cc")  +
-                s(geoscience_detrended, by = year, k = 5, bs = "cr") +
-                s(geoscience_roughness, by = year, k = 5, bs = "cr"),
+                s(geoscience_roughness, k = 5, bs = "cr") +
+                s(geoscience_depth, by = year, k = 5, bs = "cr") +
+                s(geoscience_detrended, by = year, k = 5, bs = "cr"),
               data = habi, method = "REML", family = binomial("logit"))
 
 # Names are the RESPONSE strings used by the FSS loop and the CSVs, not the
@@ -147,30 +159,40 @@ fabund <- bind_rows(tidy_maxn, tidy_b20) %>%
 stopifnot(!any(is.na(fabund$year)))
 stopifnot(!any(is.na(fabund$status)))
 
+# `reef` is a covariate in three of the four final models, so it has to be
+# present in BOTH tidy syntheses before they are stacked - a missing column in
+# tidy-b20 would silently become NA rows and drop the whole b20 fit.
+stopifnot(all(c("reef") %in% names(tidy_maxn)))
+stopifnot(all(c("reef") %in% names(tidy_b20)))
+
 # ---- FINAL MODELS (verbatim from 06_model-data_fish.R) ----------------------
 
+# Total abundance
 m_abundance <- gam(count ~ year + status +
-                     s(reef, by = year, k = 3, bs = "cr"),
+                     s(reef, k = 3, bs = "cr"),
                    data = fabund %>% dplyr::filter(response %in% "total_abundance"),
                    family = poisson)
 
+# Species richness
 m_richness <- gam(count ~ year + status +
-                    s(geoscience_aspect, by = year, k = 3, bs = "cc") +
-                    s(geoscience_detrended, by = year, k = 3, bs = "cr") +
-                    s(reef, by = year, k = 3, bs = "cr"),
+                    s(geoscience_aspect, k = 3, bs = "cc") +
+                    s(geoscience_detrended, k = 3, bs = "cr") +
+                    s(reef, k = 3, bs = "cr"),
                   data = fabund %>% dplyr::filter(response %in% "species_richness"),
                   family = gaussian(link = "identity"))
 
-m_cti <- gam(count ~ year + status +
-               s(geoscience_depth, by = year, k = 3, bs = "cr") +
-               s(geoscience_detrended, by = year, k = 3, bs = "cr") +
-               s(reef, by = year, k = 3, bs = "cr"),
+# CTI - no year, no status
+m_cti <- gam(count ~ s(geoscience_depth, k = 3, bs = "cr") +
+               s(geoscience_detrended, k = 3, bs = "cr") +
+               s(reef, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "cti"),
              family = gaussian(link = "identity"))
 
-m_b20 <- gam(count ~ year + status +
-               s(geoscience_depth, by = year, k = 3, bs = "cr") +
-               s(geoscience_detrended, by = year, k = 3, bs = "cr"),
+# B20 - year retained, status dropped
+m_b20 <- gam(count ~ year +
+               s(geoscience_depth, k = 3, bs = "cr") +
+               s(geoscience_detrended, k = 3, bs = "cr") +
+               s(reef, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "b20"),
              family = tw())
 

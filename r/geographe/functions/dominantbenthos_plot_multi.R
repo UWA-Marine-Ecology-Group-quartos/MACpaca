@@ -46,9 +46,9 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
     se_list[[i]]       <- dat[["mean_se"]]
   }
 
-  # Shared SE limits across years
-  se_vals   <- unlist(lapply(se_list, terra::values))
-  se_limits <- range(se_vals, na.rm = TRUE)
+  # mean_se is already normalised 0-1 in script 05 (mean of six individually
+  # rescaled SE layers), so the legend is fixed to 0-1 rather than stretched to
+  # the observed range. This matches the habitat probability bars
 
   # ------------------------------------------------------------
   # Theme variants
@@ -204,8 +204,11 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
         option   = "A",
         na.value = "transparent",
         name     = "Normalised\ncombined SE",
-        limits   = se_limits,
-        oob      = scales::squish
+        limits   = c(0, 1),
+        breaks   = c(0, 0.5, 1),
+        labels   = c("0", "0.5", "1"),
+        oob      = scales::squish,
+        guide    = guide_colorbar(title.hjust = 0, title.vjust = 0.5, label.hjust = 0)
 
       ) +
       build_base(i, show_x = TRUE, show_park_legend = FALSE)

@@ -88,6 +88,43 @@ fig <- function(f) {
 curve_years  <- as.character(sort(unlist(config$years)))
 curve_year   <- curve_years[1]
 curve_status <- "open to fishing"
+
+# Model selection did not keep the same factor terms for every fish metric -
+# CTI dropped both year and status, B20 dropped status. The response curves are
+# therefore only conditioned on those factors where the model contains them, so
+# the caption is assembled from the fitted objects rather than hard-coded. If a
+# future selection keeps year and status everywhere, `curve_hold_note` collapses
+# to an empty string and the sentence reads exactly as it did before.
+fish_models <- load_final_models()$fish
+
+# Drop the trailing footnote marker - it only belongs on the first mention.
+plain_label <- function(keys) sub("\\*$", "", unname(response_labels[keys]))
+
+list_and <- function(x) {
+  if (!length(x)) return("")
+  if (length(x) == 1) return(x)
+  paste0(paste(utils::head(x, -1), collapse = ", "), " and ", utils::tail(x, 1))
+}
+
+dropped_by <- function(tm) {
+  keys <- names(fish_models)[
+    !vapply(fish_models, function(m) tm %in% gam_predictor_set(m), logical(1))
+  ]
+  plain_label(keys)
+}
+
+no_year   <- dropped_by("year")
+no_status <- dropped_by("status")
+
+curve_hold_clauses <- c(
+  if (length(no_year))   paste0("year was not retained for ", list_and(no_year)),
+  if (length(no_status)) paste0("zone status was not retained for ", list_and(no_status))
+)
+
+curve_hold_note <- if (length(curve_hold_clauses)) {
+  paste0(" These terms are held only where model selection retained them: ",
+         list_and(curve_hold_clauses), ".")
+} else ""
 ```
 
 # Data Analysis
@@ -175,6 +212,6 @@ knitr::include_graphics(fig("fish-importance.png"))
 ```{r}
 #| out-width: "95%"
 #| fig-align: center
-#| fig-cap: !expr paste0('Plots of the best model found to predict the probability of occurrence of key fish groups. Individual panes display the predicted relationships between model covariates and each demersal fish metric. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value, with year held at ', curve_year, ' and zone status held at areas ', curve_status, '. Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data from all survey years and zones. \\*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays.')
+#| fig-cap: !expr paste0('Plots of the best model found to predict the probability of occurrence of key fish groups. Individual panes display the predicted relationships between model covariates and each demersal fish metric. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value, with year held at ', curve_year, ' and zone status held at areas ', curve_status, '.', curve_hold_note, ' Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data from all survey years and zones. \\*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays.')
 knitr::include_graphics(fig("fish-response-curves.png"))
 ```

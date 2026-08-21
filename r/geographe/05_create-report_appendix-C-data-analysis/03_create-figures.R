@@ -45,6 +45,46 @@ models <- load_final_models()
 dat    <- load_model_data()
 
 # =============================================================================
+# WHICH TERMS DID EACH FINAL MODEL ACTUALLY KEEP?
+# =============================================================================
+# Model selection no longer returns the same shape for every response:
+#   * several habitat smooths lost `by = year`, so their curve shape is shared
+#     across survey years and only the parametric `year` term shifts them
+#   * CTI dropped year AND status entirely
+#   * B20 dropped status
+# curve_data() already copes - it only fills the factors that appear in
+# gam_predictor_set(model), and predict.gam ignores anything else. These
+# messages exist so the mismatch is visible when the figures are rebuilt,
+# rather than being discovered in a caption that claims a hold that never
+# happened.
+
+model_has_term <- function(mod, tm) tm %in% gam_predictor_set(mod)
+
+# TRUE when at least one smooth in the model is fitted separately by year
+model_has_by_year <- function(mod) {
+  if (!length(mod$smooth)) return(FALSE)
+  any(vapply(mod$smooth,
+             function(s) identical(s$by, "year"),
+             logical(1)))
+}
+
+report_terms <- function(model_list, what) {
+  for (resp in names(model_list)) {
+    mod <- model_list[[resp]]
+    kept <- c("year", "status")[
+      vapply(c("year", "status"), function(t) model_has_term(mod, t), logical(1))
+    ]
+    message("  [", what, "] ", resp,
+            " - factors: ", if (length(kept)) paste(kept, collapse = "+") else "none",
+            "; year-varying smooths: ", if (model_has_by_year(mod)) "yes" else "no")
+  }
+}
+
+message("Final model structure:")
+report_terms(models$habitat, "habitat")
+report_terms(models$fish,    "fish")
+
+# =============================================================================
 # PART 1 - VARIABLE IMPORTANCE HEATMAPS
 # =============================================================================
 
@@ -275,6 +315,19 @@ habitat_ylims <- purrr::map(habitat_response_order, function(resp) {
 
 habitat_curve_files <- character()
 
+# Responses whose selected model has no `by = year` smooth. Their panels are
+# the same shape in both year figures, offset only by the parametric year
+# effect. That is a real result, not a plotting bug, but it is worth knowing
+# before someone asks why 2014 and 2024 look identical.
+flat_across_years <- names(models$habitat)[
+  !vapply(models$habitat, model_has_by_year, logical(1))
+]
+if (length(flat_across_years)) {
+  message("Habitat responses with no year-varying smooth (identical curve ",
+          "shape in both year figures, intercept aside): ",
+          paste(unname(response_labels[flat_across_years]), collapse = ", "))
+}
+
 for (yr in year_levels) {
 
   ref_yr <- factor_ref
@@ -329,6 +382,25 @@ message("Appendix C figures written to: ", figdir)
 message("Habitat response curves drawn per year (",
         paste(year_levels, collapse = ", "), ") at status = ",
         factor_ref["status"], ".")
+
+# Only claim a hold for the metrics that still contain the term.
+fish_no_year   <- names(models$fish)[
+  !vapply(models$fish, model_has_term, logical(1), tm = "year")
+]
+fish_no_status <- names(models$fish)[
+  !vapply(models$fish, model_has_term, logical(1), tm = "status")
+]
+
 message("Fish response curves drawn at year = ", factor_ref["year"],
         ", status = ", factor_ref["status"],
-        " - make sure the figure captions say so.")
+        " for the metrics that retain those terms.")
+if (length(fish_no_year)) {
+  message("  year NOT in the final model for: ",
+          paste(unname(response_labels[fish_no_year]), collapse = ", "))
+}
+if (length(fish_no_status)) {
+  message("  status NOT in the final model for: ",
+          paste(unname(response_labels[fish_no_status]), collapse = ", "))
+}
+message("04_quarto.qmd builds the fish caption from the same objects, so the ",
+        "caption follows automatically.")

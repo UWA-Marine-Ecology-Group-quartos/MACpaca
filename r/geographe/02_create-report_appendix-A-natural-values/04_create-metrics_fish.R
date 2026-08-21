@@ -32,9 +32,13 @@ library(purrr)
 
 metadata_bathy_derivatives <- readRDS(paste0("data/", park, "/tidy/", name, "_metadata-bathymetry-derivatives.rds")) %>%
   clean_names() %>%
+  dplyr::filter(method %in% "BRUV") %>%
+  droplevels() %>%
   glimpse()
 
-metadata <- readRDS(paste0("data/", park, "/raw/metadata.RDS"))
+metadata <- readRDS(paste0("data/", park, "/raw/metadata.RDS")) %>%
+  dplyr::filter(method %in% "BRUV") %>%
+  droplevels()
 
 # This is formatted habitat from 03_create-metrics_habitat
 benthos <- readRDS(paste0("data/", park, "/tidy/", name, "_benthos-count.RDS")) %>%
@@ -334,7 +338,7 @@ b20_mass <- biomass %>%
       include_b20 & is.na(mass_g) ~ NA_real_ # included but missing -> NA (flag)
     )
   )
-  # filter(b20_mass_g <= 30000 | is.na(b20_mass_g)) # 190cm Centroberyx lineatus
+# filter(b20_mass_g <= 30000 | is.na(b20_mass_g)) # 190cm Centroberyx lineatus
 
 b20_mass_check <- b20_mass %>%
   select(sample, year, scientific_name, b20_mass_g, length_cm)
@@ -467,7 +471,7 @@ b20_mass_amp <- biomass_amp %>%
       include_b20 & is.na(mass_g) ~ NA_real_ # included but missing -> NA (flag)
     )
   )
-  # filter(b20_mass_g <= 30000 | is.na(b20_mass_g)) # 190cm Centroberyx lineatus
+# filter(b20_mass_g <= 30000 | is.na(b20_mass_g)) # 190cm Centroberyx lineatus
 
 b20_mass_check_amp <- b20_mass_amp %>%
   select(sample, year, scientific_name, b20_mass_g, length_cm)

@@ -206,38 +206,38 @@ fabund <- bind_rows(tidy_maxn, tidy_b20) %>%
 # For each response, carefully write the selected model choosing model type (family),
 # predictor variables, factor variables, k and bs
 
-#Total abundance
+# Total abundance
 m_abundance <- gam(count ~ year + status +
-                    s(reef, by = year, k = 3, bs = "cr"),
-                  data = fabund %>% dplyr::filter(response %in% "total_abundance"),
-                  family = poisson)
+                     s(reef, k = 3, bs = "cr"),
+                   data = fabund %>% dplyr::filter(response %in% "total_abundance"),
+                   family = poisson)
 summary(m_abundance)
 # plot(m_abundance)
 
 # Species richness
 m_richness <- gam(count ~ year + status +
-                    s(geoscience_aspect, by = year, k = 3, bs = "cc") +
-                    s(geoscience_detrended, by = year, k = 3, bs = "cr") +
-                    s(reef, by = year, k = 3, bs = "cr"),
+                    s(geoscience_aspect, k = 3, bs = "cc") +
+                    s(geoscience_detrended, k = 3, bs = "cr") +
+                    s(reef, k = 3, bs = "cr"),
                   data = fabund %>% dplyr::filter(response %in% "species_richness"),
                   family = gaussian(link = "identity"))
 summary(m_richness)
 # plot(m_richness)
 
 # CTI
-m_cti <- gam(count ~ year + status +
-                    s(geoscience_depth, by = year, k = 3, bs = "cr") +
-                    s(geoscience_detrended, by = year, k = 3, bs = "cr") +
-                    s(reef, by = year, k = 3, bs = "cr"),
+m_cti <- gam(count ~ s(geoscience_depth, k = 3, bs = "cr") +
+               s(geoscience_detrended, k = 3, bs = "cr") +
+               s(reef, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "cti"),
              family = gaussian(link = "identity"))
 summary(m_cti)
 # plot(m_cti)
 
 # B20
-m_b20 <- gam(count ~ year + status +
-               s(geoscience_depth, by = year, k = 3, bs = "cr") +
-               s(geoscience_detrended, by = year, k = 3, bs = "cr"),
+m_b20 <- gam(count ~ year +
+               s(geoscience_depth, k = 3, bs = "cr") +
+               s(geoscience_detrended, k = 3, bs = "cr") +
+               s(reef, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "b20"),
              family = tw())
 summary(m_b20)
