@@ -331,7 +331,9 @@ network_map_wms_zoomed <- function(
     break_step      = 0.2,     # spacing used by thin_breaks() before thinning; only used when thin_lon_breaks = TRUE
     save_name  = NULL,
     width      = 10,
-    height     = 6
+    height     = 6,
+    depth_bar_height_in = 3.2   # fixed physical height of the depth legend bar,
+    # same for every park unless overridden per call
 ) {
 
   bbox <- c(
@@ -487,6 +489,68 @@ network_map_wms_zoomed <- function(
     coord_cartesian(xlim = c(0, img_ratio), ylim = c(0, 1), expand = FALSE) +
     theme_void()
 
+  # Title text: "Composite bathymetry mosaics per Australian Marine Park
+  # (AMP)" — same as Figure 1. Drawn directly onto the canvas below,
+  # right-anchored (hjust = 1) so it grows leftward toward the map instead
+  # of overflowing off the right edge of the figure.
+
+  # Column widths used in the final row assembly further down — defined
+  # here too so the depth-bar sizing below can compute the legend column's
+  # actual width in inches and stay in sync with the real layout.
+  col_rel_widths <- c(left = 0.24, map = 0.9, spacer = 0.1, legend = 0.12)
+
+  # Fixed physical size for the bar (same across every park, regardless of
+  # that park's map height) — this is the key change from before, where the
+  # bar stretched to fill the full column height and ended up wildly
+  # different sizes across parks with very different `height` values.
+  #
+  # cowplot::draw_plot() only accepts numeric (0-1) fractions of its canvas
+  # for width/height, not grid::unit() objects — so the desired absolute
+  # inch size has to be converted into a fraction of the actual column
+  # dimensions (in inches) here.
+  col_width_in  <- width  * (col_rel_widths["legend"] / sum(col_rel_widths))
+  col_height_in <- height   # this column spans the full row height
+
+  bar_height_in <- depth_bar_height_in
+  bar_width_in  <- bar_height_in * img_ratio   # preserves the image's aspect ratio
+
+  bar_height_frac <- min(1, bar_height_in / col_height_in)
+  bar_width_frac  <- min(1, bar_width_in  / col_width_in)
+  # if bar_width_frac hit the cap of 1, the bar is wider than its column
+  # allows at this height — either shrink depth_bar_height_in for this
+  # call, or widen col_rel_widths["legend"] below
+
+  # Small fixed gap between the title and the top of the bar, and a rough
+  # estimate of the title's own height (3 lines at size 8) — both in
+  # inches, used below to centre the whole title+bar block in the column.
+  title_gap_in    <- 0.15
+  title_height_in <- 0.65
+
+  block_height_in <- min(col_height_in, bar_height_in + title_gap_in + title_height_in)
+  y_offset_in     <- max(0, (col_height_in - block_height_in) / 2)
+  y_offset_frac   <- y_offset_in / col_height_in
+
+  title_y_frac <- min(0.99, (bar_height_in + title_gap_in + y_offset_in) / height)
+
+  # Combine title + bar as a single ggdraw canvas rather than a nested
+  # plot_grid — this gives direct control over exact placement. Both are
+  # shifted up by y_offset_in so the whole block sits centred in the
+  # column instead of pinned to the bottom.
+  depth_legend_with_title <- cowplot::ggdraw() +
+    cowplot::draw_plot(
+      depth_legend_panel,
+      x = 0, y = y_offset_frac,
+      width  = bar_width_frac,
+      height = bar_height_frac
+    ) +
+    cowplot::draw_label(
+      "Composite bathymetry\nmosaics per Australian\nMarine Park (AMP)",
+      x = 0.95, y = title_y_frac,
+      hjust = 1, vjust = 0,
+      size = 8,
+      fontface = "plain"
+    )
+
   # Extract TP legend
   legend_single <- cowplot::get_legend(
     p_map +
@@ -546,9 +610,9 @@ network_map_wms_zoomed <- function(
 
   }
 
-  # --- Assembly: Option B -----------------------------------------------
-  # Left column: TP legend + inset stacked, narrow
-  # Then: depth legend (full map height), then the map, all in one row
+  # --- Assembly: Option D -----------------------------------------------
+  # Left: TP legend + inset stacked. Middle: map. Right: depth legend
+  # (full map height), on the opposite side from the other two.
   p_map_nl <- p_map +
     theme(
       legend.position = "none",
@@ -575,16 +639,11 @@ network_map_wms_zoomed <- function(
 
   fig <- cowplot::plot_grid(
     left_col,
-    NULL,
-    depth_legend_panel,
-    NULL,
     p_map_nl,
+    NULL,
+    depth_legend_with_title,
     nrow = 1,
-    rel_widths = c(0.19, 0.05, 0.1, 0.05, 0.95)
-    # left column | spacer | depth legend | spacer | map
-    # the two spacers are equal so the legend sits centred between the two;
-    # 0.05 was taken from left_col (was 0.24) and from map (was 1) so the
-    # total width is unchanged — only tune the two spacer values together
+    rel_widths = unname(col_rel_widths)   # left column, map, spacer, depth legend
   )
 
   fig <- fig +
@@ -623,7 +682,7 @@ network_map_wms_zoomed(
 network_map_wms_zoomed(
   plot_limits = c(119.3, 120.3, -35.3, -33.9),
   save_name   = "bremer_AMP-bathy-plot",
-  width       = 6.5,
+  width       = 8,
   height      = 8,
   inset_xlim  = swc_inset_xlim,
   inset_ylim  = swc_inset_ylim
