@@ -153,32 +153,32 @@ extract_sst_monthly_mean <- function(nc_file, extent_vec) {
 }
 
 # ==============================================================================
-# 3. DOWNLOAD AND EXTRACT JUNE 2011 SST
+# 3. DOWNLOAD AND EXTRACT JANUARY 2025 SST
 # ==============================================================================
 # ── Download and write file (if doesn't exist already) ────────────────────────
 # dest_dir <- "data/north network/spatial/rasters/BRAN/BRAN2023_SST_monthly/"
 #
-# file_june2011 <- download_BRAN2023_monthly(2011, 6, dest_dir)
+# file_jan2025 <- download_BRAN2023_monthly(2025, 1, dest_dir)
 #
-# sst_june2011 <- extract_sst_monthly_mean(file_june2011, e_vec)
-# names(sst_june2011) <- "sst_mean_june2011"
+# sst_jan2025 <- extract_sst_monthly_mean(file_jan2025, e_vec)
+# names(sst_jan2025) <- "sst_mean_jan2025"
 #
-# writeRaster(sst_june2011,
-#             "data/north network/spatial/rasters/BRAN/BRAN2023_SST_june2011_mean.tif",
+# writeRaster(sst_jan2025,
+#             "data/north network/spatial/rasters/BRAN/BRAN2023_SST_jan2025_mean.tif",
 # overwrite = TRUE)
 
 # Load raster (if written already)
-sst_june2011 <- rast("data/north network/spatial/rasters/BRAN/BRAN2023_SST_june2011_mean.tif")
+sst_jan2025 <- rast("data/north network/spatial/rasters/BRAN/BRAN2023_SST_jan2025_mean.tif")
 
 # CRS is set explicitly here (BRAN2023 is on a regular lat/lon grid, WGS84)
 # before reprojecting to match the GDA2020 (7844) CRS used for the map
-crs(sst_june2011) <- "EPSG:4326"
-sst_june2011 <- project(sst_june2011, paste0("EPSG:", aus_crs))
+crs(sst_jan2025) <- "EPSG:4326"
+sst_jan2025 <- project(sst_jan2025, paste0("EPSG:", aus_crs))
 
 # ==============================================================================
-# 4. FIGURE 1: JUNE 2011 MEAN SST MAP
+# 4. FIGURE 1: JANUARY 2025 MEAN SST MAP
 # ==============================================================================
-sst_mean_df <- as.data.frame(sst_june2011, xy = TRUE, na.rm = TRUE)
+sst_mean_df <- as.data.frame(sst_jan2025, xy = TRUE, na.rm = TRUE)
 colnames(sst_mean_df)[3] <- "sst"
 
 p_sst_mean <- ggplot() +
@@ -199,7 +199,7 @@ p_sst_mean <- ggplot() +
   # Layer 2: SST mean raster
   geom_raster(data = sst_mean_df, aes(x = x, y = y, fill = sst), interpolate = FALSE) +
   scale_fill_gradientn(
-    name     = "SST (°C)  June 2011",
+    name     = "SST (°C)  January 2025",
     colours  = rev(brewer.pal(11, "RdYlBu")),
     na.value = NA,
     guide    = guide_colourbar(
@@ -241,7 +241,7 @@ p_sst_mean <- ggplot() +
   )
 
 ggsave(paste(paste0("plots/", park, "/spatial/SST/", name),
-             "SST-june2011.png", sep = "-"),
+             "SST-jan2025.png", sep = "-"),
        plot = p_sst_mean, dpi = 300, width = 12, height = 7, bg = "white"
 )
 
