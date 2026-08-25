@@ -1,5 +1,4 @@
 dominantbenthos_plot_single <- function(pred_plot, prediction_limits, habitat_lookup) {
-
   # Gradient high colours for each habitat (used in geom_tile fill gradient)
   grad_high <- c(
     "Sand"                  = "wheat",
@@ -8,7 +7,6 @@ dominantbenthos_plot_single <- function(pred_plot, prediction_limits, habitat_lo
     "Rock"                  = "grey40",
     "Sessile invertebrates" = "deeppink3"
   )
-
   # Legend label (line break for long names)
   legend_names <- c(
     "Sand"                  = "Sand",
@@ -17,21 +15,16 @@ dominantbenthos_plot_single <- function(pred_plot, prediction_limits, habitat_lo
     "Rock"                  = "Rock",
     "Sessile invertebrates" = "Sessile\ninvertebrates"
   )
-
   # Canonical rendering order (bottom to top) — filter to modelled taxa only
   hab_order <- c("Sand", "Rock", "Macroalgae", "Seagrass", "Sessile invertebrates")
   modelled  <- hab_order[hab_order %in% names(habitat_lookup)]
-
   p <- ggplot()
-
   for (i in seq_along(modelled)) {
     hab       <- modelled[i]
     stub      <- habitat_lookup[[hab]]
     fit_col   <- paste0("p_", stub, ".fit")
     alpha_col <- paste0("p_", stub, ".alpha")
-
     if (i > 1) p <- p + new_scale_fill() + new_scale("alpha")
-
     p <- p +
       geom_tile(data = pred_plot,
                 aes(x = x, y = y,
@@ -44,10 +37,11 @@ dominantbenthos_plot_single <- function(pred_plot, prediction_limits, habitat_lo
         name     = legend_names[[hab]],
         na.value = "transparent",
         breaks   = c(0, 0.5, 1),
-        labels   = c("0", "0.5", "1")
+        labels   = c("0", "0.5", "1"),
+        guide    = guide_colourbar(direction = "horizontal",
+                                   title.position = "top")
       )
   }
-
   p_out <- p +
     geom_contour(
       data = bathy,
@@ -75,8 +69,12 @@ dominantbenthos_plot_single <- function(pred_plot, prediction_limits, habitat_lo
     ) +
     geom_sf(data = cwatr, colour = "firebrick", linewidth = 0.6) +
     scale_colour_manual(
-
       values = with(marine_parks_amp, setNames(colour, zone))
+    ) +
+    scale_x_continuous(
+      breaks = seq(floor(prediction_limits[1] * 2.5) / 2.5,
+                   ceiling(prediction_limits[2] * 2.5) / 2.5,
+                   by = 0.4)
     ) +
     coord_sf(
       xlim   = c(prediction_limits[1], prediction_limits[2]),
@@ -92,8 +90,11 @@ dominantbenthos_plot_single <- function(pred_plot, prediction_limits, habitat_lo
       axis.ticks        = element_line(linewidth = 0.2),
       panel.grid.major  = element_line(linewidth = 0.2, colour = "grey85"),
       panel.grid.minor  = element_blank(),
-      legend.title      = element_text(size = 9),
-      legend.text       = element_text(size = 8),
+      legend.position   = "bottom",
+      legend.box        = "horizontal",
+      legend.box.just   = "bottom",
+      legend.title      = element_text(size = 8),
+      legend.text       = element_text(size = 9),
       legend.key.height = unit(0.45, "cm"),
       legend.key.width  = unit(0.45, "cm"),
       plot.margin       = margin(2, 2, 2, 2, unit = "mm")

@@ -59,7 +59,7 @@ scatterpie_plot_multi <- function(benthos, years, site_limits, pie_radius = 0.00
       legend.direction = "horizontal",
       legend.box = "horizontal",
       strip.text = element_text(size = 12, face = "bold"),
-      legend.text = element_text(size = 10),
+      legend.text = element_text(size = 12),
       legend.title = element_blank()
     )
 }

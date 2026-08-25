@@ -45,15 +45,6 @@ e_pad <- 0.02
 # and save in below folder
 
 # Read in the metadata ----
-# Two objects are needed because benthos and fish are predicted over different
-# areas. Benthos pools BRUV and BOSS, so it can be predicted anywhere within
-# 10 km of ANY sample. Fish comes from the BRUVs only, so it must be held to
-# within 10 km of a BRUV - synthesis 87 spans the whole south-west and reaches
-# well past the BRUV footprint at Augusta and off the west coast.
-#
-# Note bruv_metadata.RDS is written early in 01, before `year` is derived from
-# date_time and before status is converted to a factor, so it does not carry a
-# `year` column. Only the coordinates are needed here to build the buffer.
 metadata_bruv <- readRDS(paste0("data/", park, "/raw/bruv_metadata.RDS")) %>%
   dplyr::select(campaignid, sample, longitude_dd, latitude_dd) %>%
   glimpse()

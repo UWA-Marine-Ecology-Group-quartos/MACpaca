@@ -46,7 +46,7 @@ file.sources <- list.files(pattern = "*.R", path = paste0("r/", park, "/function
 sapply(file.sources, source, .GlobalEnv)
 
 # TODO Set cropping extent - larger than most zoomed out plot
-e <- ext(114.2, 115.8, -34.7, -33.1)
+e <- ext(114.0, 116.0, -34.7, -33.1)
 
 # Load necessary spatial files
 ausc <- st_read("data/south-west network/spatial/shapefiles/aus-shapefile-w-investigator-stokes.shp") %>%
@@ -103,7 +103,7 @@ hab_cols <- c(
 )
 
 # TODO Plot extent
-prediction_limits <- c(115.035, 115.57, -33.665, -33.34)
+prediction_limits <- c(114.2601, 115.7901, -34.6924, -33.3974)
 
 # Read all years once
 
@@ -155,18 +155,18 @@ for (yr in pred.labels) {
       "_predicted-habitat-categorical_", yr, ".png"
     ),
     plot = p_cat,
-    height = 6,
-    width = 8,
+    height = 8,
+    width = 7,
     dpi = 300,
     units = "in",
     bg = "white"
   )
 
   saveRDS(p_cat,
-    paste0(
-      "plots/", park, "/habitat/", name,
-      "_predicted-habitat-categorical_", yr, ".rds"
-    )
+          paste0(
+            "plots/", park, "/habitat/", name,
+            "_predicted-habitat-categorical_", yr, ".rds"
+          )
   )
 
   p_dom <- dominantbenthos_plot_single(
@@ -176,7 +176,7 @@ for (yr in pred.labels) {
   ) +
     theme(
       legend.position = "bottom",
-      legend.direction = "horizontal",
+      legend.direction = "vertical",
       legend.box = "horizontal",
       legend.box.just = "left",
       legend.text = element_text(size = 5),
@@ -193,8 +193,8 @@ for (yr in pred.labels) {
       "_predicted-dominant-habitat_", yr, ".png"
     ),
     plot = p_dom,
-    height = 6,
-    width = 8,
+    height = 8,
+    width = 7,
     dpi = 300,
     units = "in",
     bg = "white"
@@ -208,72 +208,6 @@ for (yr in pred.labels) {
   )
 }
 
-# -------------------------------------------------------------------
-# PART 2: Multi-year categorical and dominant benthos + combined SE plot
-# Skipped when combine_benthos = TRUE: dat_list is then length 1, so these
-# *_multi() functions would just duplicate PART 1's single pooled plot.
-# -------------------------------------------------------------------
-if (!combine_benthos) {
-
-p_dom_se <- dominantbenthos_plot_multi(
-  dat_list = dat_list,
-  prediction_limits = prediction_limits,
-  habitat_lookup = habitat_lookup
-)
-
-print(p_dom_se)
-
-ggsave(
-  filename = paste0(
-    "plots/", park, "/habitat/", name,
-    "_predicted-dominant-benthos-and-combined-se_",
-    paste(years, collapse = "-"), ".png"
-  ),
-  plot = p_dom_se,
-  height = 7,
-  width = 8,
-  dpi = 300,
-  units = "in",
-  bg = "white"
-)
-
-saveRDS(p_dom_se,
-        paste0(
-          "plots/", park, "/habitat/", name,
-          "_predicted-dominant-benthos-and-combined-se_",
-          paste(years, collapse = "-"), ".rds"
-        ))
-
-p_cat_multi <- categoricalhabitat_plot_multi(
-  dat_list = dat_list,
-  prediction_limits = prediction_limits,
-  habitat_lookup = habitat_lookup
-)
-
-print(p_cat_multi)
-
-ggsave(
-  filename = paste0(
-    "plots/", park, "/habitat/", name,
-    "_predicted-habitat-categorical_",
-    paste(years, collapse = "-"), ".png"
-  ),
-  plot = p_cat_multi,
-  height = 5,
-  width = 10,
-  dpi = 300,
-  units = "in",
-  bg = "white"
-)
-
-saveRDS(p_cat_multi,
-        paste0(
-          "plots/", park, "/habitat/", name,
-          "_predicted-habitat-categorical_",
-          paste(years, collapse = "-"), ".rds"
-        ))
-
-}
 
 ## Predicted reef
 p_reef <- predictedreef_plot_multi(
@@ -289,7 +223,7 @@ ggsave(
     "_predicted-reef-and-se_",
     paste(years, collapse = "-"), ".png"
   ),
-  plot = p_reef, height = 7, width = 8, dpi = 300, units = "in", bg = "white"
+  plot = p_reef, height = 5.5, width = 8, dpi = 300, units = "in", bg = "white"
 )
 
 saveRDS(p_reef,
@@ -299,6 +233,8 @@ saveRDS(p_reef,
 # -------------------------------------------------------------------
 # PART 3: Multi-year individual habitat plots
 # -------------------------------------------------------------------
+# NOTE for some reason this overwrites  swc_westernarm_predicted-dominant-habitat_2020_2023_2024_2025.png
+# so rerun that bit
 for (habitat_name in names(habitat_lookup)) {
 
   message("Building individual habitat plot for: ", habitat_name)
@@ -347,97 +283,97 @@ for (habitat_name in names(habitat_lookup)) {
 # -------------------------------------------------------------------
 if (!combine_benthos) {
 
-# Create the data (makes a dataframe for each ecosystem depth contour)
-control_all <- purrr::map(years, \(yy) {
-  dat_yy <- readRDS(
-    paste0(
-      "output/model-output/", park, "/habitat/",
-      name, "_predicted-habitat_", yy, ".rds"
-    )
-  )
-  controldata_benthos(dat = dat_yy, year = yy, amp_abbrv = "GMP", state_abbrv = "NCMP") # TODO set park abbreviations
-})
-
-park_dat.shallow <- purrr::map_dfr(control_all, "shallow") %>%
-  dplyr::mutate(depth_class = "Shallow (0 - 30 m)")
-
-park_dat.meso <- purrr::map_dfr(control_all, "meso") %>%
-  dplyr::mutate(depth_class = "Mesophotic (30 - 70 m)")
-
-park_dat.rari <- purrr::map_dfr(control_all, "rari") %>%
-  dplyr::mutate(depth_class = "Rariphotic (70 - 200 m)")
-
-park_dat.control <- dplyr::bind_rows(
-  park_dat.shallow,
-  park_dat.meso,
-  park_dat.rari
-) %>%
-  dplyr::mutate(
-    depth_class = factor(
-      depth_class,
-      levels = c(
-        "Shallow (0 - 30 m)",
-        "Mesophotic (30 - 70 m)",
-        "Rariphotic (70 - 200 m)"
+  # Create the data (makes a dataframe for each ecosystem depth contour)
+  control_all <- purrr::map(years, \(yy) {
+    dat_yy <- readRDS(
+      paste0(
+        "output/model-output/", park, "/habitat/",
+        name, "_predicted-habitat_", yy, ".rds"
       )
     )
-  )
+    controldata_benthos(dat = dat_yy, year = yy, amp_abbrv = "AMP", state_abbrv = "STATE MP") # TODO set park abbreviations
+  })
 
-# Taxa to plot
-taxa_lookup <- c(
-  "seagrass"   = "Seagrass",
-  "macroalgae" = "Macroalgae",
-  "rock"       = "Rock",
-  "sand"       = "Sand",
-  "inverts"    = "Sessile invertebrates"
-)
+  park_dat.shallow <- purrr::map_dfr(control_all, "shallow") %>%
+    dplyr::mutate(depth_class = "Shallow (0 - 30 m)")
 
-for (taxa_code in names(taxa_lookup)) {
+  park_dat.meso <- purrr::map_dfr(control_all, "meso") %>%
+    dplyr::mutate(depth_class = "Mesophotic (30 - 70 m)")
 
-  message("Building control plot for taxon: ", taxa_lookup[[taxa_code]])
+  park_dat.rari <- purrr::map_dfr(control_all, "rari") %>%
+    dplyr::mutate(depth_class = "Rariphotic (70 - 200 m)")
 
-  p_taxa <- controlplot_benthos(
-    data = park_dat.control,
-    taxa = taxa_code,
-    amp_abbrv = "GMP", # TODO set park abbreviations
-    state_abbrv = "NCMP",
-    taxa_label = taxa_lookup[[taxa_code]]
-  )
-
-  if (!is.null(p_taxa)) {
-
-    print(p_taxa)
-
-    out_name <- taxa_lookup[[taxa_code]] %>%
-      stringr::str_to_lower() %>%
-      stringr::str_replace_all("\\s+", "-")
-
-    ggsave(
-      filename = paste0(
-        "plots/", park, "/habitat/", name, "_control-plot_", out_name, ".png"
-      ),
-      plot = p_taxa,
-      height = 4,
-      width = 6,
-      dpi = 300,
-      units = "in",
-      bg = "white"
+  park_dat.control <- dplyr::bind_rows(
+    park_dat.shallow,
+    park_dat.meso,
+    park_dat.rari
+  ) %>%
+    dplyr::mutate(
+      depth_class = factor(
+        depth_class,
+        levels = c(
+          "Shallow (0 - 30 m)",
+          "Mesophotic (30 - 70 m)",
+          "Rariphotic (70 - 200 m)"
+        )
+      )
     )
 
-    saveRDS(p_taxa,
-            paste0(
-              "plots/", park, "/habitat/", name,
-              "_control-plot_", out_name, ".rds"
-            ))
+  # Taxa to plot
+  taxa_lookup <- c(
+    "seagrass"   = "Seagrass",
+    "macroalgae" = "Macroalgae",
+    "rock"       = "Rock",
+    "sand"       = "Sand",
+    "inverts"    = "Sessile invertebrates"
+  )
+
+  for (taxa_code in names(taxa_lookup)) {
+
+    message("Building control plot for taxon: ", taxa_lookup[[taxa_code]])
+
+    p_taxa <- controlplot_benthos(
+      data = park_dat.control,
+      taxa = taxa_code,
+      amp_abbrv = "GMP", # TODO set park abbreviations
+      state_abbrv = "NCMP",
+      taxa_label = taxa_lookup[[taxa_code]]
+    )
+
+    if (!is.null(p_taxa)) {
+
+      print(p_taxa)
+
+      out_name <- taxa_lookup[[taxa_code]] %>%
+        stringr::str_to_lower() %>%
+        stringr::str_replace_all("\\s+", "-")
+
+      ggsave(
+        filename = paste0(
+          "plots/", park, "/habitat/", name, "_control-plot_", out_name, ".png"
+        ),
+        plot = p_taxa,
+        height = 4,
+        width = 6,
+        dpi = 300,
+        units = "in",
+        bg = "white"
+      )
+
+      saveRDS(p_taxa,
+              paste0(
+                "plots/", park, "/habitat/", name,
+                "_control-plot_", out_name, ".rds"
+              ))
+    }
   }
-}
 
 }
 
 # ---- Scatterpie data prep ----
 
 # TODO Set the extent of the study
-e <- ext(114.8, 116, -33.8, -33)
+e <- ext(114.0, 116.0, -34.7, -33.1)
 
 # Load the bathymetry data (GA 250m resolution)
 bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
@@ -467,7 +403,7 @@ benthos <- readRDS(
   arrange(desc(Sand))
 
 hab_fills <- scale_fill_manual(
-  name = "Habitat",
+  name = "",
   limits = c("Rock", "Sessile invertebrates", "Macroalgae", "Seagrass", "Sand"),
   values = c(
     "Rock" = "grey40",
@@ -494,7 +430,7 @@ depth_fills <- scale_fill_manual(
   guide = "none"
 )
 
-site_limits <- c(115.0, 115.67, -33.3, -33.65) # TODO set limits
+site_limits <- c(114.2601, 115.7901, -34.6924, -33.3974) # TODO set limits
 
 if (combine_benthos) {
 
@@ -512,7 +448,7 @@ if (combine_benthos) {
   p_scatterpie <- scatterpie_plot_single(
     benthos_year = benthos_pooled,
     site_limits = site_limits,
-    pie_radius = 0.005
+    pie_radius = 0.006
   )
 
   print(p_scatterpie)
@@ -522,8 +458,8 @@ if (combine_benthos) {
       "plots/", park, "/habitat/", name, "_scatterpie_", benthos_label, ".png"
     ),
     plot = p_scatterpie,
-    height = 6,
-    width = 10,
+    height = 7,
+    width = 6,
     dpi = 300,
     bg = "white"
   )
@@ -551,7 +487,7 @@ if (combine_benthos) {
     p_scatterpie <- scatterpie_plot_single(
       benthos_year = benthos_year,
       site_limits = site_limits,
-      pie_radius = 0.005
+      pie_radius = 0.006
     )
 
     print(p_scatterpie)
@@ -561,8 +497,8 @@ if (combine_benthos) {
         "plots/", park, "/habitat/", name, "_scatterpie_", yr, ".png"
       ),
       plot = p_scatterpie,
-      height = 6,
-      width = 10,
+      height = 7,
+      width = 6,
       dpi = 300,
       bg = "white"
     )
@@ -578,7 +514,7 @@ if (combine_benthos) {
     benthos = benthos,
     years = years,
     site_limits = site_limits,
-    pie_radius = 0.005
+    pie_radius = 0.006
   )
 
   print(p_scatterpie_multi)
@@ -589,8 +525,8 @@ if (combine_benthos) {
       paste(years, collapse = "-"), ".png"
     ),
     plot = p_scatterpie_multi,
-    height = 6,
-    width = 10,
+    height = 7,
+    width = 6,
     dpi = 300,
     bg = "white"
   )

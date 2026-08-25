@@ -97,6 +97,16 @@ fishmetric_plot <- function(metric_name,
 
         values = with(marine_parks_amp, setNames(colour, zone))
       ),
+      scale_x_continuous(
+        breaks = seq(floor(prediction_limits[1] * 2.5) / 2.5,
+                     ceiling(prediction_limits[2] * 2.5) / 2.5,
+                     by = 0.5)
+      ),
+      scale_y_continuous(
+        breaks = seq(floor(prediction_limits[3] * 2.5) / 2.5,
+                     ceiling(prediction_limits[4] * 2.5) / 2.5,
+                     by = 0.4)
+      ),
       coord_sf(
         xlim = c(prediction_limits[1], prediction_limits[2]),
         ylim = c(prediction_limits[3], prediction_limits[4]),

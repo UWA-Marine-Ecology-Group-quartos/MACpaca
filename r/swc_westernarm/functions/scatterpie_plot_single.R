@@ -44,6 +44,7 @@ scatterpie_plot_single <- function(benthos_year, site_limits, pie_radius = 0.004
       panel.grid.minor = element_blank(),
       legend.position = "bottom",
       legend.direction = "horizontal",
-      legend.box = "horizontal"
+      legend.box = "horizontal",
+      legend.text = element_text(size = 10)
     )
 }

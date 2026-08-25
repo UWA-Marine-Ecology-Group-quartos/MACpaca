@@ -6,10 +6,6 @@ library(tidyverse)
 library(sf)
 library(patchwork)
 
-# Load functions
-file.sources = list.files(pattern = "*.R", path = "functions/", full.names = T)
-sapply(file.sources, source, .GlobalEnv)
-
 # # Set the study name
 script_dir <- dirname(
   rstudioapi::getActiveDocumentContext()$path
@@ -22,15 +18,20 @@ config <- yaml::read_yaml(
 name <- config$name
 park <- config$park
 
+# Load functions
+file.sources <- list.files(pattern = "*.R", path = paste0("r/", park, "/functions/"), full.names = TRUE)
+sapply(file.sources, source, .GlobalEnv)
+
+
 # TODO Set the extent of the study
-e <- ext(115.04, 115.60, -33.67, -33.346)
+e <- ext(114.0, 116.0, -34.7, -33.1)
 
 # Read in shapefile data for maps
 aus <- st_read("data/south-west network/spatial/shapefiles/aus-shapefile-w-investigator-stokes.shp")
 ausc <- st_crop(aus, e)
 
 marine_parks <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
-  dplyr::filter(name %in% c("Geographe", "Ngari Capes")) # TODO select relevant parks
+  dplyr::filter(name %in% c("Geographe", "Ngari Capes", "South-west corner ")) # TODO select relevant parks
 marine_parks <- st_crop(marine_parks, e)
 
 # Spatial plots
@@ -41,7 +42,7 @@ names(sst)
 sst <- sst[[c("Jan", "Mar", "May", "Jul", "Sep", "Nov")]]
 names(sst)
 
-prediction_limits = c(115.05, 115.592, -33.67, -33.346)
+prediction_limits = c(114.33, 115.7, -34.6, -33.3)
 
 plot_sst(prediction_limits) +
   theme(axis.text = element_text(size = 6))

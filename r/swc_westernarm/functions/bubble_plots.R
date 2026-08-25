@@ -96,6 +96,11 @@ bubble_plots <- function(dat,
       ) +
       ggnewscale::new_scale_color() +
       build_parks(show_park_legend = FALSE) +
+      scale_x_continuous(
+        breaks = seq(floor(prediction_limits[1] * 2.5) / 2.5,
+                     ceiling(prediction_limits[2] * 2.5) / 2.5,
+                     by = 0.4)
+      ) +
       coord_sf(
         xlim   = c(prediction_limits[1], prediction_limits[2]),
         ylim   = c(prediction_limits[3], prediction_limits[4]),

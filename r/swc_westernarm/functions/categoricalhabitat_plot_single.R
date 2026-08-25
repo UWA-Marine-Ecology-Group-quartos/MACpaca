@@ -34,6 +34,7 @@ categoricalhabitat_plot_single <- function(pred_plot, prediction_limits, habitat
     scale_fill_manual(
       name     = "Habitat",
       limits   = hab_levels,
+      breaks   = setdiff(hab_levels, "Seagrass"),
       values   = hab_colours,
       na.value = "transparent",
       drop     = FALSE
@@ -80,7 +81,7 @@ categoricalhabitat_plot_single <- function(pred_plot, prediction_limits, habitat
       legend.position   = "bottom",
       legend.direction  = "horizontal",
       legend.box        = "horizontal",
-      legend.text       = element_text(size = 6),
+      legend.text       = element_text(size = 10),
       legend.title      = element_blank()
     )
 

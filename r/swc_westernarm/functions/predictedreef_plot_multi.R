@@ -107,6 +107,11 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
         override.aes = list(fill = NA, linewidth = 1),
         title.theme  = element_text(size = 9, face = "bold")
       )),
+      scale_x_continuous(
+        breaks = seq(floor(prediction_limits[1] * 2.5) / 2.5,
+                     ceiling(prediction_limits[2] * 2.5) / 2.5,
+                     by = 0.4)
+      ),
       coord_sf(
         xlim   = c(prediction_limits[1], prediction_limits[2]),
         ylim   = c(prediction_limits[3], prediction_limits[4]),
@@ -162,12 +167,12 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
         na.value = "transparent",
         name     = "Normalised\nSE",
         limits   = se_limits,
+        breaks   = c(0, 0.03, 0.06),
         oob      = scales::squish
       ) +
       ggtitle(if (multi_year) NULL else "Standard Error") +
       build_base(if (multi_year) i else 2, show_x = TRUE, show_park_legend = FALSE)
   })
-
   # ------------------------------------------------------------
   # Row labels
   # ------------------------------------------------------------

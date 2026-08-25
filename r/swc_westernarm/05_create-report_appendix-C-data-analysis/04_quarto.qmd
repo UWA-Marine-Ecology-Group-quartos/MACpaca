@@ -85,17 +85,27 @@ fig <- function(f) {
 }
 
 # Survey years. `config$years` is the FISH year list - the fish figure shows a
-# single year from it and must match factor_ref in 03_create-figures.R. The
-# habitat figure is pooled, so it needs no year at all.
+# single year from it and must match factor_ref in 03_create-figures.R.
+# The benthos pooling can cover more years (a BOSS-only campaign contributes
+# benthos but no fish), so the habitat caption reads the true set written by
+# 01_fit-final-models.R rather than the config.
 curve_years  <- as.character(sort(unlist(config$years)))
 curve_year   <- curve_years[1]
 curve_status <- "open to fishing"
+
+benthos_years <- readRDS(file.path(appc_out, paste0(name, "_benthos-years.rds")))
 
 list_and <- function(x) {
   if (!length(x)) return("")
   if (length(x) == 1) return(x)
   paste0(paste(utils::head(x, -1), collapse = ", "), " and ", utils::tail(x, 1))
 }
+
+benthos_years_note <- paste0("Benthic samples from ", list_and(benthos_years),
+                             " are pooled, because the campaigns sample ",
+                             "different areas and a survey-year term would ",
+                             "read as a spatial difference rather than change ",
+                             "through time.")
 
 # Model selection did not keep the same factor terms for every fish metric -
 # species richness dropped year, CTI dropped status. The response curves are
@@ -144,7 +154,7 @@ reported in Appendix A.
 
 ```{r}
 #| label: tbl-c1-1
-#| tbl-cap: 'Habitat model selection results. Top generalised additive models (GAMs) for predicting the probability of occurrence of key habitats from full subset analyses. Differences between the lowest reported corrected Akaike Information Criterion ($\Delta$AICc), AICc weight ($\omega$AICc), variance explained (R$^2$) and effective degrees of freedom (EDF) are reported for model comparison. Model selection was based on the most parsimonious model (fewest variables - shown in bold) within two units of the lowest AICc.'
+#| tbl-cap: 'Habitat model selection results. Top generalised additive models (GAMs) for predicting the probability of occurrence of key habitats from full subset analyses. Differences between the lowest reported corrected Akaike Information Criterion ($\Delta$AICc), AICc weight ($\omega$AICc), variance explained (R$^2$) and effective degrees of freedom (EDF) are reported for model comparison. Model selection was based on the most parsimonious model (fewest variables - shown in bold) within two units of the lowest AICc. Benthic samples are pooled across survey years, so survey year was not offered as a candidate predictor.'
 build_habitat_model_table(habitat_table)
 ```
 
@@ -178,7 +188,7 @@ restore the `for (yr in year_levels)` loop in 03_create-figures.R.
 ```{r}
 #| out-width: "100%"
 #| fig-align: center
-#| fig-cap: 'Plots of the most parsimonious model found to predict the probability of occurrence of key habitat types. Individual panes display the predicted relationships between model covariates and the probability of occurrence of each habitat class. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value. Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data from all survey years.'
+#| fig-cap: !expr paste0('Plots of the most parsimonious model found to predict the probability of occurrence of key habitat types. ', benthos_years_note, ' Individual panes display the predicted relationships between model covariates and the probability of occurrence of each habitat class. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value. Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data.')
 knitr::include_graphics(fig("habitat-response-curves.png"))
 ```
 
@@ -206,7 +216,7 @@ knitr::include_graphics(fig("fish-importance.png"))
 {{< pagebreak >}}
 
 ```{r}
-#| out-width: "80%"
+#| out-width: 80%"
 #| fig-align: center
 #| fig-cap: !expr paste0('Plots of the best model found to predict the probability of occurrence of key fish groups. Individual panes display the predicted relationships between model covariates and each demersal fish metric. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value, with year held at ', curve_year, ' and zone status held at areas ', curve_status, '.', curve_hold_note, ' Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data from all survey years and zones. \\*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays.')
 knitr::include_graphics(fig("fish-response-curves.png"))

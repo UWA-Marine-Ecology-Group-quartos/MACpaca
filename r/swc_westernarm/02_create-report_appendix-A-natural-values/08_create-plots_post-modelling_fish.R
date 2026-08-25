@@ -41,7 +41,7 @@ file.sources <- list.files(pattern = "*.R", path = paste0("r/", park, "/function
 sapply(file.sources, source, .GlobalEnv)
 
 # TODO Set cropping extent - larger than most zoomed out plot
-e <- ext(114.2, 115.8, -34.7, -33.1)
+e <- ext(114.0, 116.0, -34.7, -33.1)
 
 # Load necessary spatial files
 sf_use_s2(FALSE)
@@ -79,7 +79,7 @@ bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__
 names(bathy)[3] <- "Depth"
 
 # Spatial predictions limits
-prediction_limits <- c(115.035, 115.57, -33.665, -33.34)
+prediction_limits <- c(114.2601, 115.7901, -34.6924, -33.3974)
 
 # Pretty fish metric names mapped to raster layer stubs
 fish_metric_lookup <- c(
@@ -135,7 +135,7 @@ for (yr in years) {
 library(RNetCDF)
 library(lubridate)
 
-nc_sst <- open.nc(paste0("data/", park, "/spatial/oceanography/SST_recent.nc"))
+nc_sst <- open.nc(paste0("data/", park, "/spatial/oceanography/SST.nc"))
 print.nc(nc_sst)
 
 # Extract raw arrays
@@ -249,8 +249,8 @@ for (metric_name in names(fish_metric_lookup)) {
       paste(years, collapse = "-"), ".png"
     ),
     plot = p_metric,
-    height = 5,
-    width = 8,
+    height = 6,
+    width = 10,
     dpi = 300,
     units = "in",
     bg = "white"
@@ -278,7 +278,7 @@ control_all <- purrr::map(years, \(yy) {
   if (!inherits(dat_yy, "SpatRaster")) dat_yy <- terra::rast(dat_yy)
   terra::crs(dat_yy) <- "EPSG:4326"
 
-  controldata_fish(dat = dat_yy, year = yy, amp_abbrv = "GMP", state_abbrv = "NCMP") # TODO park abbreviations
+  controldata_fish(dat = dat_yy, year = yy, amp_abbrv = "SWC", state_abbrv = "NCMP") # TODO park abbreviations
 })
 
 park_dat.shallow <- purrr::map_dfr(control_all, "shallow") %>%
@@ -320,7 +320,7 @@ for (metric_code in names(metric_lookup)) {
   p_metric <- controlplot_fish(
     data = park_dat.control,
     metric = metric_code,
-    amp_abbrv = "GMP", # TODO park abbreviations
+    amp_abbrv = "SWC", # TODO park abbreviations
     state_abbrv = "NCMP",
     metric_label = metric_lookup[[metric_code]]
   )
@@ -410,9 +410,9 @@ sac_sample <- ggplot(
   aes(
     x = x,
     y = richness,
-    colour = status,
-    fill = status,
-    linetype = Year
+    colour = Year,
+    fill = Year,
+    linetype = status
   )
 ) +
   geom_ribbon(
@@ -425,22 +425,18 @@ sac_sample <- ggplot(
   ) +
   geom_line(linewidth = 1.2) +
   scale_linetype_manual(
-    values = setNames(
-      c("22", "solid"),
-      as.character(years)
-    )
+    name = "Status",
+    values = c("No-Take" = "solid", "Fished" = "22")
   ) +
-  scale_colour_manual(name = "Status",
-    values = c(
-      "No-Take" = "#7bbc63",
-      "Fished" = "#b9e6fb"
-    )
+  scale_colour_manual(
+    name = "Year",
+    values = setNames(c("#0072B2", "#D55E00", "#009E73", "#CC79A7"),
+                      as.character(years))
   ) +
-  scale_fill_manual(name = "Status",
-    values = c(
-      "No-Take" = "#7bbc63",
-      "Fished" = "#b9e6fb"
-    )
+  scale_fill_manual(
+    name = "Year",
+    values = setNames(c("#0072B2", "#D55E00", "#009E73", "#CC79A7"),
+                      as.character(years))
   ) +
   labs(
     x = "Number of BRUV deployments",
@@ -470,9 +466,9 @@ sac_individual <- ggplot(
   aes(
     x = x,
     y = richness,
-    colour = status,
-    fill = status,
-    linetype = Year
+    colour = Year,
+    fill = Year,
+    linetype = status
   )
 ) +
   geom_ribbon(
@@ -485,22 +481,18 @@ sac_individual <- ggplot(
   ) +
   geom_line(linewidth = 1.2) +
   scale_linetype_manual(
-    values = setNames(
-      c("22", "solid"),
-      as.character(years)
-    )
+    name = "Status",
+    values = c("No-Take" = "solid", "Fished" = "22")
   ) +
-  scale_colour_manual(name = "Status",
-    values = c(
-      "No-Take" = "#7bbc63",
-      "Fished" = "#b9e6fb"
-    )
+  scale_colour_manual(
+    name = "Year",
+    values = setNames(c("#0072B2", "#D55E00", "#009E73", "#CC79A7"),
+                      as.character(years))
   ) +
-  scale_fill_manual(name = "Status",
-    values = c(
-      "No-Take" = "#7bbc63",
-      "Fished" = "#b9e6fb"
-    )
+  scale_fill_manual(
+    name = "Year",
+    values = setNames(c("#0072B2", "#D55E00", "#009E73", "#CC79A7"),
+                      as.character(years))
   ) +
   labs(
     x = "Cumulative MaxN individuals",
@@ -805,7 +797,7 @@ b20_plot_mixed <- b20 %>%
   semi_join(b20.10, by = c("year", "scientific_name")) %>%
   filter(
     (year == years[1] & status == "Combined") |
-      (year == years[2] & status %in% c("Fished", "No-Take"))
+      (year %in% years[-1] & status %in% c("Fished", "No-Take"))
   ) %>%
   mutate(
     status = if_else(status %in% c("Combined", "Fished"), "Open", status),
@@ -826,7 +818,7 @@ bar_b20_v2
 ggsave(
   paste0("plots/", park, "/fish/", name, "_top_b20_bar_plot_mixed.png"),
   plot   = bar_b20_v2,
-  height = 4,
+  height = 7,
   width  = 9,
   dpi    = 300,
   units  = "in",
@@ -844,6 +836,8 @@ saveRDS(bar_b20_v2,
 tidy_count <- readRDS(paste0("data/", park, "/tidy/", name, "_tidy-count.rds")) %>%
   semi_join(metadata_amp, by = c("campaignid", "sample"))
 
+wasanc <- marine_parks[marine_parks$zone %in% "Sanctuary Zone", ]
+
 bubble_combined <- bubble_plots(
   dat                 = tidy_count,
   ausc                = ausc,
@@ -858,8 +852,8 @@ bubble_combined
 ggsave(
   paste0("plots/", park, "/fish/", name, "_bubbleplot_richness-abundance.png"),
   plot   = bubble_combined,
-  height = 9,
-  width  = 8,
+  height = 6,
+  width  = 10,
   dpi    = 300,
   units  = "in",
   bg     = "white"

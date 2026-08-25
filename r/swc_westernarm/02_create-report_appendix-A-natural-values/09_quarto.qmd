@@ -1,11 +1,11 @@
 ---
-title: "Appendix A - [TEMPLATE] Marine Park Natural Values Report"
-subtitle: "[TEMPLATE ] Marine Parks Network"
+title: "Appendix A - South-west Corner Marine Park (Western arm) Natural Values Report"
+subtitle: "South-west Marine Parks Network"
 filters:
   - figure-numbering.lua
 format:
   pdf:
-    output-file: "Project 4.21-[TEMPLATE]-2-Appendix A-q-Natural values.pdf"
+    output-file: "Project 4.21-SWC-western-arm-2-Appendix A-q-Natural values.pdf"
     fig-pos: 'H'
     geometry: 
       - top=2cm
@@ -22,7 +22,7 @@ format:
         \counterwithin*{figure}{metric}
         \captionsetup{format=plain, indention=0pt}
   html:
-    output-file: "Project 4.21-Geographe-2-Appendix A-q-Natural values.html"
+    output-file: "Project 4.21-SWC-western-arm-2-Appendix A-q-Natural values.html"
     fig-dpi: 96
 toc: true
 execute:
@@ -47,16 +47,9 @@ library(ggtext)
 library(dplyr)
 library(gt)
 
-# Year suffix on the fish spatial-metric PNGs (script 08 saves them with
-# paste(years, collapse = "-")). Set once per park to match the [ABBR] survey
-# years used throughout this appendix.
-yr_suffix <- "YYYY-YYYY"
-
-# Park folder and file prefix - must match 00_config.yml. These are usually
-# the same word with different capitalisation (e.g. park = "Swc_easternarm",
-# name = "swc_easternarm"), so set them separately rather than reusing one.
-park <- "[TEMPLATE]"
-name <- "[TEMPLATE]"
+# Park folder and file prefix - must match 00_config.yml.
+park <- "swc_westernarm"
+name <- "swc_westernarm"
 ```
 
 # Natural Values
@@ -126,9 +119,9 @@ sampling_summary %>%
 
 ```{r}
 #| fig-width: 8
-#| fig-height: 4
+#| fig-height: 8
 #| fig-cap: "Habitat classes observed in spatially balanced stereo-BRUV and drop-camera imagery visualised as spatial pie charts. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-img <- png::readPNG(here("plots/[TEMPLATE]/habitat/[TEMPLATE]AMP_scatterpie.png"))
+img <- png::readPNG(here("plots/swc_westernarm/habitat/swc_westernarm_scatterpie_2020_2023_2024_2025.png"))
 grid::grid.raster(img)
 ```
 
@@ -138,9 +131,9 @@ grid::grid.raster(img)
 
 ```{r}
 #| fig-width: 8
-#| fig-height: 5
+#| fig-height: 8
 #| fig-cap: "Predicted dominant habitat type from stereo-BRUV groundtruthing. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-p_cat <- readRDS(here("plots/[TEMPLATE]/habitat/[TEMPLATE]AMP_predicted-habitat-categorical.rds"))
+p_cat <- readRDS(here("plots/swc_westernarm/habitat/swc_westernarm_predicted-habitat-categorical_2020_2023_2024_2025.rds"))
 p_cat
 ```
 
@@ -152,9 +145,8 @@ p_cat
 #| fig-width: 8
 #| fig-height: 7
 #| fig-cap: "Predicted habitat distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-img_path <- here("plots/[TEMPLATE]/habitat/[TEMPLATE]_predicted-dominant-benthos-and-combined-se_2014-2024.png")
-img <- png::readPNG(img_path)
-grid::grid.raster(img)
+p_dom <- readRDS(here("plots/swc_westernarm/habitat/swc_westernarm_predicted-dominant-habitat_2020_2023_2024_2025.rds"))
+p_dom
 ```
 
 {{< pagebreak >}}
@@ -165,7 +157,7 @@ grid::grid.raster(img)
 #| fig-width: 8
 #| fig-height: 7
 #| fig-cap: "Predicted reef distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-img_path <- here("plots/[TEMPLATE]/habitat/[TEMPLATE]_predicted-reef-and-se_2014-2024.png")
+img_path <- here("plots/swc_westernarm/habitat/swc_westernarm_predicted-reef-and-se_2020-2023-2024-2025.png")
 img <- png::readPNG(img_path)
 grid::grid.raster(img)
 ```
@@ -191,22 +183,10 @@ grid::grid.raster(img)
 
 
 ```{r}
-#| fig-width: 6
-#| fig-height: 3
-#| fig-cap: "Sand: temporal plots by depth contour from stereo-BRUV groundtruthing. [ABBR] = [TEMPLATE] Marine Park (Commonwealth)."
-p_control <- readRDS(here("plots/[TEMPLATE]/habitat/[TEMPLATE]AMP_control-plot_sand.rds"))
-p_control
-```
-
-{{< pagebreak >}}
-
-
-
-```{r}
 #| fig-width: 8
 #| fig-height: 5.5
-#| fig-cap: "Sand: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. [ABBR] = [TEMPLATE] Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-img <- png::readPNG(here("plots/[TEMPLATE]/habitat/[TEMPLATE]AMP_predicted-individual-habitat_sand.png"))
+#| fig-cap: "Sand: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. SWC = South-west Corner Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+img <- png::readPNG(here("plots/swc_westernarm/habitat/swc_westernarm_predicted-individual-habitat_sand_2020_2023_2024_2025.png"))
 grid::grid.raster(img)
 ```
 
@@ -221,22 +201,28 @@ grid::grid.raster(img)
 
 
 ```{r}
-#| fig-width: 6
-#| fig-height: 3
-#| fig-cap: "Macroalgae: temporal plots by depth contour from stereo-BRUV groundtruthing. [ABBR] = [TEMPLATE] Marine Park (Commonwealth)."
-p_control <- readRDS(here("plots/[TEMPLATE]/habitat/[TEMPLATE]AMP_control-plot_macroalgae.rds"))
-p_control
+#| fig-width: 8
+#| fig-height: 5.5
+#| fig-cap: "Macroalgae: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. SWC = South-west Corner Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+img <- png::readPNG(here("plots/swc_westernarm/habitat/swc_westernarm_predicted-individual-habitat_macroalgae_2020_2023_2024_2025.png"))
+grid::grid.raster(img)
 ```
 
 {{< pagebreak >}}
+
+### Seagrass
+
+```{=latex}
+\stepcounter{metric}
+```
 
 
 
 ```{r}
 #| fig-width: 8
 #| fig-height: 5.5
-#| fig-cap: "Macroalgae: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. [ABBR] = [TEMPLATE] Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-img <- png::readPNG(here("plots/[TEMPLATE]/habitat/[TEMPLATE]AMP_predicted-individual-habitat_macroalgae.png"))
+#| fig-cap: "Seagrass: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. SWC = South-west Corner Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+img <- png::readPNG(here("plots/swc_westernarm/habitat/swc_westernarm_predicted-individual-habitat_seagrass_2020_2023_2024_2025.png"))
 grid::grid.raster(img)
 ```
 
@@ -251,11 +237,19 @@ grid::grid.raster(img)
 
 
 ```{r}
-#| fig-width: 6
-#| fig-height: 3
-#| fig-cap: "Sessile invertebrates: temporal plots by depth contour from stereo-BRUV groundtruthing. [ABBR] = [TEMPLATE] Marine Park (Commonwealth)."
-p_control <- readRDS(here("plots/[TEMPLATE]/habitat/[TEMPLATE]AMP_control-plot_sessile-invertebrates.rds"))
-p_control
+#| fig-width: 8
+#| fig-height: 5.5
+#| fig-cap: "Sessile invertebrates: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. SWC = South-west Corner Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+img <- png::readPNG(here("plots/swc_westernarm/habitat/swc_westernarm_predicted-individual-habitat_sessile-invertebrates_2020_2023_2024_2025.png"))
+grid::grid.raster(img)
+```
+
+{{< pagebreak >}}
+
+### Rock
+
+```{=latex}
+\stepcounter{metric}
 ```
 
 
@@ -263,8 +257,8 @@ p_control
 ```{r}
 #| fig-width: 8
 #| fig-height: 5.5
-#| fig-cap: "Sessile invertebrates: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. [ABBR] = [TEMPLATE] Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-img <- png::readPNG(here("plots/[TEMPLATE]/habitat/[TEMPLATE]AMP_predicted-individual-habitat_sessile-invertebrates.png"))
+#| fig-cap: "Rock: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. SWC = South-west Corner Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+img <- png::readPNG(here("plots/swc_westernarm/habitat/swc_westernarm_predicted-individual-habitat_rock_2020_2023_2024_2025.png"))
 grid::grid.raster(img)
 ```
 
@@ -283,7 +277,7 @@ grid::grid.raster(img)
 #| fig-width: 8
 #| fig-height: 8
 #| fig-cap: "Spatial distribution of observed species richness and total abundance (MaxN) per stereo-BRUV drop, pooled across all deployments. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters."
-p_bubble <- readRDS(here("plots/[TEMPLATE]/fish/[TEMPLATE]AMP_bubbleplot_richness-abundance.rds"))
+p_bubble <- readRDS(here("plots/swc_westernarm/fish/swc_westernarm_bubbleplot_richness-abundance.rds"))
 p_bubble
 ```
 
@@ -304,16 +298,16 @@ p_bubble
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Demersal fish - Species richness: benchmark plots by zone and depth contour from stereo-BRUV groundtruthing. [ABBR] = [TEMPLATE] Marine Park (Commonwealth)."
-p_control <- readRDS(here("plots/[TEMPLATE]/fish/[TEMPLATE]AMP_control-plot_species-richness-per-bruv.rds"))
+#| fig-cap: "Demersal fish - Species richness: benchmark plots by zone and depth contour from stereo-BRUV groundtruthing. SWC = South-west Corner Marine Park (Commonwealth)."
+p_control <- readRDS(here("plots/swc_westernarm/fish/swc_westernarm_control-plot_species-richness-per-bruv.rds"))
 p_control
 ```
 
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Demersal fish - Species richness: species accumulation curve by year from stereo-BRUV groundtruthing. [ABBR] = [TEMPLATE] Marine Park (Commonwealth)."
-p_bar <- readRDS(here("plots/[TEMPLATE]/fish/[TEMPLATE]AMP_SAC-sample.rds"))
+#| fig-cap: "Demersal fish - Species richness: species accumulation curve by year from stereo-BRUV groundtruthing. SWC = South-west Corner Marine Park (Commonwealth)."
+p_bar <- readRDS(here("plots/swc_westernarm/fish/swc_westernarm_SAC-sample.rds"))
 p_bar
 ```
 
@@ -327,7 +321,7 @@ p_bar
 #| fig-width: 7
 #| fig-height: 4
 #| fig-cap: "Demersal fish - Species richness: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-img <- png::readPNG(here(paste0("plots/[TEMPLATE]/fish/[TEMPLATE]AMP_predicted-individual-fish-metric_whole-assemblage_", yr_suffix, ".png")))
+img <- png::readPNG(here("plots/swc_westernarm/fish/swc_westernarm_predicted-individual-fish-metric_whole-assemblage_2020-2023-2024-2025.png"))
 grid::grid.raster(img)
 ```
 
@@ -344,16 +338,16 @@ grid::grid.raster(img)
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Demersal fish - Total abundance: benchmark plots by zone and depth contour from stereo-BRUV groundtruthing. [ABBR] = [TEMPLATE] Marine Park (Commonwealth)."
-p_control <- readRDS(here("plots/[TEMPLATE]/fish/[TEMPLATE]AMP_control-plot_total-abundance-per-bruv.rds"))
+#| fig-cap: "Demersal fish - Total abundance: benchmark plots by zone and depth contour from stereo-BRUV groundtruthing. SWC = South-west Corner Marine Park (Commonwealth)."
+p_control <- readRDS(here("plots/swc_westernarm/fish/swc_westernarm_control-plot_total-abundance-per-bruv.rds"))
 p_control
 ```
 
 ```{r}
-#| fig-width: 6
-#| fig-height: 3
-#| fig-cap: "Demersal fish - Total abundance: top 10 most abundant species (pooled across deployments) from stereo-BRUV groundtruthing. [ABBR] = [TEMPLATE] Marine Park (Commonwealth)."
-p_bar <- readRDS(here("plots/[TEMPLATE]/fish/[TEMPLATE]AMP_top_maxn_bar_plot.rds"))
+#| fig-width: 8
+#| fig-height: 4.5
+#| fig-cap: "Demersal fish - Total abundance: top 10 most abundant species (pooled across deployments) from stereo-BRUV groundtruthing. SWC = South-west Corner Marine Park (Commonwealth)."
+p_bar <- readRDS(here("plots/swc_westernarm/fish/swc_westernarm_top_maxn_bar_plot.rds"))
 p_bar
 ```
 
@@ -365,9 +359,9 @@ p_bar
 
 ```{r}
 #| fig-width: 7
-#| fig-height: 4
+#| fig-height: 4.5
 #| fig-cap: "Demersal fish - Total abundance: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-img <- png::readPNG(here(paste0("plots/[TEMPLATE]/fish/[TEMPLATE]AMP_predicted-individual-fish-metric_total-abundance_", yr_suffix, ".png")))
+img <- png::readPNG(here("plots/swc_westernarm/fish/swc_westernarm_predicted-individual-fish-metric_total-abundance_2020-2023-2024-2025.png"))
 grid::grid.raster(img)
 ```
 
@@ -384,16 +378,16 @@ grid::grid.raster(img)
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Demersal fish - Large Reef Fish Index\\*: benchmark plots by zone and depth contour from stereo-BRUV groundtruthing. [ABBR] = [TEMPLATE] Marine Park (Commonwealth). \\*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays."
-p_control <- readRDS(here("plots/[TEMPLATE]/fish/[TEMPLATE]AMP_control-plot_large-reef-fish-index-biomass-g-per-bruv.rds"))
+#| fig-cap: "Demersal fish - Large Reef Fish Index\\*: benchmark plots by zone and depth contour from stereo-BRUV groundtruthing. SWC = South-west Corner Marine Park (Commonwealth). \\*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays."
+p_control <- readRDS(here("plots/swc_westernarm/fish/swc_westernarm_control-plot_large-reef-fish-index-biomass-g-per-bruv.rds"))
 p_control
 ```
 
 ```{r}
-#| fig-width: 6
-#| fig-height: 3
-#| fig-cap: "Demersal fish - Large Reef Fish Index\\*: top 10 greatest biomass species (pooled across deployments) from stereo-BRUV groundtruthing. [ABBR] = [TEMPLATE] Marine Park (Commonwealth)."
-p_bar <- readRDS(here("plots/[TEMPLATE]/fish/[TEMPLATE]AMP_top_b20_bar_plot.rds"))
+#| fig-width: 8
+#| fig-height: 4.5
+#| fig-cap: "Demersal fish - Large Reef Fish Index\\*: top 10 greatest biomass species (pooled across deployments) from stereo-BRUV groundtruthing. SWC = South-west Corner Marine Park (Commonwealth)."
+p_bar <- readRDS(here("plots/swc_westernarm/fish/swc_westernarm_top_b20_bar_plot_mixed.rds"))
 p_bar
 ```
 
@@ -407,7 +401,7 @@ p_bar
 #| fig-width: 7
 #| fig-height: 4
 #| fig-cap: "Demersal fish - Large Reef Fish Index\\*: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-img <- png::readPNG(here(paste0("plots/[TEMPLATE]/fish/[TEMPLATE]AMP_predicted-individual-fish-metric_large-reef-fish-index_", yr_suffix, ".png")))
+img <- png::readPNG(here("plots/swc_westernarm/fish/swc_westernarm_predicted-individual-fish-metric_large-reef-fish-index_2020-2023-2024-2025.png"))
 grid::grid.raster(img)
 ```
 
@@ -424,16 +418,16 @@ grid::grid.raster(img)
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Demersal fish - Reef Fish Thermal Index: benchmark plots by zone and depth contour, with monthly sea surface temperature (black line, grey band = SD) overlaid, from stereo-BRUV groundtruthing. [ABBR] = [TEMPLATE] Marine Park (Commonwealth)."
-p_control <- readRDS(here("plots/[TEMPLATE]/fish/[TEMPLATE]AMP_control-plot_community-thermal-index-c.rds"))
+#| fig-cap: "Demersal fish - Reef Fish Thermal Index: benchmark plots by zone and depth contour, with monthly sea surface temperature (black line, grey band = SD) overlaid, from stereo-BRUV groundtruthing. SWC = South-west Corner Marine Park (Commonwealth)."
+p_control <- readRDS(here("plots/swc_westernarm/fish/swc_westernarm_control-plot_community-thermal-index-c.rds"))
 p_control
 ```
 
 ```{r}
-#| fig-width: 6
-#| fig-height: 3
-#| fig-cap: "Demersal fish - Reef Fish Thermal Index: species thermal niche of top 10 most abundant species (pooled across deployments) from stereo-BRUV groundtruthing. [ABBR] = [TEMPLATE] Marine Park (Commonwealth)."
-p_bar <- readRDS(here("plots/[TEMPLATE]/fish/[TEMPLATE]AMP_top_maxn_cti_bar_plot.rds"))
+#| fig-width: 8.5
+#| fig-height: 4
+#| fig-cap: "Demersal fish - Reef Fish Thermal Index: species thermal niche of top 10 most abundant species (pooled across deployments) from stereo-BRUV groundtruthing. SWC = South-west Corner Marine Park (Commonwealth)."
+p_bar <- readRDS(here("plots/swc_westernarm/fish/swc_westernarm_top_maxn_cti_bar_plot.rds"))
 p_bar
 ```
 
@@ -445,8 +439,8 @@ p_bar
 
 ```{r}
 #| fig-width: 7
-#| fig-height: 4
+#| fig-height: 5
 #| fig-cap: "Demersal fish - Reef Fish Thermal Index: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-img <- png::readPNG(here(paste0("plots/[TEMPLATE]/fish/[TEMPLATE]AMP_predicted-individual-fish-metric_cti_", yr_suffix, ".png")))
+img <- png::readPNG(here("plots/swc_westernarm/fish/swc_westernarm_predicted-individual-fish-metric_cti_2020-2023-2024-2025.png"))
 grid::grid.raster(img)
 ```
