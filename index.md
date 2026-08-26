@@ -1,4 +1,4 @@
-### MACpaca
+## MACpaca
 
 # Marine and Coastal Hub - Protected Area Condition Assessment
 
@@ -6,13 +6,13 @@
 
 <br>
 
-### Condition assessment workflow
+## Condition assessment workflow
 
 ![](workflow.png)
 
 <br>
 
-### Protected Areas
+## Protected Areas
 
 #### Geographe Marine Park 
 - [Appendix A - Natural Values Report](quartos/geographe/Project%204.21-Geographe-2-Appendix%20A-q-Natural%20values.html)
