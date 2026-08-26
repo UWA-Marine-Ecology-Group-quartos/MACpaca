@@ -1,0 +1,5 @@
+name:            "swc_westernarm"
+park:            "swc_westernarm"
+years:           [2020, 2023, 2024, 2025]
+combine_benthos: TRUE
+report_name:     "Project 4.21-swc_westernarm-3-Appendix C-q-Data analysis"  # TODO

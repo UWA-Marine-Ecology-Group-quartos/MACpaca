@@ -1,0 +1,4 @@
+name: "swc_westernarm_npz05"
+park: "swc_westernarm_npz05"
+years: ["2020", "2024", "2025"]    # EVERY survey year
+combine_benthos: FALSE
