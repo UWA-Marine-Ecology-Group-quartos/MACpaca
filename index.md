@@ -15,6 +15,8 @@
 ## Protected Areas
 
 #### Geographe Marine Park 
+- Data syntheses - [BRUV](https://dev.globalarchive.org/ui/main/syntheses/72), [BOSS](https://dev.globalarchive.org/ui/main/syntheses/85/)
+- Methods - [Data analysis](https://github.com/UWA-Marine-Ecology-Group-quartos/australian-marine-parks/tree/e6640eaf458e06f89f77bdbee34a0608b85418bb/r/geographe)
 - [Appendix A - Natural Values Report](quartos/geographe/Project%204.21-Geographe-2-Appendix%20A-q-Natural%20values.html)
 - [Appendix B - Pressures Report](quartos/geographe/Project%204.21-Geographe-2-Appendix%20B-q-Pressures.html)
 - [Appendix C - Data Analysis Report](quartos/geographe/Project%204.21-Geographe-3-Appendix%20C-q-Data%20analysis.html)

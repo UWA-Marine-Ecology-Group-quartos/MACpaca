@@ -16,7 +16,7 @@ dominantbenthos_plot_single <- function(pred_plot, prediction_limits, habitat_lo
     "Sessile invertebrates" = "Sessile\ninvertebrates"
   )
   # Canonical rendering order (bottom to top) — filter to modelled taxa only
-  hab_order <- c("Sand", "Rock", "Macroalgae", "Seagrass", "Sessile invertebrates")
+  hab_order <- c("Sand", "Rock", "Seagrass", "Macroalgae", "Sessile invertebrates")
   modelled  <- hab_order[hab_order %in% names(habitat_lookup)]
   p <- ggplot()
   for (i in seq_along(modelled)) {

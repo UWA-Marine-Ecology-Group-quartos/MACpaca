@@ -307,6 +307,10 @@ benthos_dom_tag <- function(r) {
 
   r_fit <- terra::subset(r, fit_lyrs)
 
+  # Cells modelled in every class
+  common <- terra::ifel(sum(!is.na(r_fit)) == terra::nlyr(r_fit), 1, NA)
+  r_fit  <- terra::mask(r_fit, common)
+
   dom <- terra::which.max(r_fit)
 
   levels(dom) <- data.frame(
@@ -497,3 +501,4 @@ for (this_label in pred.labels) {
     overwrite = TRUE
   )
 }
+

@@ -87,8 +87,8 @@ names(bathy)[3] <- "Depth"
 # Map pretty habitat names to raster layer prefixes in dat
 habitat_lookup <- c(
   "Sand" = "sand",
-  "Macroalgae" = "macro",
   "Seagrass" = "seagrass",
+  "Macroalgae" = "macro",
   "Sessile invertebrates" = "inverts",
   "Rock" = "rock"
 )
@@ -448,7 +448,7 @@ if (combine_benthos) {
   p_scatterpie <- scatterpie_plot_single(
     benthos_year = benthos_pooled,
     site_limits = site_limits,
-    pie_radius = 0.006
+    pie_radius = 0.008
   )
 
   print(p_scatterpie)
@@ -487,7 +487,7 @@ if (combine_benthos) {
     p_scatterpie <- scatterpie_plot_single(
       benthos_year = benthos_year,
       site_limits = site_limits,
-      pie_radius = 0.006
+      pie_radius = 0.008
     )
 
     print(p_scatterpie)
@@ -514,7 +514,7 @@ if (combine_benthos) {
     benthos = benthos,
     years = years,
     site_limits = site_limits,
-    pie_radius = 0.006
+    pie_radius = 0.008
   )
 
   print(p_scatterpie_multi)

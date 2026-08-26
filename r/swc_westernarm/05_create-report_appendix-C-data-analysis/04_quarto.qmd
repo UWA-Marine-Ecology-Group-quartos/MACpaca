@@ -216,7 +216,8 @@ knitr::include_graphics(fig("fish-importance.png"))
 {{< pagebreak >}}
 
 ```{r}
-#| out-width: 80%"
+#| out-width: "75%"
+#| out-height: "80%"
 #| fig-align: center
 #| fig-cap: !expr paste0('Plots of the best model found to predict the probability of occurrence of key fish groups. Individual panes display the predicted relationships between model covariates and each demersal fish metric. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value, with year held at ', curve_year, ' and zone status held at areas ', curve_status, '.', curve_hold_note, ' Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data from all survey years and zones. \\*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays.')
 knitr::include_graphics(fig("fish-response-curves.png"))

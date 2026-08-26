@@ -186,7 +186,7 @@ fabund <- bind_rows(tidy_maxn, tidy_b20) %>%
 stopifnot(!any(is.na(fabund$year)))
 stopifnot(!any(is.na(fabund$status)))
 
-# `status` is a parametric term in two of the four final models, so it needs
+# `status` is a parametric term in one of the four final models, so it needs
 # both levels or the contrast fails - same check 06 prints before the FSS loop.
 stopifnot(nlevels(fabund$status) == 2)
 
@@ -201,25 +201,31 @@ stopifnot(all(c("reef") %in% names(tidy_b20)))
 # Total abundance
 m_abundance <- gam(count ~ year +
                      s(geoscience_aspect, k = 3, bs = "cc") +
-                     s(geoscience_depth, k = 3, bs = "cr"),
+                     s(geoscience_depth, k = 3, bs = "cr") +
+                     s(geoscience_detrended, k = 3, bs = "cr"),
                    data = fabund %>% dplyr::filter(response %in% "total_abundance"),
                    family = poisson)
 
-# Species richness - aspect dropped, dAICc 1.39 behind and r2 unchanged
-m_richness <- gam(count ~ status +
-                    s(reef, k = 3, bs = "cr"),
+# Species richness
+m_richness <- gam(count ~ year +
+                    s(geoscience_aspect, k = 3, bs = "cc") +
+                    s(geoscience_depth, k = 3, bs = "cr") +
+                    s(geoscience_detrended, k = 3, bs = "cr") +
+                    s(geoscience_roughness, k = 3, bs = "cr"),
                   data = fabund %>% dplyr::filter(response %in% "species_richness"),
                   family = gaussian(link = "identity"))
 
-# CTI - six models within delta AICc <= 2, this is the two-predictor one
+# CTI
 m_cti <- gam(count ~ year +
-               s(geoscience_depth, k = 3, bs = "cr"),
+               s(reef, k = 3, bs = "cr") +
+               s(geoscience_roughness, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "cti"),
              family = gaussian(link = "identity"))
 
-# B20 - aspect dropped, dAICc 0.01 behind and r2 unchanged
+# B20
 m_b20 <- gam(count ~ year + status +
-               s(reef, k = 3, bs = "cr"),
+               s(reef, k = 3, bs = "cr") +
+               s(geoscience_roughness, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "b20"),
              family = tw())
 

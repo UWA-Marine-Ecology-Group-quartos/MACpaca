@@ -69,6 +69,8 @@ cwatr <- st_read("data/south-west network/spatial/shapefiles/amb_coastal_waters_
   st_crop(e) %>%
   st_transform(4326)
 
+wasanc <- marine_parks[marine_parks$zone %in% "Sanctuary Zone", ]
+
 # Load the bathymetry data (GA 250m resolution)
 bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
   crop(e) %>%
@@ -135,7 +137,7 @@ for (yr in years) {
 library(RNetCDF)
 library(lubridate)
 
-nc_sst <- open.nc(paste0("data/", park, "/spatial/oceanography/SST.nc"))
+nc_sst <- open.nc(paste0("data/", park, "/spatial/oceanography/SST-recent.nc"))
 print.nc(nc_sst)
 
 # Extract raw arrays
@@ -187,7 +189,7 @@ sst_tsdf <- terra::global(rast_sst, fun = "mean", na.rm = TRUE) %>%
   tidyr::separate(rowname, into = c("year", "month", "day"), sep = "-") %>%
   dplyr::group_by(year, month) %>%
   summarise(
-    sst = mean(mean, na.rm = TRUE) - 273.15, # Apply -273.15 offset (controlplot_fish adds it back)
+    sst = mean(mean, na.rm = TRUE), # Apply -273.15 offset (controlplot_fish adds it back)
     sd  = mean(sd,   na.rm = TRUE),
     .groups = "drop"
   ) %>%
@@ -262,7 +264,6 @@ for (metric_name in names(fish_metric_lookup)) {
                   paste(years, collapse = "-"), ".rds")
   )
 }
-
 # -------------------------------------------------------------------
 # Control plots by metric, facetted by depth class
 # -------------------------------------------------------------------
@@ -278,7 +279,7 @@ control_all <- purrr::map(years, \(yy) {
   if (!inherits(dat_yy, "SpatRaster")) dat_yy <- terra::rast(dat_yy)
   terra::crs(dat_yy) <- "EPSG:4326"
 
-  controldata_fish(dat = dat_yy, year = yy, amp_abbrv = "SWC", state_abbrv = "NCMP") # TODO park abbreviations
+  controldata_fish(dat = dat_yy, year = yy, amp_abbrv = "SWCMP", state_abbrv = "NCMP") # TODO park abbreviations
 })
 
 park_dat.shallow <- purrr::map_dfr(control_all, "shallow") %>%
@@ -320,7 +321,7 @@ for (metric_code in names(metric_lookup)) {
   p_metric <- controlplot_fish(
     data = park_dat.control,
     metric = metric_code,
-    amp_abbrv = "SWC", # TODO park abbreviations
+    amp_abbrv = "SWCMP", # TODO park abbreviations
     state_abbrv = "NCMP",
     metric_label = metric_lookup[[metric_code]]
   )

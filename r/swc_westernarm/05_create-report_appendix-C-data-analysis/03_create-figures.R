@@ -52,8 +52,8 @@ dat    <- load_model_data()
 # =============================================================================
 # Model selection does not return the same shape for every response:
 #   * benthos is pooled, so no habitat model keeps year or status at all
-#   * species richness dropped year
-#   * CTI dropped status
+#   * year is forced into every fish model
+#   * only B20 kept status
 # curve_data() already copes - it only fills the factors that appear in
 # gam_predictor_set(model), and predict.gam ignores anything else. These
 # messages exist so the mismatch is visible when the figures are rebuilt,

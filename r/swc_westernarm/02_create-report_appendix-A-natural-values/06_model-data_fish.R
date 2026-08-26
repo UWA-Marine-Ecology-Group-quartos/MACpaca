@@ -35,7 +35,7 @@ library(FSSgam)
 library(CheckEM)
 
 tidy_maxn <- readRDS(paste0("data/", park, "/tidy/", name, "_tidy-count.rds")) %>% # TODO check outlier removal
-#  dplyr::filter(geoscience_roughness < 4) %>% # Remove outliers in roughness
+  #  dplyr::filter(geoscience_roughness < 4) %>% # Remove outliers in roughness
   # Drop stale factor levels carried in from the RDS
   dplyr::mutate(year   = droplevels(factor(as.character(year), levels = years)),
                 status = droplevels(factor(as.character(status)))) %>%
@@ -67,7 +67,7 @@ resp.vars
 
 # Run the full subset model selection----
 savedir <- paste0("output/model-output/", park, "/fish/maxn/")
-factor.vars <- c("status", "year") # TODO set factors, drop year if only one year of data
+factor.vars <- c("status") # TODO set factors, year forced below
 out.all     <- list()
 var.imp     <- list()
 
@@ -75,7 +75,7 @@ var.imp     <- list()
 for(i in 1:length(resp.vars)){
   print(resp.vars[i])
   use.dat <- as.data.frame(tidy_maxn[which(tidy_maxn$response == resp.vars[i]), ])
-  Model1  <- gam(count ~ s(geoscience_depth, k = 3, bs = 'cr'),
+  Model1  <- gam(count ~ year + s(geoscience_depth, k = 3, bs = 'cr'),
                  family = tw(),  data = use.dat) # TODO check family
 
   model.set <- generate.model.set(use.dat = use.dat,
@@ -83,6 +83,7 @@ for(i in 1:length(resp.vars)){
                                   pred.vars.cont = pred.vars,
                                   pred.vars.fact = factor.vars,
                                   cyclic.vars = "geoscience_aspect",
+                                  null.terms = "year", # force year
                                   k = 3, # TODO check this, maybe add cov.cutoff
                                   factor.smooth.interactions = F, # TODO check this
                                   max.predictors = 5 # TODO check this
@@ -125,7 +126,7 @@ write.csv(all.var.imp, file = paste(savedir, paste(name, "all.var.imp.csv", sep 
 
 # Do FSS for B20
 tidy_b20 <- readRDS(paste0("data/", park, "/tidy/", name, "_tidy-b20.rds")) %>%
-#  dplyr::filter(geoscience_roughness < 4) %>% # TODO check, make same as above
+  #  dplyr::filter(geoscience_roughness < 4) %>% # TODO check, make same as above
   dplyr::mutate(year   = droplevels(factor(as.character(year), levels = years)),
                 status = droplevels(factor(as.character(status)))) %>%
   glimpse()
@@ -156,13 +157,13 @@ savedir <- paste0("output/model-output/", park, "/fish/length/")
 name_b20 <- paste(name,"b20", sep = "_")
 out.all <- list()
 var.imp <- list()
-factor.vars <- c("status", "year") # TODO check, drop year if only one year of data
+factor.vars <- c("status") # TODO check, year forced below
 
 # Loop through the FSS function for each Taxa----
 for(i in 1:length(resp.vars)){
   print(resp.vars[i])
   use.dat = as.data.frame(tidy_b20[which(tidy_b20$response==resp.vars[i]),])
-  Model1  <- gam(count ~ s(geoscience_depth, k = 3, bs = 'cr'),
+  Model1  <- gam(count ~ year + s(geoscience_depth, k = 3, bs = 'cr'),
                  tw(),  data = use.dat) # TODO check family
 
   model.set <- generate.model.set(use.dat = use.dat,
@@ -170,6 +171,7 @@ for(i in 1:length(resp.vars)){
                                   pred.vars.cont = pred.vars,
                                   pred.vars.fact = factor.vars,
                                   cyclic.vars = "geoscience_aspect",
+                                  null.terms = "year", # force year
                                   k = 3, # TODO check this, maybe add cov.cutoff
                                   factor.smooth.interactions = F, # TODO check this
                                   max.predictors = 5 # TODO check this
@@ -223,15 +225,21 @@ fabund <- bind_rows(tidy_maxn, tidy_b20) %>%
 #Total abundance
 m_abundance <- gam(count ~ year +
                      s(geoscience_aspect, k = 3, bs = "cc") +
-                     s(geoscience_depth, k = 3, bs = "cr"),
+                     s(geoscience_depth, k = 3, bs = "cr") +
+                     s(geoscience_detrended, k = 3, bs = "cr"),
                    data = fabund %>% dplyr::filter(response %in% "total_abundance"),
                    family = poisson)
+
 summary(m_abundance)
 # plot(m_abundance)
 
 # Species richness - aspect dropped, dAICc 1.39 behind and r2 unchanged
-m_richness <- gam(count ~ status +
-                    s(reef, k = 3, bs = "cr"),
+# TODO re-select model
+m_richness <- gam(count ~ year +
+                    s(geoscience_aspect, k = 3, bs = "cc") +
+                    s(geoscience_depth, k = 3, bs = "cr") +
+                    s(geoscience_detrended, k = 3, bs = "cr") +
+                    s(geoscience_roughness, k = 3, bs = "cr"),
                   data = fabund %>% dplyr::filter(response %in% "species_richness"),
                   family = gaussian(link = "identity"))
 summary(m_richness)
@@ -239,7 +247,8 @@ summary(m_richness)
 
 # CTI - six models within delta AICc <= 2, this is the two-predictor one
 m_cti <- gam(count ~ year +
-               s(geoscience_depth, k = 3, bs = "cr"),
+               s(reef, k = 3, bs = "cr") +
+               s(geoscience_roughness, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "cti"),
              family = gaussian(link = "identity"))
 summary(m_cti)
@@ -247,7 +256,8 @@ summary(m_cti)
 
 # B20 - aspect dropped, dAICc 0.01 behind and r2 unchanged
 m_b20 <- gam(count ~ year + status +
-               s(reef, k = 3, bs = "cr"),
+               s(reef, k = 3, bs = "cr") +
+               s(geoscience_roughness, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "b20"),
              family = tw())
 summary(m_b20)
@@ -460,4 +470,3 @@ for (y in seq_along(pred.years)) {
                      names(preddf_m), "_predicted_", this_year, ".tif"),
               overwrite = TRUE)
 }
-

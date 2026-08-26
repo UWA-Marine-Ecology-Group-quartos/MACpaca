@@ -53,9 +53,29 @@ metadata <- readRDS(paste0("data/", park, "/raw/metadata.RDS")) %>%
   dplyr::select(campaignid, sample, longitude_dd, latitude_dd, status, year) %>%
   glimpse()
 
+# Samples with habitat data ----
+habitat_samples <- readRDS(paste0("data/", park, "/raw/", name, "_benthos.RDS")) %>%
+  dplyr::distinct(campaignid, sample)
+
+metadata_habitat      <- dplyr::semi_join(metadata,      habitat_samples,
+                                          by = c("campaignid", "sample"))
+metadata_bruv_habitat <- dplyr::semi_join(metadata_bruv, habitat_samples,
+                                          by = c("campaignid", "sample"))
+
+# TODO Check these counts
+message("Samples with habitat data: ", nrow(metadata_habitat), " of ", nrow(metadata),
+        " | BRUVs with habitat data: ", nrow(metadata_bruv_habitat), " of ",
+        nrow(metadata_bruv))
+
+if (nrow(metadata_habitat) == 0 || nrow(metadata_bruv_habitat) == 0) {
+  stop("No samples matched the habitat data - check campaignid and sample in ",
+       name, "_benthos.RDS against metadata.RDS.")
+}
+
 # Convert metadata to spatial files
-metadata_bruv_sf <- st_as_sf(metadata_bruv, coords = c("longitude_dd", "latitude_dd"), crs = 4326)
-metadata_sf      <- st_as_sf(metadata,      coords = c("longitude_dd", "latitude_dd"), crs = 4326)
+metadata_bruv_habitat_sf <- st_as_sf(metadata_bruv_habitat, coords = c("longitude_dd", "latitude_dd"), crs = 4326)
+metadata_habitat_sf      <- st_as_sf(metadata_habitat,      coords = c("longitude_dd", "latitude_dd"), crs = 4326)
+metadata_sf              <- st_as_sf(metadata,              coords = c("longitude_dd", "latitude_dd"), crs = 4326)
 
 # Buffer the samples ----
 # make_buffer() is the same operation both times, so the two extents cannot
@@ -69,13 +89,14 @@ make_buffer <- function(x) {
     st_as_sf()
 }
 
-sample_buffer <- make_buffer(metadata_sf)       # benthos - BRUV + BOSS
-bruv_buffer   <- make_buffer(metadata_bruv_sf)  # fish    - BRUV only
+sample_buffer <- make_buffer(metadata_habitat_sf)       # benthos - habitat samples
+bruv_buffer   <- make_buffer(metadata_bruv_habitat_sf)  # fish    - BRUV habitat samples
+extent_buffer <- make_buffer(metadata_sf)               # extent  - every sample
 
 # Set the extent of the study from the WIDER of the two buffers, so the full
 # 10 km is retained around every sample. bruv_buffer is a subset of this, so
 # the bathymetry only has to be processed once.
-bb <- st_bbox(sample_buffer)
+bb <- st_bbox(extent_buffer)
 
 e <- ext(bb[["xmin"]] - e_pad, bb[["xmax"]] + e_pad,
          bb[["ymin"]] - e_pad, bb[["ymax"]] + e_pad)
@@ -197,4 +218,3 @@ metadata.bathy.derivatives <- metadata.bathy.derivatives.all %>%
 
 # Save the metadata bathymetry derivatives
 saveRDS(metadata.bathy.derivatives, paste0("data/", park, "/tidy/", name, "_metadata-bathymetry-derivatives.rds"))
-
