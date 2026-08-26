@@ -28,3 +28,10 @@ data/**/*
 .positai
 .posit/assistant
 .RDataTmp4
+data/hunter/spatial/oceanography/SST_recent.nc
+# Large reference/generated data — download or regenerate locally, don't commit
+data/south-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif
+data/hunter/spatial/oceanography/SST_recent.nc
+data/hunter/spatial/oceanography/DHW.nc
+plots/beagle/habitat/BeagleAMP_predicted-dominant-benthos-and-combined-se_2018-2025.rds
+data/amp_shapefile/capad.shp
