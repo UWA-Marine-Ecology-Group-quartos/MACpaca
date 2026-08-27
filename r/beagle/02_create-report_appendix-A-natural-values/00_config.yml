@@ -1,0 +1,5 @@
+name: "BeagleAMP"
+park: "beagle"
+years: ["2018", "2025"]      # EVERY survey year
+combine_benthos: false       # true = pool benthos years into ONE
+                             # Combine benthos if years have samples in different spatial areas

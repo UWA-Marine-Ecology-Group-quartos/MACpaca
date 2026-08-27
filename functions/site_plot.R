@@ -7,7 +7,7 @@ site_plot <- function(site_limits, # Tighter zoom for this plot
                       guide = "none") +
     geom_sf(data = ausc, fill = "seashell2", colour = "grey80", size = 0.1) +
     new_scale_fill() +
-    geom_sf(data = terrnp, aes(fill = leg_catego), colour = NA, alpha = 0.8) +
+    geom_sf(data = terrnp, aes(fill = TYPE), colour = NA, alpha = 0.8) +
     terr_fills +
     new_scale_fill() +
     geom_sf(data = marine_parks_state, aes(fill = zone), colour = NA, alpha = 0.4) +
@@ -37,7 +37,7 @@ site_plot <- function(site_limits, # Tighter zoom for this plot
               aes(x = x, y = y, label = label),
               size = 1.65,
               fontface = "italic",
-              nudge_x = c(0.025,0.025,-0.035,0.02,0.02)) +
+              nudge_x = c(0.025,0.025)) +
     # <<< END NEW >>>
 
     coord_sf(xlim = c(site_limits[1], site_limits[2]), ylim = c(site_limits[3], site_limits[4]), crs = 4326) +

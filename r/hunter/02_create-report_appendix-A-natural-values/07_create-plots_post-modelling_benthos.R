@@ -46,21 +46,18 @@ file.sources <- list.files(pattern = "*.R", path = paste0("r/", park, "/function
 sapply(file.sources, source, .GlobalEnv)
 
 # TODO Set cropping extent - larger than most zoomed out plot
-e <- ext(151.9448, 153.4594, -32.8342, -32.1165)
+e <- ext(152.1818,153.0585,-32.7021,  -32.3267)
 
 # Load necessary spatial files
 ausc <- st_read("data/south-west network/spatial/shapefiles/aus-shapefile-w-investigator-stokes.shp") %>%
   st_crop(e) %>%
   st_transform(4326)
 
-marine_parks <- st_read("data/amp_shapefile/Australian_Marine_Parks.shp") %>%
-  dplyr::filter(RESNAME %in% c("Hunter")) |>
-  dplyr::filter(ZONEIUCN %in% c("VI")) |>
-  dplyr::rename(zone = ZONENAME) |>
-  dplyr::mutate(colour = "#6daff4") # TODO select relevant parks
+marine_parks <- st_read("data/amp_shapefile/Australian_Marine_parks_v2.shp") %>%
+  dplyr::filter(name %in% c("Hunter")) # TODO select relevant parks
 
 marine_parks_amp <- marine_parks %>%
-  #dplyr::filter(epbc %in% "Commonwealth") %>%
+  dplyr::filter(epbc %in% "Commonwealth") %>%
   st_transform(4326)
 
 marine_parks_state <- marine_parks %>%
@@ -91,7 +88,7 @@ names(bathy)[3] <- "Depth"
 habitat_lookup <- c(
   "Sand" = "sand",
   "Macroalgae" = "macro",
-  "Seagrass" = "seagrass",
+  #"Seagrass" = "seagrass",
   "Sessile invertebrates" = "inverts",
   "Rock" = "rock"
 )
@@ -100,13 +97,13 @@ habitat_lookup <- c(
 hab_cols <- c(
   "Sand" = "wheat",
   "Macroalgae" = "darkgoldenrod4",
-  "Seagrass" = "forestgreen",
+  #"Seagrass" = "forestgreen",
   "Rock" = "grey40",
   "Sessile invertebrates" = "plum"
 )
 
 # TODO Plot extent
-prediction_limits <- c(152.3029, 152.9465, -32.9069, -32.2026)
+prediction_limits <- c(152.25, 152.98, -32.75, -32.3)
 
 # Read all years once
 
@@ -172,7 +169,7 @@ for (yr in pred.labels) {
     )
   )
 
-  p_dom <- dominantbenthos_plot_single(             #need to change the habitats used in this function manually.
+  p_dom <- dominantbenthos_plot_single(
     pred_plot = pred_plot,
     prediction_limits = prediction_limits,
     habitat_lookup = habitat_lookup
@@ -278,6 +275,27 @@ saveRDS(p_cat_multi,
 
 }
 
+## Predicted reef
+p_reef <- predictedreef_plot_multi(
+  dat_list          = dat_list,
+  prediction_limits = prediction_limits
+)
+
+print(p_reef)
+
+ggsave(
+  filename = paste0(
+    "plots/", park, "/habitat/", name,
+    "_predicted-reef-and-se_",
+    paste(years, collapse = "-"), ".png"
+  ),
+  plot = p_reef, height = 7, width = 8, dpi = 300, units = "in", bg = "white"
+)
+
+saveRDS(p_reef,
+        paste0("plots/", park, "/habitat/", name,
+               "_predicted-reef-and-se_", paste(years, collapse = "-"), ".rds"))
+
 # -------------------------------------------------------------------
 # PART 3: Multi-year individual habitat plots
 # -------------------------------------------------------------------
@@ -326,9 +344,6 @@ for (habitat_name in names(habitat_lookup)) {
 
 # -------------------------------------------------------------------
 # PART 4: Control plots by taxa, facetted by depth class
-# These compare the SAME zones across SURVEY YEARS over time, so they are
-# only meaningful when years are kept separate. Skipped entirely when
-# combine_benthos = TRUE (pooled spatial coverage has no time axis to plot).
 # -------------------------------------------------------------------
 if (!combine_benthos) {
 
@@ -340,7 +355,7 @@ control_all <- purrr::map(years, \(yy) {
       name, "_predicted-habitat_", yy, ".rds"
     )
   )
-  controldata_benthos(dat = dat_yy, year = yy, amp_abbrv = "GMP", state_abbrv = "NCMP") # TODO set park abbreviations
+  controldata_benthos(dat = dat_yy, year = yy, amp_abbrv = "HMP", state_abbrv = "") # TODO set park abbreviations
 })
 
 park_dat.shallow <- purrr::map_dfr(control_all, "shallow") %>%
@@ -370,11 +385,11 @@ park_dat.control <- dplyr::bind_rows(
 
 # Taxa to plot
 taxa_lookup <- c(
-  "seagrass"   = "Seagrass",
-  "macroalgae" = "Macroalgae",
-  "rock"       = "Rock",
-  "sand"       = "Sand",
-  "inverts"    = "Sessile invertebrates"
+  #"seagrass"   = "Seagrass",
+  #"macroalgae" = "Macroalgae",
+  #"rock"       = "Rock",
+  "sand"       = "Sand"
+  #"inverts"    = "Sessile invertebrates"
 )
 
 for (taxa_code in names(taxa_lookup)) {
@@ -384,8 +399,8 @@ for (taxa_code in names(taxa_lookup)) {
   p_taxa <- controlplot_benthos(
     data = park_dat.control,
     taxa = taxa_code,
-    amp_abbrv = "GMP", # TODO set park abbreviations
-    state_abbrv = "NCMP",
+    amp_abbrv = "HMP", # TODO set park abbreviations
+    state_abbrv = "",
     taxa_label = taxa_lookup[[taxa_code]]
   )
 
@@ -422,7 +437,7 @@ for (taxa_code in names(taxa_lookup)) {
 # ---- Scatterpie data prep ----
 
 # TODO Set the extent of the study
-e <- ext(114.8, 116, -33.8, -33)
+e <- ext(152.25, 152.98, -32.75, -32.3)
 
 # Load the bathymetry data (GA 250m resolution)
 bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
@@ -443,7 +458,7 @@ benthos <- readRDS(
 ) %>%
   dplyr::rename(
     Macroalgae = macroalgae,
-    Seagrass = seagrasses,
+    #Seagrass = seagrasses,
     Sand = sand,
     Rock = rock,
     "Sessile invertebrates" = sessile_invertebrates
@@ -453,12 +468,12 @@ benthos <- readRDS(
 
 hab_fills <- scale_fill_manual(
   name = "Habitat",
-  limits = c("Rock", "Sessile invertebrates", "Macroalgae", "Seagrass", "Sand"),
+  limits = c("Rock", "Sessile invertebrates", "Macroalgae", "Sand"), #, "Seagrass"
   values = c(
     "Rock" = "grey40",
     "Sessile invertebrates" = "plum",
     "Macroalgae" = "darkgoldenrod4",
-    "Seagrass" = "forestgreen",
+    #"Seagrass" = "forestgreen",
     "Sand" = "wheat"
   )
 )
@@ -479,7 +494,7 @@ depth_fills <- scale_fill_manual(
   guide = "none"
 )
 
-site_limits <- c(115.0, 115.67, -33.3, -33.65) # TODO set limits
+site_limits <- c(152.25, 152.98, -32.75, -32.3) # TODO set limits
 
 if (combine_benthos) {
 
@@ -587,3 +602,4 @@ if (combine_benthos) {
             paste(years, collapse = "-"), ".rds"
           ))
 }
+

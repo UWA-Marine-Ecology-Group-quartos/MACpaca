@@ -39,6 +39,7 @@ library(tidyterra)
 library(ggnewscale)
 library(cowplot)
 library(metR)
+library(ggpattern)
 
 # Set cropping and plot extents
 e                <- ext(106.0, 145.0, -45.0, -22.0)
@@ -84,9 +85,47 @@ marine_parks <- st_read("data/south-west network/spatial/shapefiles/south-and-we
                             "Upper Spencer Gulf", "Cottesloe Reef", "Rottnest",
                             "Shoalwater Islands", "Shark Bay"))
 
+marine_parks <- marine_parks %>%
+  dplyr::mutate(
+    zone = dplyr::if_else(
+      zone == "Special Purpose Zone" & stringr::str_detect(zone_type, "Mining Exclusion"),
+      "Special Purpose Zone (Mining Exclusion)",
+      zone
+    )
+  )
+
 marine_parks_amp <- marine_parks %>%
   dplyr::filter(epbc %in% "Commonwealth")
 
+amp_zone_levels <- c("National Park Zone",
+                     "Habitat Protection Zone",
+                     "Multiple Use Zone",
+                     "Special Purpose Zone",
+                     "Special Purpose Zone (Mining Exclusion)")
+
+marine_parks_amp <- marine_parks %>%
+  dplyr::filter(epbc %in% "Commonwealth") %>%
+  dplyr::mutate(zone = factor(zone, levels = amp_zone_levels))
+
+amp_zone_colours <- marine_parks_amp %>%
+  st_drop_geometry() %>%
+  dplyr::distinct(zone, colour) %>%
+  dplyr::filter(!is.na(zone)) %>%
+  tibble::deframe()
+# guarantee a colour exists for every levelamp_zone_colours <- amp_zone_colours[amp_zone_levels]names(amp_zone_colours) <- amp_zone_levelsif (is.na(amp_zone_colours[["Special Purpose Zone (Mining Exclusion)"]])) {
+amp_zone_colours[["Special Purpose Zone (Mining Exclusion)"]] <-
+  amp_zone_colours[["Special Purpose Zone"]]
+
+
+amp_pattern_values <- setNames(
+  ifelse(amp_zone_levels == "Special Purpose Zone (Mining Exclusion)", "stripe", "none"),
+  amp_zone_levels
+)
+
+amp_zone_colours <- marine_parks_amp %>%
+  st_drop_geometry() %>%
+  dplyr::distinct(zone, colour) %>%
+  tibble::deframe()
 
 marine_parks_state <- marine_parks %>%
   dplyr::filter(epbc %in% "State") %>%
@@ -175,8 +214,9 @@ get_panel_labels <- function(mp_amp, limits) {
 # neighbouring grid cells rather than just showing at the panel edge.
 
 make_zone_panel <- function(plot_limits, mp_amp, mp_state, label_data = NULL,
-                            break_step = 0.1, label_buffer = 0.03) {
-
+                            break_step = 0.1, label_buffer = 0.03,
+                            legend_amp_zones = amp_zone_levels,
+                            legend_state_zones = NULL) {
   x_breaks <- thin_breaks(plot_limits[1:2], step = break_step)
   y_breaks <- thin_breaks(abs(plot_limits[3:4]), step = break_step) * -1
 
@@ -206,17 +246,41 @@ make_zone_panel <- function(plot_limits, mp_amp, mp_state, label_data = NULL,
     # Landmass
     geom_sf(data = aus, fill = "seashell2", colour = "grey80", linewidth = 0.1) +
 
+    # Overlay stripes ONLY on Mining Exclusion polygons
     # Australian Marine Parks
-    geom_sf(data = mp_amp, aes(fill = zone), colour = NA, alpha = 0.8) +
-    scale_fill_manual(name   = "Australian Marine Parks",
-                      guide  = guide_legend(order = 1, ncol = 1,
-                                            title.position = "top"),
-                      values = with(mp_amp, setNames(colour, zone)),
-                      breaks = c("National Park Zone", "Habitat Protection Zone",
-                                 "Multiple Use Zone", "Special Purpose Zone",
-                                 "Special Purpose Zone (Mining Exclusion)")) +
+    ggpattern::geom_sf_pattern(
+      data            = mp_amp,
+      aes(fill = zone, pattern = zone),
+      colour          = NA, alpha = 0.8,
+      pattern_colour  = "white",
+      pattern_fill    = "white",
+      pattern_density = 0.15,
+      pattern_spacing = 0.02,
+      pattern_angle   = 45,
+      pattern_size    = 0.2,
+      key_glyph       = ggpattern::draw_key_polygon_pattern
+    ) +
+    scale_fill_manual(
+      name   = "Australian Marine Parks",
+      values = amp_zone_colours,
+      limits = legend_amp_zones,
+      drop   = TRUE,
+      guide  = guide_legend(order = 1, ncol = 1, title.position = "top",
+                            override.aes = list(pattern_spacing = 0.01,
+                                                pattern_density = 0.15,
+                                                pattern_size    = 0.1))
+    ) +
+    ggpattern::scale_pattern_manual(
+      name   = "Australian Marine Parks",
+      values = amp_pattern_values,
+      limits = legend_amp_zones,
+      drop   = TRUE,
+      guide  = guide_legend(order = 1, ncol = 1, title.position = "top",
+                            override.aes = list(pattern_spacing = 0.01,
+                                                pattern_density = 0.15,
+                                                pattern_size    = 0.1))
+    ) +
     new_scale_fill() +
-
     # Commonwealth AMP zone labels (last 5 characters of CAPAD RES_NUMBER,
     # e.g. "npz03"), placed at each zone's CAPAD reference point
     geom_sf_text(data          = label_data,
@@ -241,9 +305,7 @@ make_zone_panel <- function(plot_limits, mp_amp, mp_state, label_data = NULL,
                       guide  = guide_legend(order = 2, ncol = 1,
                                             title.position = "top"),
                       values = with(mp_state, setNames(colour, zone)),
-                      breaks = c("Sanctuary Zone", "General Use Zone",
-                                 "Recreational Use Zone", "Special Purpose Zone",
-                                 "Other State Marine Park Zone")) +
+                      breaks = if (is.null(legend_state_zones)) waiver() else legend_state_zones) +
 
     # Coastal waters limit — mapped to colour for legend entry
     geom_sf(data  = cwatr, aes(colour = "Coastal Waters Limit"),
@@ -289,10 +351,27 @@ geo_amp   <- filter_to_extent(marine_parks_amp,   geographe_limits)
 geo_state <- filter_to_extent(marine_parks_state, geographe_limits)
 geo_labels <- get_panel_labels(geo_amp, geographe_limits)
 
+# Zones actually drawn somewhere in the figure (both panels combined)
+used_amp_zones <- amp_zone_levels[
+  amp_zone_levels %in% union(as.character(tr_amp$zone), as.character(geo_amp$zone))
+]
+
+state_zone_order <- c("Sanctuary Zone", "General Use Zone",
+                      "Recreational Use Zone", "Special Purpose Zone",
+                      "Other State Marine Park Zone")
+
+used_state_zones <- state_zone_order[
+  state_zone_order %in% union(as.character(tr_state$zone), as.character(geo_state$zone))
+]
+
 p_tr  <- make_zone_panel(tworocks_limits,  tr_amp,  tr_state,  label_data = tr_labels,
-                         break_step = 0.1, label_buffer = 0.03)
+                         break_step = 0.1, label_buffer = 0.03,
+                         legend_amp_zones = used_amp_zones,
+                         legend_state_zones = used_state_zones)
 p_geo <- make_zone_panel(geographe_limits, geo_amp, geo_state, label_data = geo_labels,
-                         break_step = 0.1, label_buffer = 0.03)
+                         break_step = 0.1, label_buffer = 0.03,
+                         legend_amp_zones = used_amp_zones,
+                         legend_state_zones = used_state_zones)
 
 # Build the legend
 legend <- cowplot::get_legend(p_geo + theme(
@@ -383,7 +462,7 @@ ggsave(paste(paste0("plots/", park, "/spatial/", name),
              "tworocks-geographe-MPs.png", sep = "-"),
        plot   = figure,
        dpi    = 600,
-       width  = 9,
+       width  = 10.5,
        height = 9,
        bg     = "white")
 
@@ -391,7 +470,6 @@ ggsave(paste(paste0("plots/", park, "/spatial/", name),
 # ==============================================================================
 # 6. ZOOM-IN MAP FUNCTION (LEGEND ON LEFT)
 # ==============================================================================
-# Function
 make_zone_plot_left_legend <- function(plot_limits,
                                        inset_xlim   = c(108, 138),
                                        inset_ylim   = c(-40, -24),
@@ -406,8 +484,23 @@ make_zone_plot_left_legend <- function(plot_limits,
   mp_state  <- filter_to_extent(marine_parks_state, plot_limits)
   mp_labels <- get_panel_labels(mp_amp, plot_limits)
 
+  # Zones actually drawn in this panel only
+  used_amp_zones <- amp_zone_levels[
+    amp_zone_levels %in% as.character(mp_amp$zone)
+  ]
+
+  state_zone_order <- c("Sanctuary Zone", "General Use Zone",
+                        "Recreational Use Zone", "Special Purpose Zone",
+                        "Other State Marine Park Zone")
+
+  used_state_zones <- state_zone_order[
+    state_zone_order %in% as.character(mp_state$zone)
+  ]
+
   p_map <- make_zone_panel(plot_limits, mp_amp, mp_state, label_data = mp_labels,
-                           break_step = break_step, label_buffer = label_buffer)
+                           break_step = break_step, label_buffer = label_buffer,
+                           legend_amp_zones   = used_amp_zones,
+                           legend_state_zones = used_state_zones)
 
   # Legend
   legend_single <- cowplot::get_legend(p_map + theme(
@@ -467,7 +560,7 @@ make_zone_plot_left_legend <- function(plot_limits,
     theme(plot.background = element_rect(fill = "white", colour = NA),
           plot.margin     = margin(5, 5, 5, 5))
 
-  print(fig)
+ # print(fig)
 
   if (!is.null(save_name)) {
     dir.create(paste0("plots/", park, "/spatial/MPA_zoom-ins/"), recursive = TRUE, showWarnings = FALSE)
@@ -519,7 +612,7 @@ make_zone_plot_left_legend(
   show_inset = TRUE,
   save_name   = "tworocks-MPs",
   width       = 9,
-  height      = 5
+  height      = 4.5
 )
 
 # ── Rottnest Island Canyon ────────────────────────────────────────────────────
@@ -542,20 +635,20 @@ make_zone_plot_left_legend(
   break_step  = 0.1,
   show_inset = TRUE,
   save_name   = "Geographe-MPs",
-  width       = 10,
-  height      = 6
+  width       = 11,
+  height      = 5.5
 )
 
 # ── Bremer Bay ────────────────────────────────────────────────────────────────
 make_zone_plot_left_legend(
-  plot_limits = c(119.3, 120.3, -35.3, -33.9),
+  plot_limits = c(119.3, 120.3, -35.3, -34),
   inset_xlim  = c(108, 138),
   inset_ylim  = c(-40, -24),
   break_step  = 0.2,
   show_inset  = TRUE,
   save_name   = "bremer-MPs",
-  width       = 8,
-  height      = 8
+  width       = 10.25,
+  height      = 9.5
 )
 
 # ── SWC Eastern arm ───────────────────────────────────────────────────────────
@@ -570,6 +663,17 @@ make_zone_plot_left_legend(
   height      = 6
 )
 
+make_zone_plot_left_legend(
+  plot_limits = c(120.2, 122.4, -38, -33.7),
+  inset_xlim  = c(108, 138),
+  inset_ylim  = c(-40, -24),
+  break_step  = 0.2,
+  show_inset = TRUE,
+  save_name   = "swc-east-full-extent-MPs",
+  width       = 8.5,
+  height      = 9
+)
+
 # ── Eastern Recherche ─────────────────────────────────────────────────────────
 make_zone_plot_left_legend(
   plot_limits = c(123.2, 124.4, -34.9, -33.5),
@@ -578,43 +682,43 @@ make_zone_plot_left_legend(
   break_step  = 0.2,
   show_inset = TRUE,
   save_name   = "eastern-recherche-MPs",
-  width       = 8,
+  width       = 8.5,
   height      = 8
 )
 
 make_zone_plot_left_legend(
-  plot_limits = c(123.2, 124.4, -37.8, -33.5),
+  plot_limits = c(122.2, 125.3, -37.8, -33.5),
   inset_xlim  = c(108, 138),
   inset_ylim  = c(-40, -24),
   break_step  = 0.2,
   show_inset = TRUE,
   save_name   = "eastern-recherche_full-extent-MPs",
-  width       = 8,
-  height      = 10
+  width       = 7,
+  height      = 8
 )
 
 
 # ── Great Aus Bight ───────────────────────────────────────────────────────────
 make_zone_plot_left_legend(
-  plot_limits = c(128.7, 132.5, -33.6, -31.3),
+  plot_limits = c(128.7, 132.4, -33.6, -31.3),
   inset_xlim  = c(108, 138),
   inset_ylim  = c(-40, -24),
   break_step  = 0.2,
   show_inset = TRUE,
   save_name   = "great-aus-bight-MPs",
-  width       = 9,
-  height      = 5
+  width       = 10.5,
+  height      = 5.5
 )
 
 make_zone_plot_left_legend(
-  plot_limits = c(128.7, 132.5, -37.8, -31.3),
+  plot_limits = c(128.7, 132.45, -37.1, -31.3),
   inset_xlim  = c(108, 138),
   inset_ylim  = c(-40, -24),
-  break_step  = 0.2,
+  break_step  = 0.5,
   show_inset = TRUE,
   save_name   = "great-aus-bight_full-extent-MPs",
-  width       = 8,
-  height      = 9
+  width       = 10.5,
+  height      = 9.5
 )
 # ── Murat and Western Eyre ────────────────────────────────────────────────────
 make_zone_plot_left_legend(
@@ -629,7 +733,7 @@ make_zone_plot_left_legend(
 )
 
 make_zone_plot_left_legend(
-  plot_limits = c(132.45, 135.5, -39.4, -31.9),
+  plot_limits = c(132.2, 136, -39.3, -31.9),
   inset_xlim  = c(108, 138),
   inset_ylim  = c(-40, -24),
   break_step  = 0.4,
@@ -640,13 +744,13 @@ make_zone_plot_left_legend(
 )
 
 make_zone_plot_left_legend(
-  plot_limits = c(132.3, 133, -33.2, -32.2),
+  plot_limits = c(132.3, 132.9, -33.0, -32.2),
   inset_xlim  = c(108, 138),
   inset_ylim  = c(-40, -24),
-  break_step  = 0.2,
+  break_step  = 0.1,
   show_inset = TRUE,
   save_name   = "murat-MPs",
-  width       = 8,
+  width       = 7,
   height      = 7
 )
 
@@ -658,20 +762,20 @@ make_zone_plot_left_legend(
   break_step  = 0.2,
   show_inset = TRUE,
   save_name   = "kangaroo-island-MPs",
-  width       = 9,
-  height      = 6
+  width       = 10.75,
+  height      = 5.5
 )
 
 # ── Twilight Marine Park ──────────────────────────────────────────────────────
 make_zone_plot_left_legend(
-  plot_limits = c(125.2, 127.15, -33.3, -32.1),
+  plot_limits = c(125.2, 127, -33.3, -32.1),
   inset_xlim  = c(108, 138),
   inset_ylim  = c(-40, -24),
   break_step  = 0.2,
   show_inset = TRUE,
   save_name   = "twilight-MPs",
-  width       = 9,
-  height      = 5
+  width       = 10.25,
+  height      = 5.5
 )
 
 # ── SWC Full Extent ───────────────────────────────────────────────────────────

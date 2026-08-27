@@ -1,0 +1,14 @@
+SLA.nc
+SST.nc
+Acidification.nc
+DHW.nc
+SST_WA.nc
+SST-recent.nc
+swc_westernarm_DHW_raster.rds
+swc_westernarm_DHW_time-series.rds
+swc_westernarm_SLA_raster.rds
+swc_westernarm_SLA_time-series.rds
+swc_westernarm_SST_raster-recent.rds
+swc_westernarm_SST_raster.rds
+swc_westernarm_SST_time-series-recent.rds
+swc_westernarm_SST_time-series.rds

@@ -44,7 +44,7 @@ library(RNetCDF)
 library(rerddap)
 
 # TODO Set the extent of the study
-e <- ext(115.04, 115.60, -33.67, -33.346)
+e <- ext(152.3,153.056,-32.69,-32.33)
 
 # Oceanography/Pressures
 # ── Sea Surface Temperature ───────────────────────────────────────────────────────────────────────

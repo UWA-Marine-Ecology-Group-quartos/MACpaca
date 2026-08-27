@@ -2,19 +2,19 @@
 # Project: NESP 5.6 Project - North-west Network Report
 # Data:    BRAN2023 monthly SST, AusBathyTopo 2024 250 m topography,
 #          marine park shapefiles, aus outline
-# Task:    Extract June 2011 SST from BRAN2023 (Leeuwin Current heatwave)
+# Task:    Extract January 2025 SST from BRAN2023 (Leeuwin Current heatwave)
 #          and map over North-west Network extent with MPAs and land topography
 # Author:  Annika Leunig
 # Date:    July 2026
-# Outputs: 1. June 2011 mean SST map (Leeuwin Current marine heatwave)
+# Outputs: 1. January2025 mean SST map (Leeuwin Current marine heatwave)
 #             with marine park boundaries and land topography overlaid
 ###
 
 # Table of contents
 #     1.  Set up and load data
 #     2.  BRAN2023 download and SST extraction functions
-#     3.  Download and extract June 2011 SST
-#     4.  FIGURE 1: June 2011 mean SST map
+#     3.  Download and extract January 2025 SST
+#     4.  FIGURE 1: January 2025 mean SST map
 
 
 # ==============================================================================
@@ -49,7 +49,7 @@ e     <- ext(106, 133, -28, -11)
 e_vec <- c(106, 133, -28, -11)
 
 # Final map panel extent
-plot_limits <- c(109, 130, -26.5, -12.5)
+plot_limits <- c(109, 130, -26.5, -12.0)
 
 # ── Load spatial files ────────────────────────────────────────────────────────
 # Terrestrial parks
@@ -156,32 +156,32 @@ extract_sst_monthly_mean <- function(nc_file, extent_vec) {
 }
 
 # ==============================================================================
-# 3. DOWNLOAD AND EXTRACT JUNE 2011 SST
+# 3. DOWNLOAD AND EXTRACT JANUARY 2025 SST
 # ==============================================================================
 # ── Download and write file (if doesn't exist already) ────────────────────────
-# dest_dir <- "data/north-west network/spatial/rasters/BRAN/BRAN2023_SST_monthly/"
-#
-# file_june2011 <- download_BRAN2023_monthly(2011, 6, dest_dir)
-#
-# sst_june2011 <- extract_sst_monthly_mean(file_june2011, e_vec)
-# names(sst_june2011) <- "sst_mean_june2011"
-#
-# writeRaster(sst_june2011,
-#             "data/north-west network/spatial/rasters/BRAN/BRAN2023_SST_june2011_mean.tif",
-# overwrite = TRUE)
+dest_dir <- "data/north-west network/spatial/rasters/BRAN/BRAN2023_SST_monthly/"
+
+file_january2025 <- download_BRAN2023_monthly(2025, 1, dest_dir)
+
+sst_january2025 <- extract_sst_monthly_mean(file_january2025, e_vec)
+names(sst_january2025) <- "sst_mean_january2025"
+
+writeRaster(sst_january2025,
+            "data/north-west network/spatial/rasters/BRAN/BRAN2023_SST_january2025_mean.tif",
+overwrite = TRUE)
 
 # Load raster (if written already)
-sst_june2011 <- rast("data/north-west network/spatial/rasters/BRAN/BRAN2023_SST_june2011_mean.tif")
+sst_january2025 <- rast("data/north-west network/spatial/rasters/BRAN/BRAN2023_SST_january2025_mean.tif")
 
 # CRS is set explicitly here (BRAN2023 is on a regular lat/lon grid, WGS84)
 # before reprojecting to match the GDA2020 (7844) CRS used for the map
-crs(sst_june2011) <- "EPSG:4326"
-sst_june2011 <- project(sst_june2011, paste0("EPSG:", aus_crs))
+crs(sst_january2025) <- "EPSG:4326"
+sst_january2025 <- project(sst_january2025, paste0("EPSG:", aus_crs))
 
 # ==============================================================================
-# 4. FIGURE 1: JUNE 2011 MEAN SST MAP
+# 4. FIGURE 1: JANUARY 2025 MEAN SST MAP
 # ==============================================================================
-sst_mean_df <- as.data.frame(sst_june2011, xy = TRUE, na.rm = TRUE)
+sst_mean_df <- as.data.frame(sst_january2025, xy = TRUE, na.rm = TRUE)
 colnames(sst_mean_df)[3] <- "sst"
 
 p_sst_mean <- ggplot() +
@@ -202,7 +202,7 @@ p_sst_mean <- ggplot() +
   # Layer 2: SST mean raster
   geom_raster(data = sst_mean_df, aes(x = x, y = y, fill = sst), interpolate = FALSE) +
   scale_fill_gradientn(
-    name     = "SST (°C)  June 2011",
+    name     = "SST (°C)  January 2025",
     colours  = rev(brewer.pal(11, "RdYlBu")),
     na.value = NA,
     guide    = guide_colourbar(
@@ -244,7 +244,7 @@ p_sst_mean <- ggplot() +
   )
 
 ggsave(paste(paste0("plots/", park, "/spatial/SST/", name),
-             "SST-june2011.png", sep = "-"),
+             "SST-january2025.png", sep = "-"),
        plot = p_sst_mean, dpi = 300, width = 12, height = 7, bg = "white"
 )
 

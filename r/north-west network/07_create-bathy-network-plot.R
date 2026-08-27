@@ -137,7 +137,7 @@ bathy_abs <- bathy * -1
 names(bathy_abs) <- "depth_abs"
 
 xlim_shared <- c(109, 130)
-ylim_shared <- c(-26.5, -12.5)
+ylim_shared <- c(-26.5, -12.0)
 
 # ── Bathymetry panel ───────────────────────────────────────────────────────────
 p_bathy <- ggplot() +
@@ -209,7 +209,7 @@ ggsave(
   plot     = p_bathy,
   dpi      = 800,
   width    = 7,
-  height   = 5.75,
+  height   = 6,
   bg       = "white"
 )
 

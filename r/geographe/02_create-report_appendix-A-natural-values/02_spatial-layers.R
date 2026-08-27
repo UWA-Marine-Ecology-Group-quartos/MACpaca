@@ -65,9 +65,8 @@ saveRDS(preds, file = paste0("data/", park, "/spatial/rasters/",
 
 # Read in the metadata
 metadata <- readRDS(paste0("data/", park, "/raw/metadata.RDS")) %>%
-  dplyr::select(campaignid, sample, longitude_dd, latitude_dd, status, year) %>%
+  dplyr::select(campaignid, sample, longitude_dd, latitude_dd, status, year, method) %>%
   glimpse()
-
 # Convert metadata to a spatial file and check alignment with bathymetry
 metadata_sf <- st_as_sf(metadata, coords = c("longitude_dd", "latitude_dd"), crs = 4326)
 

@@ -36,8 +36,7 @@ scatterpie_plot_multi <- function(benthos, years, site_limits, pie_radius = 0.00
         "Sand",
         "Sessile invertebrates",
         "Rock",
-        "Macroalgae",
-        "Seagrass"
+        "Macroalgae"
       ),
       colour = NA
     ) +

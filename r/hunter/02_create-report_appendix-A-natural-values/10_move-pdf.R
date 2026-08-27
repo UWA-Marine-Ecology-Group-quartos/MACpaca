@@ -16,15 +16,15 @@ name <- config$name
 park <- config$park
 
 # TODO Change pdf_name/html_name to your quarto output names
-pdf_name <- "Project 4.21-Geographe-2-Appendix A-q-Natural values.pdf"
-html_name <- "Project 4.21-Geographe-2-Appendix A-q-Natural values.html"
+pdf_name <- "Project 4.21-Hunter-2-Appendix A-q-Natural values.pdf"
+html_name <- "Project 4.21-Hunter-2-Appendix A-q-Natural values.html"
 html_files_dir <- "09_quarto_files" # supporting folder Quarto generates alongside the HTML
 
 source_dir <- paste0(
-  "D:/GIT/australian-marine-parks/r/", park,
+  "D:/australian-marine-parks/r/", park,
   "/02_create-report_appendix-A-natural-values"
 )
-dest_dir <- paste0("D:/GIT/australian-marine-parks/quartos/", park)
+dest_dir <- paste0("D:/australian-marine-parks/quartos/", park)
 
 if (!dir.exists(dest_dir)) dir.create(dest_dir, recursive = TRUE)
 
@@ -76,3 +76,4 @@ if (dir.exists(file.path(source_dir, html_files_dir))) {
 } else {
   message("No supporting files folder found at: ", file.path(source_dir, html_files_dir))
 }
+

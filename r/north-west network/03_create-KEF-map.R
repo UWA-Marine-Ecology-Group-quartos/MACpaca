@@ -58,7 +58,7 @@ ausc <- st_crop(aus, e)
 
 # KEF is a national dataset - not duplicated per network, so read from the
 # shared north network data folder
-KEF <- st_read("data/north network/spatial/shapefiles/Marine_Key_Ecological_Features.shp") %>%
+KEF <- st_read("data/north-west network/spatial/shapefiles/Marine_Key_Ecological_Features.shp") %>%
   st_make_valid() %>%
   st_transform(aus_crs) %>%
   st_crop(e)
@@ -150,7 +150,7 @@ kef_colours <- c(
 # 4. PLOT INPUTS
 # ==============================================================================
 
-plot_limits     <- c(109, 130, -26.5, -12.5)
+plot_limits     <- c(109, 130, -26.5, -12.0)
 annotation_labels <- NULL
 
 # ==============================================================================

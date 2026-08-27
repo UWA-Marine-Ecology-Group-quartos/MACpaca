@@ -664,7 +664,7 @@ plot_b20_bars <- function(plot_data, fill_values, fill_breaks) {
     ) +
     labs(
       x = "Species",
-      y = expression(Average~biomass~(B20~per~BRUV)),
+      y = expression(Average~biomass~(per~BRUV)),
       fill = "Status"
     ) +
     theme_bw() +

@@ -1,0 +1,9 @@
+name:            "GeographeAMP"
+park:            "geographe"
+years:           [2014, 2024]
+combine_benthos: FALSE      # must match the Appendix A config - Geographe keeps
+                            # benthos year-separate (both years sample the same area)
+
+# Appendix C output name. Must match the `output-file:` in 04_quarto.qmd,
+# minus the extension.
+report_name:     "Project 4.21-Geographe-3-Appendix C-q-Data analysis"

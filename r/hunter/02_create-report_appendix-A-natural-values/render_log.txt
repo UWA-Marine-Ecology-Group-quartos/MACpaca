@@ -1,0 +1,48 @@
+
+
+processing file: 09_quarto.qmd
+  |                                                           |                                                   |   0%  |                                                           |.                                                  |   2%                     |                                                           |..                                                 |   4% [unnamed-chunk-1]   |                                                           |...                                                |   6%                     |                                                           |....                                               |   8% [unnamed-chunk-2]   |                                                           |.....                                              |  10%                     |                                                           |......                                             |  12% [unnamed-chunk-3]   |                                                           |.......                                            |  14%                     |                                                           |........                                           |  16% [unnamed-chunk-4]   |                                                           |.........                                          |  18%                     |                                                           |..........                                         |  20% [unnamed-chunk-5]   |                                                           |...........                                        |  22%                     |                                                           |............                                       |  24% [unnamed-chunk-6]   |                                                           |..............                                     |  27%                     |                                                           |...............                                    |  29% [unnamed-chunk-7]   |                                                           |................                                   |  31%                     |                                                           |.................                                  |  33% [unnamed-chunk-8]   |                                                           |..................                                 |  35%                     |                                                           |...................                                |  37% [unnamed-chunk-9]   |                                                           |....................                               |  39%                     |                                                           |.....................                              |  41% [unnamed-chunk-10]  |                                                           |......................                             |  43%                     |                                                           |.......................                            |  45% [unnamed-chunk-11]  |                                                           |........................                           |  47%                     |                                                           |.........................                          |  49% [unnamed-chunk-12]  |                                                           |..........................                         |  51%                     |                                                           |...........................                        |  53% [unnamed-chunk-13]  |                                                           |............................                       |  55%                     |                                                           |.............................                      |  57% [unnamed-chunk-14]  |                                                           |..............................                     |  59%                     |                                                           |...............................                    |  61% [unnamed-chunk-15]  |                                                           |................................                   |  63%                     |                                                           |.................................                  |  65% [unnamed-chunk-16]  |                                                           |..................................                 |  67%                     |                                                           |...................................                |  69% [unnamed-chunk-17]  |                                                           |....................................               |  71%                     |                                                           |.....................................              |  73% [unnamed-chunk-18]  |                                                           |.......................................            |  76%                     |                                                           |........................................           |  78% [unnamed-chunk-19]  |                                                           |.........................................          |  80%                     |                                                           |..........................................         |  82% [unnamed-chunk-20]  |                                                           |...........................................        |  84%                     |                                                           |............................................       |  86% [unnamed-chunk-21]  |                                                           |.............................................      |  88%                     |                                                           |..............................................     |  90% [unnamed-chunk-22]  |                                                           |...............................................    |  92%                     |                                                           |................................................   |  94% [unnamed-chunk-23]  |                                                           |.................................................  |  96%                     |                                                           |.................................................. |  98% [unnamed-chunk-24]  |                                                           |...................................................| 100%                                                                                                                                
+output file: 09_quarto.knit.md
+
+pandoc 
+  to: latex
+  output-file: 09_quarto.tex
+  standalone: true
+  pdf-engine: lualatex
+  variables:
+    graphics: true
+    tables: true
+  default-image-extension: pdf
+  toc: true
+  
+metadata
+  documentclass: scrartcl
+  classoption:
+    - DIV=11
+    - numbers=noendperiod
+  papersize: letter
+  header-includes:
+    - \KOMAoption{captions}{tableheading}
+  block-headings: true
+  engines:
+    - path: C:\Program Files\RStudio\resources\app\bin\quarto\share\extension-subtrees\julia-engine\_extensions\julia-engine\julia-engine.js
+  title: Appendix A - Hunter Marine Park Natural Values Report
+  subtitle: Temperate East Marine Parks Network
+  post-render: 10_move-pdf.R
+  geometry:
+    - top=2cm
+    - bottom=2.5cm
+    - left=2cm
+    - right=2cm
+  
+
+Rendering PDF
+running lualatex - 1
+  This is LuaHBTeX, Version 1.24.0 (TeX Live 2026) 
+   restricted system commands enabled.
+  
+  luaotfload | db : Font names database not found, generating new one.
+  luaotfload | db : This can take several minutes; please be patient.
+updating tlmgr
+
+updating existing packages

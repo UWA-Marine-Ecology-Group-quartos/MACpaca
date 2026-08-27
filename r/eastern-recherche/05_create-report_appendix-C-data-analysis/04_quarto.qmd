@@ -15,6 +15,8 @@ format:
         \usepackage{caption}
         \usepackage{float}
         \usepackage{chngcntr}
+        \usepackage{arydshln}
+        \renewcommand{\arraystretch}{1.35}
         \floatplacement{table}{H}
         \floatplacement{figure}{H}
         % Appendix C numbers floats as "C <section>.<n>". The section counter is
@@ -45,67 +47,11 @@ library(gt)
 # locally while here() still points at the project root for the data paths.
 source("02_load-model-selection.R")
 
-# gt builders for Table C 1.1 and C 2.1. Kept here rather than in a separate
-# file so the render has only one path to resolve.
-build_report_table <- function(df, show_aicc = FALSE) {
-
-  sel_rows <- which(df$selected)
-
-  # Last row of each response group (drop the final one; table already has a
-  # bottom border there) - used to draw dotted separators between responses.
-  grp_last <- utils::head(cumsum(rle(as.character(df$response))$lengths), -1)
-
-  tbl <- df %>%
-    dplyr::select(-selected) %>%
-    gt() %>%
-    cols_label(
-      response   = "Response",
-      model      = "Model",
-      delta_aicc = md("$\\Delta$ AICc"),   # if these render literally in the PDF,
-      omega_aicc = md("$\\omega$ AICc"),   # swap both for plain "Delta AICc" etc.
-      r2         = md("$R^2$"),
-      edf        = "EDF"
-    ) %>%
-    fmt_number(columns = c(delta_aicc, omega_aicc), decimals = 3,
-               drop_trailing_zeros = TRUE) %>%
-    fmt_number(columns = r2,  decimals = 5, drop_trailing_zeros = TRUE) %>%
-    fmt_number(columns = edf, decimals = 2) %>%
-    sub_missing(missing_text = "-") %>%
-    cols_align(align = "left",   columns = response) %>%
-    cols_align(align = "center", columns = c(model, delta_aicc, omega_aicc, r2, edf)) %>%
-    cols_width(response ~ pct(24), model ~ pct(30)) %>%
-    tab_style(style = cell_text(weight = "bold"),          # selected model in bold
-              locations = cells_body(columns = everything(), rows = sel_rows)) %>%
-    tab_style(style = cell_text(weight = "bold"),
-              locations = cells_column_labels()) %>%
-    tab_style(style = cell_borders(sides = "bottom", style = "dotted",
-                                   color = "black", weight = px(1)),
-              locations = cells_body(columns = everything(), rows = grp_last)) %>%
-    tab_options(
-      table.width                       = pct(100),
-      table.font.size                   = px(14),
-      data_row.padding                  = px(3),
-      column_labels.border.top.color    = "black",
-      column_labels.border.bottom.color = "black",
-      table.border.top.style            = "none",
-      table.border.bottom.color         = "black",
-      table_body.hlines.style           = "none",
-      row.striping.include_table_body   = FALSE
-    )
-
-  if (show_aicc) {
-    tbl <- tbl %>%
-      cols_label(aicc = "AICc") %>%
-      fmt_number(columns = aicc, decimals = 2) %>%
-      cols_align(align = "center", columns = aicc) %>%
-      cols_move(columns = aicc, after = omega_aicc)
-  }
-
-  tbl
-}
-
-build_habitat_model_table <- function(df) build_report_table(df, show_aicc = FALSE)
-build_fish_model_table    <- function(df) build_report_table(df, show_aicc = TRUE)
+# gt builders for Table C 1.1 and C 2.1 live in Gt_model_tables.R so the qmd
+# and any standalone use share a single definition (build_report_table,
+# build_habitat_model_table, build_fish_model_table). Quarto sets the working
+# directory to this folder, so the relative path resolves during render.
+source("Gt_model_tables.R")
 
 habitat_table <- get_habitat_report_table()
 fish_table    <- get_fish_report_table()

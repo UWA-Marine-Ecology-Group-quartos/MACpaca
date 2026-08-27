@@ -1,9 +1,9 @@
 ###
-# Project: NESP 4.20 - Marine Park Dashboard reporting
+# Project: NESP 4.21 - Australian Marine Parks Natural Values Reporting
 # Data:    Fish data synthesis
 # Task:    Combine and format fish data for full subsets modelling
-# Author:  Claude Spencer
-# Date:    June 2024
+# Author:  Claude Spencer & Henry Evans
+# Date:    July 2026
 ###
 
 # Clear the environment
@@ -84,8 +84,8 @@ count.wide <- count %>%
   ) %>%
   mutate(
     Year = case_when(
-      grepl("^2014", campaignid) ~ "2014",
-      grepl("^2024", campaignid) ~ "2024",
+      grepl("^2025", campaignid) ~ "2025", # TODO adjust to years in data
+      #grepl("^2024", campaignid) ~ "2024",
       TRUE ~ campaignid
     )
   ) %>%
@@ -152,7 +152,7 @@ sac_df <- count.wide %>%
     )
   })
 
-saveRDS(sac_df, file = paste0("data/", park, "/tidy/", name, "_species-accumulation.rds")) ## DOES THIS LOOK RIGHT??
+saveRDS(sac_df, file = paste0("data/", park, "/tidy/", name, "_species-accumulation.rds"))
 
 cti <- CheckEM::create_cti(data = count) %>%
   dplyr::rename(count = cti) %>%
@@ -274,19 +274,19 @@ saveRDS(b20_species, file = paste0("data/", park, "/tidy/", name, "_b20-species.
 
 
 # -------------------------------------------------------------------------
-# Commonwealth-only copy of metadata                                              ##DO I HAVE TO DO THIS SECTION AS IT IS ALREADY COMMONWEALTH ONLY DATA?
+# Commonwealth-only copy of metadata
 # -------------------------------------------------------------------------
 
-marine_parks_amp <- st_read("data/amp_shapefile/Australian_Marine_Parks.shp") %>%
-  dplyr::filter(RESNAME %in% c("Hunter")) %>%
-  dplyr::filter(ZONEIUCN %in% "VI") %>%
+marine_parks_amp <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
+  dplyr::filter(name %in% c("Ngari Capes", "Geographe", "South-west Corner")) %>%
+  dplyr::filter(epbc %in% "Commonwealth") %>%
   st_transform(4326)
 
 metadata_amp <- metadata %>%
-  distinct(campaignid, opcode, .keep_all = TRUE) %>%
+  distinct(campaignid, sample, .keep_all = TRUE) %>%
   st_as_sf(coords = c("longitude_dd", "latitude_dd"), crs = 4326, remove = FALSE) %>%
   st_join(
-    marine_parks_amp %>% dplyr::select(RESNAME, ZONEIUCN),
+    marine_parks_amp %>% dplyr::select(name, epbc),
     join = st_within,
     left = FALSE
   ) %>%

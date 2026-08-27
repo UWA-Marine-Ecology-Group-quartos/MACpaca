@@ -287,7 +287,7 @@ naturalvalues_map_northwest <- function(plot_limits,
 # 4. FIGURE 1: North-west network natural values map
 # ==============================================================================
 
-network_limits <- c(108.5, 130, -28, -10)
+network_limits <- c(108.5, 130, -28, -11.85)
 
 figure_northwest_nv <- naturalvalues_map_northwest(
   plot_limits  = network_limits,
@@ -300,7 +300,7 @@ ggsave(paste(paste0("plots/", park, "/spatial/benthic_habitat/", name),
        plot   = figure_northwest_nv,
        dpi    = 600,
        width  = 12,
-       height = 9.75,
+       height = 11,
        bg     = "white")
 
 
