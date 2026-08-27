@@ -74,7 +74,8 @@ for(i in 1:length(resp.vars)){
                                   pred.vars.fact = factor.vars,
                                   cyclic.vars = "geoscience_aspect",
                                   k = 3, # TODO check this, maybe add cov.cutoff
-                                  factor.smooth.interactions = F, # TODO check this
+                                  factor.smooth.interactions = "year", # TODO check this
+                                  factor.factor.interactions = c("status", "year"),
                                   max.predictors = 5 # TODO check this
   )
   out.list <- fit.model.set(model.set,
