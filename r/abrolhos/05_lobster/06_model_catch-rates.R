@@ -1,16 +1,17 @@
 ###
 # Project: NESP 4.20 - Marine Park Dashboard reporting
 # Data:    Western rock lobster pots, Abrolhos (Yamatji Shallow Bank)
-# Task:    Tweedie GLM of legal and sublegal catch, inside vs outside the NPZ
+# Task:    Negative binomial GLMM of legal and sublegal catch, inside vs outside the NPZ
 # Author:  Henry Evans
 # Date:    August 2026
 ###
 
 # Model follows the specification provided by the project supervisor:
-#   legal    ~ status * year + depth_z + (1 | site)
-#   sublegal ~ status * year + depth_z + (1 | site)
-# fitted with glmmTMB using family = tweedie(link = "log"), with predicted
-# means and standard errors for each status-by-year combination.
+#   legal    ~ status * year + depth_z + (1 | string)
+#   sublegal ~ status * year + depth_z + (1 | string)
+# fitted with glmmTMB, giving predicted means and standard errors for each
+# status-by-year combination. The family was changed from the specified tweedie
+# to negative binomial - see the note above model_family below.
 #
 # The same model is also fitted to legal sized males, legal sized females, and
 # large males (>= large_male_mm) separately. The sexes differ in behaviour and in
@@ -27,18 +28,26 @@
 # legal and sublegal responses move in opposite directions between zones so the
 # total partly cancels them out.
 #
-# IMPORTANT - the (1 | site) term is currently switched OFF.
-# "Site" is the string (line) of pots. Neither survey year records a string
-# identifier: 2025 pot numbers happen to run in order along each line, but the
-# 2026 numbering is scrambled relative to position, so strings cannot be
-# recovered reliably from the data alone. Rather than invent them by spatial
-# clustering, the random effect is left out until the field string IDs are
-# available. Set use_site <- TRUE below once the data carries a `site` column.
+# The (1 | string) term is now ON. A string is one line of pots. Strings could
+# not be recovered from either survey export - 2025 pot numbers happen to run in
+# order along each line but the 2026 numbering is scrambled relative to position
+# - so they were assigned by hand and live in data/abrolhos/manual/lobster/.
 #
-# Consequence: pots within a string are not independent, so the standard errors
-# and p-values below are anti-conservative. The predicted means are affected far
-# less than their uncertainty, so the plots are indicative but the significance
-# tests should not be reported as final.
+# What the random effect is for: the same strings were fished in both years, but
+# the individual pots were not dropped in exactly the same spots. String is the
+# spatial pairing that makes the between-year comparison like for like. It is
+# not a claim that a string is a biologically coherent unit - a long string
+# spans several km, so its two ends are not interchangeable.
+#
+# What it does to the results: year is compared within strings, so its standard
+# error goes DOWN. Status is compared almost entirely between strings, so its
+# standard error goes UP - roughly doubling. The second is the honest number:
+# 13 of the 14 strings sit inside a single zone, so the real replication for
+# status is close to the number of strings rather than the number of pots.
+# String 14 is the one exception - it is a single line of pots that crosses the
+# boundary, so it is the only within-string zone contrast in the data.
+# Dropping the term is not an option; without it the status estimate changes
+# sign and AIC is ~80 worse.
 
 rm(list = ls())
 
@@ -53,11 +62,23 @@ large_male_mm <- config$large_male_mm
 
 tidy_dir   <- "data/abrolhos/tidy/lobster"
 plot_dir   <- "plots/abrolhos/lobster"
-output_dir <- "output/abrolhos/lobster"
+output_dir <- "output/model-output/abrolhos/lobster"
 dir.create(plot_dir,   recursive = TRUE, showWarnings = FALSE)
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
-use_site <- FALSE   # flip to TRUE when a `site` (string) column is available
+use_string <- TRUE   # set FALSE to refit without the random effect, for comparison
+
+# The supervisor's specification was tweedie(link = "log"). Tweedie will not fit
+# the two sparse responses once (1 | string) is in: legal male and large male
+# both end with a non-positive-definite Hessian and no usable standard errors,
+# and the large male string SD runs away to 59 on the log scale, predicting 5.8
+# lobsters per pot inside the NPZ against a raw mean of 1.0. The cause is the
+# extra Tweedie power parameter trading off against the random effect variance
+# when the response is mostly zeros - large males are 55 to 88% zeros. Negative
+# binomial has no such parameter, fits all six cleanly, and is the conventional
+# choice for integer counts. Switch back here to compare.
+model_family <- nbinom2(link = "log")
+family_label <- "Negative binomial GLMM"
 
 status_colours <- c("Inside NPZ"  = "#7bbc63",
                     "Outside NPZ" = "#6daff4")
@@ -79,13 +100,16 @@ panel_classes <- class_labels[setdiff(names(class_labels), "total")]
 # Data -------------------------------------------------------------------------
 
 catch <- read.csv(file.path(tidy_dir, paste0(name, "_lobster-catch-per-pot.csv")),
-                  colClasses = c(pot_number = "character")) %>%
+                  colClasses = c(pot_number = "character",
+                                 string     = "character")) %>%
   dplyr::mutate(
     # "Outside NPZ" first so model coefficients read as the effect of protection
     status = factor(if_else(zone %in% "National Park Zone",
                             "Inside NPZ", "Outside NPZ"),
                     levels = c("Outside NPZ", "Inside NPZ")),
     year = factor(year),
+    # Ordered numerically rather than as text, so string 2 does not sort after 10
+    string = factor(string, levels = as.character(sort(as.numeric(unique(string))))),
     # One 2026 pot is logged at 0 m, which is not a possible seabed depth here.
     # Treated as missing so it drops from the model rather than distorting depth.
     depth_m = if_else(depth_m <= 0, NA_real_, depth_m)
@@ -99,24 +123,33 @@ message("Pots available: ", nrow(catch),
         " | dropped for missing/implausible depth: ", n_dropped,
         " | used in models: ", nrow(model_data))
 
-if (use_site && !"site" %in% names(model_data)) {
-  stop("use_site is TRUE but the data has no `site` column.")
+if (use_string) {
+  if (!"string" %in% names(model_data)) {
+    stop("use_string is TRUE but the data has no `string` column. ",
+         "Run 03_combine-data.R, which joins the lookup in.")
+  }
+  if (any(is.na(model_data$string))) {
+    stop(sum(is.na(model_data$string)), " pots have no string assigned.")
+  }
+  message("Strings: ", nlevels(droplevels(model_data$string)),
+          " | pots per string: ",
+          paste(range(table(droplevels(model_data$string))), collapse = " to "))
 }
 
 # Fit --------------------------------------------------------------------------
 
-site_term <- if (use_site) " + (1 | site)" else ""
+string_term <- if (use_string) " + (1 | string)" else ""
 
 fit_catch <- function(response) {
   full <- glmmTMB(
-    as.formula(paste0(response, " ~ status * year + depth_z", site_term)),
-    family = tweedie(link = "log"),
+    as.formula(paste0(response, " ~ status * year + depth_z", string_term)),
+    family = model_family,
     data   = model_data
   )
   # Interaction dropped to give a likelihood ratio test of status-by-year
   additive <- glmmTMB(
-    as.formula(paste0(response, " ~ status + year + depth_z", site_term)),
-    family = tweedie(link = "log"),
+    as.formula(paste0(response, " ~ status + year + depth_z", string_term)),
+    family = model_family,
     data   = model_data
   )
   list(full = full, additive = additive, lrt = anova(additive, full))
@@ -173,20 +206,28 @@ write.csv(interaction_tests,
 
 summary_path <- file.path(output_dir, paste0(name, "_lobster-glm-summary.txt"))
 sink(summary_path)
-cat("Tweedie GLM of western rock lobster catch per pot\n")
+cat(family_label, "of western rock lobster catch per pot\n")
 cat("Abrolhos Marine Park, Yamatji Shallow Bank, 2025 and 2026\n")
 cat(strrep("=", 70), "\n\n")
-cat("Formula: <response> ~ status * year + depth_z", site_term, "\n")
-cat("Family:  tweedie(link = \"log\")\n")
+cat("Formula: <response> ~ status * year + depth_z", string_term, "\n")
+cat("Family:  nbinom2(link = \"log\")   [specified as tweedie; see script header]\n")
 cat("Responses:", paste(paste0("n_", names(class_labels)), collapse = ", "), "\n")
 cat("Pots used:", nrow(model_data), "of", nrow(catch), "\n")
 cat("\nNOTE: the legal male, legal female and large male models are subsets of\n")
 cat("the legal model, not independent tests of it. The all lobsters model is the\n")
 cat("legal and sublegal responses added together, so it is not independent either.\n")
-if (!use_site) {
-  cat("\nNOTE: the (1 | site) random effect specified by the supervisor is NOT\n")
-  cat("included, because string identifiers are not recorded in either survey.\n")
-  cat("Standard errors and p-values are therefore anti-conservative.\n")
+if (use_string) {
+  cat("\nStrings:", nlevels(droplevels(model_data$string)),
+      "- the random effect is the spatial pairing between years, not a\n")
+  cat("claim that a string is a biologically coherent unit. Year is compared\n")
+  cat("within strings; status is compared almost entirely between them, so the\n")
+  cat("status standard errors are roughly double what a model without the term\n")
+  cat("would report. All but one string sits inside a single zone - string 14\n")
+  cat("crosses the boundary and is the only within-string zone contrast.\n")
+} else {
+  cat("\nNOTE: the (1 | string) random effect specified by the supervisor is NOT\n")
+  cat("included. Pots within a string are not independent, so standard errors\n")
+  cat("and p-values are anti-conservative.\n")
 }
 cat("\nNOTE: status is spatially confounded with survey area. The National Park\n")
 cat("Zone is a single contiguous block sampled on its own day in both years, so\n")
@@ -213,7 +254,7 @@ for (class_key in names(models)) {
   png(file.path(output_dir, paste0(name, "_lobster-glm-dharma_", class_key, ".png")),
       height = 5, width = 10, units = "in", res = 150)
   plot(res)
-  mtext(paste("Tweedie GLM residual diagnostics -", class_labels[[class_key]]),
+  mtext(paste(family_label, "residual diagnostics -", class_labels[[class_key]]),
         outer = TRUE, line = -1.5, font = 2)
   dev.off()
 
@@ -248,7 +289,7 @@ temporal_plot <- function(classes, ncol) {
     scale_x_continuous(breaks = unique(plot_data$year)) +
     coord_cartesian(ylim = c(0, NA)) +
     labs(x = "Year", y = "Predicted lobsters per pot (mean +/- SE)",
-         caption = "Tweedie GLM, depth held at its mean") +
+         caption = paste(family_label, "with (1 | string), depth held at its mean")) +
     theme_classic() +
     theme(legend.position = "right",
           strip.background = element_blank(),
@@ -286,7 +327,7 @@ ggplot(dplyr::filter(plot_data, size_class %in% panel_classes),
   facet_wrap(~size_class, nrow = 1, scales = "free_y") +
   scale_fill_manual(values = status_colours, name = NULL) +
   labs(x = "Year", y = "Predicted lobsters per pot (mean +/- SE)",
-       caption = "Tweedie GLM, depth held at its mean") +
+       caption = paste(family_label, "with (1 | string), depth held at its mean")) +
   theme_classic() +
   theme(legend.position = "right",
         strip.background = element_blank(),

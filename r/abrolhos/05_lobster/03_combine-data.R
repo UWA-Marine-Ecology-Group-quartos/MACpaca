@@ -37,6 +37,31 @@ measurements <- years %>%
   purrr::map(~ read_tidy("measurements", .x)) %>%
   bind_rows()
 
+# Attach strings ---------------------------------------------------------------
+
+# Pots were set in strings that were repeated in the second year, so string is
+# the repeated measures unit in the catch rate models. String was assigned by
+# hand, so the lookup lives under data/abrolhos/manual/ rather than raw/ - it
+# cannot be rebuilt from a Survey123 export and must survive one overwriting the
+# raw folder. A string is one physical line of pots, so string 14 is kept whole
+# even though it crosses a zone boundary - 13 of the 14 strings sit within a
+# single zone, and string 14 is the only place zone varies within a string.
+strings <- read.csv("data/abrolhos/manual/lobster/pot_strings.csv",
+                    colClasses = c(pot_number = "character",
+                                   string     = "character")) %>%
+  dplyr::select(pot_key, string)
+
+pots <- pots %>%
+  dplyr::mutate(pot_key = paste(year, date_retrieved, pot_number, sep = "_")) %>%
+  dplyr::left_join(strings, by = "pot_key") %>%
+  dplyr::select(-pot_key)
+
+unstringed <- dplyr::filter(pots, is.na(string) | string %in% "")
+if (nrow(unstringed) > 0) {
+  message("WARNING: ", nrow(unstringed), " pots have no string assigned:")
+  print(dplyr::count(unstringed, year, date_retrieved, pot_number))
+}
+
 # Assign marine park zones -----------------------------------------------------
 
 parks <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp",
@@ -118,7 +143,7 @@ catch_per_pot <- measurements_zoned %>%
   dplyr::mutate(across(starts_with("n_"), ~ replace_na(.x, 0)),
                 n_total = n_Legal + n_Sublegal) %>%
   dplyr::rename(n_legal = n_Legal, n_sublegal = n_Sublegal) %>%
-  dplyr::select(campaign, year, date_retrieved, pot_number, zone,
+  dplyr::select(campaign, year, date_retrieved, pot_number, string, zone,
                 longitude, latitude, depth_m, soak_time_hours,
                 n_legal, n_legal_male, n_legal_female, n_male_large,
                 n_sublegal, n_total)

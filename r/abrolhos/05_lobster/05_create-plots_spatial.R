@@ -126,4 +126,58 @@ ggplot() +
 ggsave(file.path(plot_dir, paste0(name, "_lobster-legal-bubble_year.png")),
        height = 6, width = 10, dpi = 300, bg = "white")
 
+# QC map of string labels ------------------------------------------------------
+
+# A check that every pot carries the right string, not a report figure. Every
+# pot is drawn, including the ones flagged unsuccessful, because a mislabelled
+# pot needs finding whether or not it fished.
+pots_all <- read.csv(file.path(tidy_dir, paste0(name, "_lobster-pots_all-years.csv")),
+                     colClasses = c(pot_number = "character",
+                                    string     = "character"))
+
+string_levels  <- as.character(sort(as.numeric(unique(pots_all$string))))
+string_colours <- setNames(grDevices::hcl.colors(length(string_levels), "Dark 3"),
+                           string_levels)
+
+pots_all <- dplyr::mutate(pots_all, string = factor(string, levels = string_levels))
+
+# Pots are joined in the order they sit along the string rather than by pot
+# number, which is not spatial in 2026. Projecting each string onto its own
+# first principal component orders the pots along the line whichever way it
+# runs, so a pot given the wrong string shows up as a spike off the line.
+string_paths <- pots_all %>%
+  dplyr::group_by(year, string) %>%
+  dplyr::group_modify(~ {
+    if (nrow(.x) < 3) {
+      .x$position <- .x$latitude
+    } else {
+      # Longitude is scaled by cos(latitude) so the axis is not stretched
+      xy <- cbind(.x$longitude * cos(mean(.x$latitude) * pi / 180), .x$latitude)
+      .x$position <- prcomp(xy)$x[, 1]
+    }
+    dplyr::arrange(.x, position)
+  }) %>%
+  dplyr::ungroup()
+
+ggplot() +
+  base_map +
+  geom_path(data = string_paths,
+            aes(x = longitude, y = latitude, group = interaction(year, string)),
+            colour = "grey45", linewidth = 0.3) +
+  # A white disc behind each label keeps the number readable over the zone fill
+  geom_point(data = pots_all, aes(x = longitude, y = latitude),
+             colour = "white", size = 3.6) +
+  geom_text(data = pots_all,
+            aes(x = longitude, y = latitude, label = string, colour = string),
+            size = 2.6, fontface = "bold", show.legend = FALSE) +
+  scale_colour_manual(values = string_colours) +
+  facet_wrap(~ year) +
+  labs(title = "Pot string labels, Abrolhos Marine Park",
+       subtitle = "QC check - every pot labelled with its string",
+       caption = paste("Lines join pots within a string, ordered along the string.",
+                       "A pot on the wrong string shows as a spike off the line."))
+
+ggsave(file.path(plot_dir, paste0(name, "_lobster-string-labels_year.png")),
+       height = 11, width = 13, dpi = 300, bg = "white")
+
 message("Spatial plots written to ", plot_dir)

@@ -30,7 +30,7 @@ large_male_mm <- config$large_male_mm
 
 tidy_dir   <- here("data/abrolhos/tidy/lobster")
 plot_dir   <- here("plots/abrolhos/lobster")
-output_dir <- here("output/abrolhos/lobster")
+output_dir <- here("output/model-output/abrolhos/lobster")
 
 pots <- read.csv(file.path(tidy_dir, paste0(name, "_lobster-pots_all-years.csv")),
                  colClasses = c(pot_number = "character"))
@@ -39,6 +39,27 @@ measurements <- read.csv(file.path(tidy_dir, paste0(name, "_lobster-measurements
 catch_per_pot <- read.csv(file.path(tidy_dir, paste0(name, "_lobster-catch-per-pot.csv")),
                           colClasses = c(pot_number = "character"))
 catch_by_zone <- read.csv(file.path(tidy_dir, paste0(name, "_lobster-catch-by-zone.csv")))
+
+# Figures quoted in the modelling text, derived rather than typed in so they
+# cannot drift away from the data
+n_strings <- dplyr::n_distinct(catch_per_pot$string)
+
+# A string counts as inside or outside only if all of its pots fall in one zone.
+# String 14 crosses the boundary and is deliberately left whole, so it is in
+# neither count.
+strings_by_zone <- catch_per_pot %>%
+  group_by(string) %>%
+  summarise(zones = n_distinct(zone), zone = first(zone), .groups = "drop")
+
+n_npz_strings <- sum(strings_by_zone$zones == 1 &
+                       strings_by_zone$zone %in% "National Park Zone")
+n_spz_strings <- sum(strings_by_zone$zones == 1 &
+                       !strings_by_zone$zone %in% "National Park Zone")
+
+# Pots reaching the models, after the 0 m depth pot and any missing depth drop
+n_pots_model <- sum(!is.na(catch_per_pot$depth_m) & catch_per_pot$depth_m > 0)
+
+pct_zero_large <- round(100 * mean(catch_per_pot$n_male_large == 0))
 ```
 
 ## Survey effort
@@ -143,15 +164,36 @@ include_graphics(file.path(plot_dir, paste0(name, "_lobster-catch-rate_legal-sub
 
 ## Modelling: catch inside vs outside the National Park Zone
 
-Catch per pot was modelled with a Tweedie generalised linear model (log link),
-fitted in `glmmTMB`:
+Catch per pot was modelled with a negative binomial generalised linear mixed
+model (log link), fitted in `glmmTMB`:
 
-`catch ~ status * year + depth_z`
+`catch ~ status * year + depth_z + (1 | string)`
 
 where `status` is inside or outside the National Park Zone, `year` is a factor,
-and `depth_z` is pot depth standardised to zero mean and unit variance. Predicted
-means and standard errors for each status-by-year combination were obtained with
-`emmeans`, holding depth at its mean.
+`depth_z` is pot depth standardised to zero mean and unit variance, and `string`
+is the line of pots that each pot belonged to. Predicted means and standard
+errors for each status-by-year combination were obtained with `emmeans`, holding
+depth at its mean.
+
+Pots were set in strings of roughly 8 to 20 pots, and the same
+`r n_strings` strings were fished in both survey years. Individual pots were not
+dropped in exactly the same positions each year, so the `(1 | string)` term acts
+as the spatial pairing that makes the between-year comparison like for like. It
+is not a claim that a string is a biologically coherent unit: a long string spans
+several kilometres, so its two ends are not interchangeable. Because year is
+compared within strings its standard error is reduced, while status is compared
+almost entirely between strings and its standard error is roughly doubled
+relative to a model fitted without the term.
+
+The specification was originally a Tweedie model. Tweedie could not be fitted to
+the two sparsest responses once the random effect was included: legal males and
+large males both terminated with a non-positive-definite Hessian and no usable
+standard errors, and the large male string variance diverged, giving predictions
+several times the observed means. The Tweedie power parameter is weakly
+identified against the random effect variance when the response is mostly zeros,
+which is the case for large males (`r pct_zero_large`% of counted pots caught
+none). The negative binomial has no such parameter, fits all six responses
+cleanly, and is the conventional choice for integer counts.
 
 Six responses were modelled with this specification: legal catch, sublegal catch,
 legal males, legal females, males of `r large_male_mm` mm or more, and all
@@ -166,24 +208,24 @@ and the all lobsters response is the legal and sublegal responses added together
 ::: {.callout-important}
 ## Two limitations to read these results against
 
-**The random effect for site is not included.** The intended specification was
-`catch ~ status * year + depth_z + (1 | site)`, where site is the string (line)
-of pots. Neither survey records a string identifier, and the 2026 pot numbering
-does not follow position along the line, so strings cannot be recovered reliably
-from the data. Because pots within a string are not independent, the standard
-errors and p-values below are anti-conservative. The predicted means are much
-less affected than their uncertainty, so the plots are indicative while the
-significance tests are provisional.
-
 **Status is spatially confounded with survey area.** The National Park Zone is a
 single contiguous block that was fished on its own day in both years. Comparing
 inside with outside is therefore partly comparing the middle area with the
 northern and southern areas, and any habitat difference between those areas is
 not separable from the effect of protection.
+
+**Replication for the status comparison is the number of strings, not the number
+of pots.** Of the `r n_strings` strings, `r n_npz_strings` sit entirely inside
+the National Park Zone and `r n_spz_strings` entirely outside it; only one string
+crosses the boundary, so almost all of the status contrast is between strings
+rather than within them. The effective sample size for status is therefore closer
+to `r n_strings` than to the `r n_pots_model` pots counted, and the standard
+errors on the status terms below reflect that. The between-year comparison is not
+affected in the same way, because it is made within strings.
 :::
 
 ```{r}
-#| tbl-cap: "Predicted western rock lobster catch per pot from the Tweedie generalised linear model, by size class, zoning status and survey year, with standard errors and asymptotic 95% confidence limits. Predictions are made with depth held at its mean. NPZ = National Park Zone."
+#| tbl-cap: "Predicted western rock lobster catch per pot from the negative binomial generalised linear mixed model, by size class, zoning status and survey year, with standard errors and asymptotic 95% confidence limits. Predictions are made with depth held at its mean. NPZ = National Park Zone."
 read.csv(file.path(output_dir, paste0(name, "_lobster-glm-predictions.csv"))) %>%
   transmute(`Size class` = size_class, Status = status, Year = year,
             `Per pot` = round(mean, 2),
@@ -194,22 +236,22 @@ read.csv(file.path(output_dir, paste0(name, "_lobster-glm-predictions.csv"))) %>
 ```
 
 ```{r}
-#| fig-cap: "Predicted western rock lobster catch per pot inside and outside the National Park Zone across the size progression from sublegal to legal to large males, from the Tweedie generalised linear model. Points are predicted means with standard errors, with depth held at its mean. Note that each panel has its own y axis scale. Legal size is a carapace length greater than 76 mm. NPZ = National Park Zone."
+#| fig-cap: "Predicted western rock lobster catch per pot inside and outside the National Park Zone across the size progression from sublegal to legal to large males, from the negative binomial generalised linear mixed model. Points are predicted means with standard errors, with depth held at its mean. Note that each panel has its own y axis scale. Legal size is a carapace length greater than 76 mm. NPZ = National Park Zone."
 include_graphics(file.path(plot_dir, paste0(name, "_lobster-glm-control-plot_size-progression.png")))
 ```
 
 ```{r}
-#| fig-cap: "Predicted western rock lobster catch per pot inside and outside the National Park Zone for all five size class models, including legal males and legal females separately, from the Tweedie generalised linear model. Points are predicted means with standard errors, with depth held at its mean. Note that each panel has its own y axis scale. NPZ = National Park Zone."
+#| fig-cap: "Predicted western rock lobster catch per pot inside and outside the National Park Zone for all five size class models, including legal males and legal females separately, from the negative binomial generalised linear mixed model. Points are predicted means with standard errors, with depth held at its mean. Note that each panel has its own y axis scale. NPZ = National Park Zone."
 include_graphics(file.path(plot_dir, paste0(name, "_lobster-glm-control-plot.png")))
 ```
 
 ```{r}
-#| fig-cap: "Predicted total western rock lobster catch per pot, legal and sublegal combined, inside and outside the National Park Zone, from the Tweedie generalised linear model. Points are predicted means with standard errors, with depth held at its mean. This response is the sum of the legal and sublegal responses shown above rather than an independent size class. NPZ = National Park Zone."
+#| fig-cap: "Predicted total western rock lobster catch per pot, legal and sublegal combined, inside and outside the National Park Zone, from the negative binomial generalised linear mixed model. Points are predicted means with standard errors, with depth held at its mean. This response is the sum of the legal and sublegal responses shown above rather than an independent size class. NPZ = National Park Zone."
 include_graphics(file.path(plot_dir, paste0(name, "_lobster-glm-control-plot_total.png")))
 ```
 
 ```{r}
-#| fig-cap: "Predicted western rock lobster catch per pot inside and outside the National Park Zone by size class and survey year, from the Tweedie generalised linear model, shown as bars with standard errors. Depth is held at its mean and each panel has its own y axis scale. NPZ = National Park Zone."
+#| fig-cap: "Predicted western rock lobster catch per pot inside and outside the National Park Zone by size class and survey year, from the negative binomial generalised linear mixed model, shown as bars with standard errors. Depth is held at its mean and each panel has its own y axis scale. NPZ = National Park Zone."
 include_graphics(file.path(plot_dir, paste0(name, "_lobster-glm-barplot.png")))
 ```
 
@@ -219,7 +261,7 @@ include_graphics(file.path(plot_dir, paste0(name, "_lobster-catch-boxplot.png"))
 ```
 
 ```{r}
-#| tbl-cap: "Coefficients of the Tweedie generalised linear model of western rock lobster catch per pot, on the log scale, with standard errors, z statistics and p values. Reference levels are outside the National Park Zone in 2025, so the status term is the effect of protection in 2025 and the interaction term is the change in that effect by 2026. NPZ = National Park Zone."
+#| tbl-cap: "Coefficients of the negative binomial generalised linear mixed model of western rock lobster catch per pot, on the log scale, with standard errors, z statistics and p values. Reference levels are outside the National Park Zone in 2025, so the status term is the effect of protection in 2025 and the interaction term is the change in that effect by 2026. NPZ = National Park Zone."
 read.csv(file.path(output_dir, paste0(name, "_lobster-glm-coefficients.csv"))) %>%
   transmute(`Size class` = size_class, Term = term,
             Estimate = round(estimate, 3),
@@ -242,6 +284,11 @@ read.csv(file.path(output_dir, paste0(name, "_lobster-glm-interaction-tests.csv"
 
 - Pots that were lost, had a missing trap door, or were flagged in the field as
   not countable are excluded from catch rates but retained in the pot table.
+- Neither survey export records a string identifier, and the 2026 pot numbering
+  does not follow position along the line, so strings were assigned by hand from
+  the deployment order and pot positions. A string is one physical line of pots
+  and is kept whole: one string crosses the National Park Zone boundary and has
+  not been split, so that it still represents a single deployment.
 - Pots that caught no lobsters are carried through the analysis as zeros.
 - Set times were not recorded in 2026, so soak time is available for 2025 only
   and catch is reported per pot rather than per pot-hour.

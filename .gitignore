@@ -23,6 +23,9 @@ data/**/*
 !data/*/
 !data/*/spatial
 !data/*/spatial/**
+# Hand-entered data that cannot be regenerated from a raw export
+!data/*/manual
+!data/*/manual/**
 !data/TEMPLATE
 !data/TEMPLATE/**
 .positai
