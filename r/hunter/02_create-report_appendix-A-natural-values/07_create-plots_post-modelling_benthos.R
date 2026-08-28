@@ -54,7 +54,7 @@ ausc <- st_read("data/south-west network/spatial/shapefiles/aus-shapefile-w-inve
   st_transform(4326)
 
 marine_parks <- st_read("data/amp_shapefile/Australian_Marine_parks_v2.shp") %>%
-  dplyr::filter(name %in% c("Hunter")) # TODO select relevant parks
+  dplyr::filter(name %in% c("Hunter", "Kent Group National Park")) # TODO select relevant parks
 
 marine_parks_amp <- marine_parks %>%
   dplyr::filter(epbc %in% "Commonwealth") %>%

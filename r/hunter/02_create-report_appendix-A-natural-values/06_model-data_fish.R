@@ -35,7 +35,7 @@ library(FSSgam)
 library(CheckEM)
 
 tidy_maxn <- readRDS(paste0("data/", park, "/tidy/", name, "_tidy-count.rds")) %>% # TODO check outlier removal
-  dplyr::filter(geoscience_roughness < 4) %>% # Remove outliers in roughness
+  dplyr::filter(geoscience_roughness < 7) %>% # Remove outliers in roughness
   glimpse()
 
 # Re-set the predictors for modeling----
@@ -69,8 +69,13 @@ var.imp     <- list()
 for(i in 1:length(resp.vars)){
   print(resp.vars[i])
   use.dat <- as.data.frame(tidy_maxn[which(tidy_maxn$response == resp.vars[i]), ])
+  this.family <- switch(resp.vars[i],
+                        total_abundance  = tw(),
+                        species_richness = nb(),
+                        cti              = gaussian())
   Model1  <- gam(count ~ s(geoscience_depth, k = 3, bs = 'cr'),
-                 family = tw(),  data = use.dat) # TODO check family
+                 family = this.family, # TODO check family
+                 data = use.dat)
 
   model.set <- generate.model.set(use.dat = use.dat,
                                   test.fit = Model1,
@@ -83,7 +88,7 @@ for(i in 1:length(resp.vars)){
   )
   out.list <- fit.model.set(model.set,
                             max.models = 600,
-                            parallel = T,
+                            parallel = F,
                             r2.type = "dev")
   names(out.list)
 
@@ -119,7 +124,7 @@ write.csv(all.var.imp, file = paste(savedir, paste(name, "all.var.imp.csv", sep 
 
 # Do FSS for B20
 tidy_b20 <- readRDS(paste0("data/", park, "/tidy/", name, "_tidy-b20.rds")) %>%
-  dplyr::filter(geoscience_roughness < 4) %>% # TODO check, make same as above
+  dplyr::filter(geoscience_roughness < 7) %>% # TODO check, make same as above
   glimpse()
 
 # # Re-set the predictors for modeling----
@@ -213,9 +218,7 @@ fabund <- bind_rows(tidy_maxn, tidy_b20) %>%
 #Total abundance
 m_abundance <- gam(count ~
                      s(geoscience_aspect, k = 3, bs = "cc") +
-                     s(geoscience_depth, k = 3, bs = "cr") +
-                     s(geoscience_detrended, k = 3, bs = "cr") +
-                     s(geoscience_roughness, k = 3, bs = "cr"),
+                     s(geoscience_depth, k = 3, bs = "cr"),
                   data = fabund %>% dplyr::filter(response %in% "total_abundance"),
                   family = poisson)
 summary(m_abundance)
@@ -224,8 +227,7 @@ summary(m_abundance)
 # Species richness
 m_richness <- gam(count ~
                     s(geoscience_aspect, k = 3, bs = "cc") +
-                    s(geoscience_detrended, k = 3, bs = "cr") +
-                    s(reef, k = 3, bs = "cr"),
+                    s(geoscience_depth, k = 3, bs = "cr"),
                   data = fabund %>% dplyr::filter(response %in% "species_richness"),
                   family = gaussian(link = "identity"))
 summary(m_richness)
@@ -233,7 +235,7 @@ summary(m_richness)
 
 # CTI
 m_cti <- gam(count ~
-               s(geoscience_aspect, k = 3, bs = "cc"),
+               s(geoscience_roughness, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "cti"),
              family = gaussian(link = "identity"))
 summary(m_cti)
@@ -242,7 +244,7 @@ summary(m_cti)
 # B20
 m_b20 <- gam(count ~
                s(geoscience_aspect, k = 3, bs = "cc") +
-               s(geoscience_detrended, k = 3, bs = "cr"),
+               s(geoscience_roughness, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "b20"),
              family = tw())
 summary(m_b20)
@@ -258,10 +260,8 @@ preddf <- preds %>%
   glimpse()
 
 # Extract status to predict onto (same as habitat script)
-marine_parks <- st_read("data/amp_shapefile/Australian_Marine_Parks.shp") %>%
-  dplyr::filter(RESNAME %in% c("Hunter")) %>% # TODO select marine parks in your area
-  dplyr::filter(ZONEIUCN %in% c("VI")) %>%
-  dplyr::mutate(status = "Fished") %>%
+marine_parks <- st_read("data/amp_shapefile/Australian_Marine_Parks_v2.shp") %>%
+  dplyr::filter(name %in% c("Hunter")) %>% # TODO select marine parks in your area
   vect()
 
 # Points for extraction

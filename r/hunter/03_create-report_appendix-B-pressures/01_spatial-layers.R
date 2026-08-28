@@ -88,7 +88,7 @@ sst_list <- list()
 for (month in sort(unique(month(time(rast_sst))))) {
   monthly_rast <- subset(rast_sst, month(time(rast_sst)) == month) %>%
     mean(na.rm = TRUE) %>%
-    app(fun = function(i) {i - 273.15})
+    app(fun = function(i) {i})
   names(monthly_rast) <- month.abb[month]
   sst_list[[month.abb[month]]] <- monthly_rast
 }
@@ -103,7 +103,7 @@ sst_tsdf <- terra::global(rast_sst, fun = "mean", na.rm = T) %>%
   cbind(terra::global(rast_sst, fun = "sd", na.rm = T)) %>%
   tidyr::separate(rowname, into = c("year", "month", "day"), sep = "-") %>%
   dplyr::group_by(year, month) %>%
-  summarise(sst = mean(mean, na.rm = T) - 273.15, # Convert kelvin to celsius
+  summarise(sst = mean(mean, na.rm = T), #- 273.15, # Convert kelvin to celsius
             sd = mean(sd, na.rm = T)) %>%
   ungroup() %>%
   dplyr::mutate(season = case_when(month %in% c("04", "05", "06") ~ "Autumn", # seasons are based on SST not euro seasons
