@@ -9,6 +9,7 @@
 rm(list = ls())
 
 library(tidyverse)
+library(sf)
 
 # Set the study name
 script_dir <- dirname(
@@ -22,7 +23,32 @@ config <- yaml::read_yaml(
 name <- config$name
 park <- config$park
 
-benthos_raw <- readRDS(paste0("data/", park, "/raw/", name, "_benthos.RDS"))
+# National Park Zone ----
+# Same filter as 02_spatial-layers.R - the benthos models are fitted to NPZ
+# samples only
+# TODO Check the shapefile path matches the network you are working in
+npz <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
+  dplyr::filter(epbc %in% "Commonwealth",
+                zone %in% "National Park Zone") %>%
+  st_transform(4326) %>%
+  st_make_valid() %>%
+  st_union()
+
+benthos_all <- readRDS(paste0("data/", park, "/raw/", name, "_benthos.RDS"))
+
+benthos_raw <- benthos_all %>%
+  st_as_sf(coords = c("longitude_dd", "latitude_dd"), crs = 4326, remove = FALSE) %>%
+  st_filter(npz, .predicate = st_within) %>%
+  st_drop_geometry()
+
+# TODO Check this matches the NPZ sample count reported by 02_spatial-layers.R
+message("Benthos samples inside the NPZ: ", nrow(benthos_raw), " of ",
+        nrow(benthos_all))
+
+if (nrow(benthos_raw) == 0) {
+  stop("No benthos samples fall inside the NPZ - check the shapefile and the ",
+       "sample coordinates.")
+}
 
 # TODO Check which classes came back - the BOSS summarising in 01 and the
 # CheckEM summarising applied to the BRUVs do not always return the same set,

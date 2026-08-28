@@ -44,14 +44,58 @@ e_pad <- 0.02
 # TODO Download AusBathyTopo 2024 from https://pid.geoscience.gov.au/dataset/ga/150050
 # and save in below folder
 
+# National Park Zone ----
+# Samples and predictions are both restricted to the Commonwealth NPZ. Held as
+# an sfc (not sf) so it can be used directly in st_filter() and
+# st_intersection() without colliding with the buffer's own columns.
+# TODO Check the shapefile path matches the network you are working in
+npz <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
+  dplyr::filter(epbc %in% "Commonwealth",
+                zone %in% "National Park Zone") %>%
+  st_transform(4326) %>%
+  st_make_valid() %>%
+  st_union()
+
+if (length(npz) == 0) {
+  stop("No National Park Zone polygons returned - check the `zone` labels in ",
+       "the marine parks shapefile.")
+}
+
+# Keep only samples that fall inside the NPZ
+in_npz <- function(df) {
+  df %>%
+    st_as_sf(coords = c("longitude_dd", "latitude_dd"), crs = 4326, remove = FALSE) %>%
+    st_filter(npz, .predicate = st_within) %>%
+    st_drop_geometry()
+}
+
 # Read in the metadata ----
-metadata_bruv <- readRDS(paste0("data/", park, "/raw/bruv_metadata.RDS")) %>%
-  dplyr::select(campaignid, sample, longitude_dd, latitude_dd) %>%
+metadata_bruv_all <- readRDS(paste0("data/", park, "/raw/bruv_metadata.RDS")) %>%
+  dplyr::select(campaignid, sample, longitude_dd, latitude_dd)
+
+metadata_all <- readRDS(paste0("data/", park, "/raw/metadata.RDS")) %>%
+  dplyr::select(campaignid, sample, longitude_dd, latitude_dd, status, year)
+
+metadata_bruv <- in_npz(metadata_bruv_all) %>%
   glimpse()
 
-metadata <- readRDS(paste0("data/", park, "/raw/metadata.RDS")) %>%
-  dplyr::select(campaignid, sample, longitude_dd, latitude_dd, status, year) %>%
+metadata <- in_npz(metadata_all) %>%
   glimpse()
+
+# TODO Check how many samples survived the NPZ filter
+message("Samples inside the NPZ: ", nrow(metadata), " of ", nrow(metadata_all),
+        " | BRUVs inside the NPZ: ", nrow(metadata_bruv), " of ",
+        nrow(metadata_bruv_all))
+
+if (nrow(metadata) == 0 || nrow(metadata_bruv) == 0) {
+  stop("No samples fall inside the NPZ - check the shapefile and the sample ",
+       "coordinates before going any further.")
+}
+
+# TODO Every NPZ sample should come back No-take. Any model term or summary that
+# contrasts status has only one level to work with from here on.
+message("Status levels retained: ",
+        paste(sort(unique(as.character(metadata$status))), collapse = ", "))
 
 # Samples with habitat data ----
 habitat_samples <- readRDS(paste0("data/", park, "/raw/", name, "_benthos.RDS")) %>%
@@ -86,7 +130,11 @@ make_buffer <- function(x) {
     st_buffer(dist = buffer_km * 1000) %>%
     st_union() %>%
     st_transform(4326) %>%
-    st_as_sf()
+    st_as_sf() %>%
+    # Clip to the NPZ - the 10 km buffer only ever removes area from the zone,
+    # it never extends the prediction surface beyond it
+    st_intersection(npz) %>%
+    st_make_valid()
 }
 
 sample_buffer <- make_buffer(metadata_habitat_sf)       # benthos - habitat samples
@@ -94,8 +142,9 @@ bruv_buffer   <- make_buffer(metadata_bruv_habitat_sf)  # fish    - BRUV habitat
 extent_buffer <- make_buffer(metadata_sf)               # extent  - every sample
 
 # Set the extent of the study from the WIDER of the two buffers, so the full
-# 10 km is retained around every sample. bruv_buffer is a subset of this, so
-# the bathymetry only has to be processed once.
+# 10 km is retained around every sample where the NPZ boundary allows it.
+# bruv_buffer is a subset of this, so the bathymetry only has to be processed
+# once.
 bb <- st_bbox(extent_buffer)
 
 e <- ext(bb[["xmin"]] - e_pad, bb[["xmax"]] + e_pad,
@@ -107,7 +156,7 @@ bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__
   clamp(upper = 0, lower = -250, values = F) %>%
   trim()
 plot(bathy)
-
+list.files("data/south-west network/spatial/rasters")
 # Create terrain metrics (bathymetry derivatives)
 preds <- terrain(bathy, neighbors = 8,
                  v = c("aspect", "roughness"),
@@ -218,3 +267,4 @@ metadata.bathy.derivatives <- metadata.bathy.derivatives.all %>%
 
 # Save the metadata bathymetry derivatives
 saveRDS(metadata.bathy.derivatives, paste0("data/", park, "/tidy/", name, "_metadata-bathymetry-derivatives.rds"))
+

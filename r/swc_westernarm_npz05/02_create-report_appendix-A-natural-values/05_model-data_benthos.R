@@ -27,10 +27,10 @@ combine_benthos <- config$combine_benthos
 benthos_label <- if (combine_benthos) paste(years, collapse = "_") else NA
 
 ## TODO Run below to install FSSgam package
-# if (!requireNamespace("remotes", quietly = TRUE)) {
-#   install.packages("remotes")
-# }
-# remotes::install_github("beckyfisher/FSSgam_package")
+if (!requireNamespace("remotes", quietly = TRUE)) {
+  install.packages("remotes")
+}
+remotes::install_github("beckyfisher/FSSgam_package")
 
 library(CheckEM)
 library(tidyverse)
@@ -501,4 +501,3 @@ for (this_label in pred.labels) {
     overwrite = TRUE
   )
 }
-

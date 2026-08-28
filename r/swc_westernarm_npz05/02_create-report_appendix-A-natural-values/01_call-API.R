@@ -18,7 +18,6 @@ config <- yaml::read_yaml(
 name <- config$name
 park <- config$park
 
-# Load libraries needed -----
 
 # TODO Run these once or as required:
 # remotes::install_github("GlobalArchiveManual/CheckEM")

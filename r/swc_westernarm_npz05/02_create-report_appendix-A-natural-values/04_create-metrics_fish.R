@@ -34,7 +34,33 @@ metadata_bathy_derivatives <- readRDS(paste0("data/", park, "/tidy/", name, "_me
   clean_names() %>%
   glimpse()
 
-metadata <- readRDS(paste0("data/", park, "/raw/metadata.RDS"))
+metadata_all <- readRDS(paste0("data/", park, "/raw/metadata.RDS"))
+
+# National Park Zone ----
+# Same filter as 02_spatial-layers.R. Applied to the metadata rather than to
+# each derived object, so every downstream count, SAC, B20 and complete-sample
+# list is built from NPZ samples only.
+# TODO Check the shapefile path matches the network you are working in
+npz <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
+  dplyr::filter(epbc %in% "Commonwealth",
+                zone %in% "National Park Zone") %>%
+  st_transform(4326) %>%
+  st_make_valid() %>%
+  st_union()
+
+metadata <- metadata_all %>%
+  st_as_sf(coords = c("longitude_dd", "latitude_dd"), crs = 4326, remove = FALSE) %>%
+  st_filter(npz, .predicate = st_within) %>%
+  st_drop_geometry()
+
+# TODO Check this matches the NPZ sample count reported by 02_spatial-layers.R
+message("Metadata samples inside the NPZ: ", nrow(metadata), " of ",
+        nrow(metadata_all))
+
+if (nrow(metadata) == 0) {
+  stop("No samples fall inside the NPZ - check the shapefile and the sample ",
+       "coordinates.")
+}
 
 # Fish metrics come from the BRUVs only - synthesis 87 is BOSS habitat with no
 # fish records. Every join in this script therefore uses metadata_fish, not
