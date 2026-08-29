@@ -10,7 +10,7 @@ fishmetric_plot <- function(metric_name,
   if (is.null(yrs) || any(yrs == "")) {
     stop("dat_list must be a named list")
   }
-
+  multi_year <- length(dat_list) > 1
   # ---- Extract rasters ----
   pred_list <- lapply(dat_list, function(x) x[[paste0("p_", layer_stub, ".fit")]])
   se_list   <- lapply(dat_list, function(x) x[[paste0("p_", layer_stub, ".se.fit")]])
@@ -77,13 +77,13 @@ fishmetric_plot <- function(metric_name,
       ),
       geom_sf(data = ausc, fill = "seashell2", colour = "black", linewidth = 0.2),
       geom_sf(
-        data = wasanc,
+        data = marine_parks_state,
         aes(colour = zone),
         fill = NA,
         show.legend = FALSE,
         linewidth = 0.6
       ),
-      scale_colour_manual(values = with(wasanc, setNames(colour, zone))),
+      scale_colour_manual(values = with(marine_parks_state, setNames(colour, zone))),
       ggnewscale::new_scale_color(),
       geom_sf(
         data = marine_parks_amp,
@@ -115,7 +115,7 @@ fishmetric_plot <- function(metric_name,
 
   # ---- Prediction panels (top row) ----
   p_pred <- lapply(seq_along(yrs), function(i) {
-    ggplot() +
+    p <- ggplot() +
       geom_spatraster(data = pred_list[[i]]) +
       scale_fill_viridis_c(
         name = fill_title,
@@ -123,9 +123,14 @@ fishmetric_plot <- function(metric_name,
         na.value = "transparent",
         limits = pred_limits,
         oob = scales::squish
-      ) +
-      ggtitle(yrs[i]) +
-      build_base(i, show_x = FALSE)
+      )
+    if (multi_year) {
+      p <- p + ggtitle(yrs[i])
+    } else {
+      p <- p + ggtitle("Prediction")
+    }
+
+    p + build_base(i, show_x = !multi_year)
   })
 
   # ---- SE panels (bottom row) ----
@@ -139,7 +144,8 @@ fishmetric_plot <- function(metric_name,
         limits = se_limits,
         oob = scales::squish
       ) +
-      build_base(i, show_x = TRUE)
+      ggtitle(if (multi_year) NULL else "Standard Error") +
+      build_base(if (multi_year) i else 2, show_x = TRUE)
   })
 
   # ---- Row labels ----
@@ -160,14 +166,22 @@ fishmetric_plot <- function(metric_name,
   se_label   <- row_label_plot("Standard Error")
 
   # ---- Combine ----
-  pred_row <- pred_label + wrap_plots(p_pred, nrow = 1, guides = "collect") +
+  if (!multi_year) {
+
+    p_out <- wrap_plots(c(p_pred, p_se), nrow = 1)
+
+  } else {
+    pred_row <- pred_label + wrap_plots(p_pred, nrow = 1, guides = "collect") +
     plot_layout(widths = c(0.06, 1))
 
   se_row <- se_label + wrap_plots(p_se, nrow = 1, guides = "collect") +
     plot_layout(widths = c(0.06, 1))
 
   p_out <- (pred_row / se_row) +
-    plot_layout(heights = c(1, 1), guides = "collect") &
+    plot_layout(heights = c(1, 1))
+  }
+  p_out <- p_out +
+    plot_layout(guides = "collect") &
     theme(
       legend.position = "right",
       panel.spacing = unit(0.5, "mm"),

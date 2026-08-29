@@ -278,7 +278,7 @@ saveRDS(b20_species, file = paste0("data/", park, "/tidy/", name, "_b20-species.
 # -------------------------------------------------------------------------
 
 marine_parks_amp <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
-  dplyr::filter(name %in% c("Ngari Capes", "Geographe", "South-west Corner")) %>%
+  dplyr::filter(name %in% c("Hunter")) %>%
   dplyr::filter(epbc %in% "Commonwealth") %>%
   st_transform(4326)
 

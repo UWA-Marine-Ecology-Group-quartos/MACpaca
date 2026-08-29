@@ -8,7 +8,7 @@ bubble_plots <- function(dat,
                          size_range   = c(1, 6),
                          park_linewidth = 0.8) {
 
-  ngari_colours <- wasanc %>%
+  ngari_colours <- marine_parks_state %>%
     st_drop_geometry() %>%
     distinct(zone, colour) %>%
     arrange(zone) %>%
@@ -25,7 +25,7 @@ bubble_plots <- function(dat,
   build_parks <- function(show_park_legend = FALSE) {
     list(
       geom_sf(
-        data        = wasanc,
+        data        = marine_parks_state,
         aes(colour  = zone),
         fill        = NA,
         linewidth   = park_linewidth,
@@ -34,7 +34,7 @@ bubble_plots <- function(dat,
       scale_colour_manual(
         name   = "State Marine Park",
         guide  = "legend",
-        values = with(wasanc, setNames(colour, zone))
+        values = with(marine_parks_state, setNames(colour, zone))
       ),
       guides(colour = guide_legend(
         order          = 2,
@@ -79,6 +79,8 @@ bubble_plots <- function(dat,
 
     ggplot() +
       build_background() +
+      ggnewscale::new_scale_color() +
+      build_parks(show_park_legend = FALSE) +
       geom_point(
         data = plot_dat,
         aes(x = longitude_dd, y = latitude_dd, size = count, colour = count),
@@ -94,8 +96,7 @@ bubble_plots <- function(dat,
         name  = legend_title,
         range = size_range
       ) +
-      ggnewscale::new_scale_color() +
-      build_parks(show_park_legend = FALSE) +
+
       coord_sf(
         xlim   = c(prediction_limits[1], prediction_limits[2]),
         ylim   = c(prediction_limits[3], prediction_limits[4]),

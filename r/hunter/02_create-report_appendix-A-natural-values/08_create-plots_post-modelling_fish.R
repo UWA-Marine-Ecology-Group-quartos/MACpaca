@@ -41,14 +41,15 @@ file.sources <- list.files(pattern = "*.R", path = paste0("r/", park, "/function
 sapply(file.sources, source, .GlobalEnv)
 
 # TODO Set cropping extent - larger than most zoomed out plot
-e <- ext(152.25, 152.98, -32.75, -32.3)
+e <- ext(152.2,153.1,-32.7,  -32.31)
 
 # Load necessary spatial files
 sf_use_s2(FALSE)
 
 # Australian outline and state and commonwealth marine parks
 marine_parks <- st_read("data/amp_shapefile/Australian_Marine_Parks_v2.shp") %>%
-  dplyr::filter(name %in% c("Hunter")) # TODO select relevant parks
+  dplyr::filter(name %in% c("Hunter") |
+                  NETNAME %in% c("Port Stephens - Great Lakes")) # TODO select relevant parks
 
 marine_parks_amp <- marine_parks %>%
   dplyr::filter(epbc %in% "Commonwealth") %>%
@@ -82,7 +83,7 @@ bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__
 names(bathy)[3] <- "Depth"
 
 # Spatial predictions limits
-prediction_limits <- c(152.25, 152.98, -32.75, -32.3)
+prediction_limits <- c(152.2626, 152.9701, -32.7749, -32.2449)
 
 # Pretty fish metric names mapped to raster layer stubs
 fish_metric_lookup <- c(
@@ -92,7 +93,6 @@ fish_metric_lookup <- c(
   "Total abundance" = "abundance"
 )
 
-# Read all years once
 dat_list <- setNames(vector("list", length(years)), years)
 
 for (yr in years) {
@@ -134,7 +134,7 @@ for (yr in years) {
 # (defined after the source() loop above, so it overrides the default in
 # functions/controlplot_fish.R).
 # =============================================================================
-library(lwgeom)
+
 library(RNetCDF)
 library(lubridate)
 
@@ -190,7 +190,7 @@ sst_tsdf <- terra::global(rast_sst, fun = "mean", na.rm = TRUE) %>%
   tidyr::separate(rowname, into = c("year", "month", "day"), sep = "-") %>%
   dplyr::group_by(year, month) %>%
   summarise(
-    sst = mean(mean, na.rm = TRUE) - 273.15, # Apply -273.15 offset (controlplot_fish adds it back)
+    sst = mean(mean, na.rm = TRUE), # Apply -273.15 offset (controlplot_fish adds it back)
     sd  = mean(sd,   na.rm = TRUE),
     .groups = "drop"
   ) %>%
@@ -281,7 +281,7 @@ control_all <- purrr::map(years, \(yy) {
   if (!inherits(dat_yy, "SpatRaster")) dat_yy <- terra::rast(dat_yy)
   terra::crs(dat_yy) <- "EPSG:4326"
 
-  controldata_fish(dat = dat_yy, year = yy, amp_abbrv = "Hunter", state_abbrv = "H") # TODO park abbreviations
+  controldata_fish(dat = dat_yy, year = yy, amp_abbrv = "HMP", state_abbrv = "PSGLMP") # TODO park abbreviations
 })
 
 park_dat.shallow <- purrr::map_dfr(control_all, "shallow") %>%
@@ -323,8 +323,8 @@ for (metric_code in names(metric_lookup)) {
   p_metric <- controlplot_fish(
     data = park_dat.control,
     metric = metric_code,
-    amp_abbrv = "Hunter", # TODO park abbreviations
-    state_abbrv = "H",
+    amp_abbrv = "HMP", # TODO park abbreviations
+    state_abbrv = "PSGLMP",
     metric_label = metric_lookup[[metric_code]]
   )
 
@@ -362,7 +362,7 @@ for (metric_code in names(metric_lookup)) {
 
 theme_collapse<-theme(
   panel.grid.major=element_line(colour = "white"),
-  panel.grid.minor=element_line(colour = "white", linewidth = 0.25),
+  panel.grid.minor=element_line(colour = "white", size = 0.25),
   plot.margin= grid::unit(c(0, 0, 0, 0), "in"))
 
 theme.larger.text<-theme(
@@ -434,16 +434,16 @@ sac_sample <- ggplot(
     )
   ) +
   scale_colour_manual(name = "Status",
-    values = c(
-      "No-Take" = "#7bbc63",
-      "Fished" = "#b9e6fb"
-    )
+                      values = c(
+                        "No-Take" = "#7bbc63",
+                        "Fished" = "#b9e6fb"
+                      )
   ) +
   scale_fill_manual(name = "Status",
-    values = c(
-      "No-Take" = "#7bbc63",
-      "Fished" = "#b9e6fb"
-    )
+                    values = c(
+                      "No-Take" = "#7bbc63",
+                      "Fished" = "#b9e6fb"
+                    )
   ) +
   labs(
     x = "Number of BRUV deployments",
@@ -494,16 +494,16 @@ sac_individual <- ggplot(
     )
   ) +
   scale_colour_manual(name = "Status",
-    values = c(
-      "No-Take" = "#7bbc63",
-      "Fished" = "#b9e6fb"
-    )
+                      values = c(
+                        "No-Take" = "#7bbc63",
+                        "Fished" = "#b9e6fb"
+                      )
   ) +
   scale_fill_manual(name = "Status",
-    values = c(
-      "No-Take" = "#7bbc63",
-      "Fished" = "#b9e6fb"
-    )
+                    values = c(
+                      "No-Take" = "#7bbc63",
+                      "Fished" = "#b9e6fb"
+                    )
   ) +
   labs(
     x = "Cumulative MaxN individuals",
@@ -572,9 +572,19 @@ if (length(years) > 1) {
 
 bar_maxn <- ggplot(
   maxn.10 %>%
-    mutate(scientific_label = if_else(scientific %in% unique_species,
-                                      paste0("**", scientific, "**"),
-                                      scientific)),
+    mutate(is_spp = str_detect(scientific, "\\bspp\\.?$"),
+           # italicise everything except a trailing "spp" or "spp." token
+           italic_part = if_else(
+             is_spp,
+             str_replace(scientific, "^(.*?)\\s+(spp\\.?)$", "*\\1* \\2"),
+             paste0("*", scientific, "*")
+           ),
+           # then apply bold around the whole label if it's a highlighted species
+           scientific_label = if_else(
+             scientific %in% unique_species,
+             paste0("**", italic_part, "**"),
+             italic_part
+           )),
   aes(x = reorder_within(scientific_label, maxn, year), y = maxn)
 ) +
   geom_col(colour = "black", linewidth = 0.25) +
@@ -637,12 +647,11 @@ niche_limits <- range(cti.10$rls_thermal_niche, na.rm = TRUE)
 
 bar_cti <- ggplot(
   cti.10 %>%
-    mutate(
-      scientific_label = if_else(scientific %in% unique_species_cti,
-                                 paste0("**", scientific, "**"),
-                                 scientific),
-      niche_lab = scales::number(rls_thermal_niche, accuracy = 0.01)
-    ),
+    mutate(scientific_label = if_else(
+      scientific %in% unique_species_cti,
+      paste0("***", scientific, "***"),   # bold + italic
+      paste0("*", scientific, "*")),         # italic only,
+      niche_lab = scales::number(rls_thermal_niche, accuracy = 0.01)),
   aes(
     x = reorder_within(scientific_label, rls_thermal_niche, year),
     y = maxn,
@@ -698,7 +707,7 @@ saveRDS(bar_cti,
 # B20 ---------------------------------------------------------------------
 
 # read in b20 species summaries (already mean + sd per year x species)
-b20 <- readRDS(paste0("data/", park, "/tidy/", name, "_b20-species_amp.rds"))
+b20 <- readRDS(paste0("data/", park, "/tidy/", name, "_b20-species.rds"))
 
 # top 10 b20 per year using combined values only
 b20.10 <- b20 %>%
@@ -723,10 +732,9 @@ plot_b20_bars <- function(plot_data, fill_values, fill_breaks) {
       mutate(
         scientific_label = if_else(
           scientific_name %in% unique_species_b20,
-          paste0("**", scientific_name, "**"),
-          scientific_name
-        )
-      ),
+          paste0("***", scientific_name, "***"),   # bold + italic
+          paste0("*", scientific_name, "*")          # italic only
+        )),
     aes(
       x = reorder_within(scientific_label, b20, year),
       y = b20,

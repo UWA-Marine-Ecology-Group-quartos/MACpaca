@@ -31,10 +31,11 @@ controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
       zone_new = factor(
         zone_new,
         levels = c(
-          paste(amp_abbrv, "HPZ"),
-          paste(amp_abbrv, "NPZ (IUCN II)"),
+          #paste(amp_abbrv, "HPZ"),
+          #paste(amp_abbrv, "NPZ (IUCN II)"),
           paste(amp_abbrv, "other zones"),
           paste(state_abbrv, "SZ (IUCN II)"),
+          paste(state_abbrv, "HPZ"),
           paste(state_abbrv, "other zones")
         )
       )
@@ -46,23 +47,25 @@ controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
   }
 
   fill_vals <- setNames(
-    c("#fff8a3", "#7bbc63", "#b9e6fb", "#bfd054", "#bddde1"),
+    c("#fff8a3", "#7bbc63", "#b9e6fb", "#F7C0D8","#FFF8A3", "#bddde1"),
     c(
       paste(amp_abbrv, "HPZ"),
       paste(amp_abbrv, "NPZ (IUCN II)"),
       paste(amp_abbrv, "other zones"),
       paste(state_abbrv, "SZ (IUCN II)"),
+      paste(state_abbrv, "HPZ"),
       paste(state_abbrv, "other zones")
     )
   )
 
   shape_vals <- setNames(
-    c(21, 21, 21, 25, 25),
+    c(21, 21, 21, 25, 25, 25),
     c(
       paste(amp_abbrv, "HPZ"),
       paste(amp_abbrv, "NPZ (IUCN II)"),
       paste(amp_abbrv, "other zones"),
       paste(state_abbrv, "SZ (IUCN II)"),
+      paste(state_abbrv, "HPZ"),
       paste(state_abbrv, "other zones")
     )
   )
@@ -128,7 +131,7 @@ controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
       facet_wrap(~depth_class, ncol = 1, scales = "free_y") +
       theme_classic() +
       scale_x_continuous(breaks = c(2025)) + # TODO set to your survey years
-      coord_cartesian(xlim = c(2025, 2025)) + # TODO set to your survey years
+      coord_cartesian(xlim = c(2024, 2026)) + # TODO set to your survey years
       scale_fill_manual(values = fill_vals, name = "Marine Parks", drop = FALSE) +
       scale_shape_manual(values = shape_vals, name = "Marine Parks", drop = FALSE) +
       labs(
@@ -173,7 +176,7 @@ controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
       facet_wrap(~depth_class, ncol = 1, scales = "free_y") +
       theme_classic() +
       scale_x_continuous(breaks = c(2025)) + # TODO set to your survey years
-      coord_cartesian(xlim = c(2025,2025), ylim = c(0, NA)) + # TODO set to your survey years
+      coord_cartesian(xlim = c(2024,2026), ylim = c(0, NA)) + # TODO set to your survey years
       scale_fill_manual(values = fill_vals, name = "Marine Parks", drop = FALSE) +
       scale_shape_manual(values = shape_vals, name = "Marine Parks", drop = FALSE) +
       labs(
