@@ -2,24 +2,24 @@ dominantbenthos_plot_single <- function(pred_plot, prediction_limits, habitat_lo
 
   # Gradient high colours for each habitat (used in geom_tile fill gradient)
   grad_high <- c(
-    "Sand"                  = "wheat",
+    "Sediment"                  = "wheat",
     "Macroalgae"            = "darkorange4",
     "Seagrass"              = "forestgreen",
-    "Rock"                  = "grey40",
+    "Bare rock"                  = "grey40",
     "Sessile invertebrates" = "deeppink3"
   )
 
   # Legend label (line break for long names)
   legend_names <- c(
-    "Sand"                  = "Sand",
+    "Sediment"                  = "Sediment",
     "Macroalgae"            = "Macroalgae",
     "Seagrass"              = "Seagrass",
-    "Rock"                  = "Rock",
+    "Bare Rock"                  = "Bare rock",
     "Sessile invertebrates" = "Sessile\ninvertebrates"
   )
 
   # Canonical rendering order (bottom to top) — filter to modelled taxa only
-  hab_order <- c("Sand") #"Rock", "Macroalgae", "Seagrass", "Sessile invertebrates"
+  hab_order <- c("Sediment", "Sessile invertebrates") #"Rock", "Macroalgae", "Seagrass", "Sessile invertebrates"
   modelled  <- hab_order[hab_order %in% names(habitat_lookup)]
 
   p <- ggplot()
@@ -58,13 +58,13 @@ dominantbenthos_plot_single <- function(pred_plot, prediction_limits, habitat_lo
     ) +
     geom_sf(data = ausc, fill = "seashell2", colour = "black", linewidth = 0.2) +
     geom_sf(
-      data = wasanc,
+      data = marine_parks_state,
       aes(colour = zone),
       fill        = NA,
       show.legend = FALSE,
       linewidth   = 0.6
     ) +
-    scale_colour_manual(values = with(wasanc, setNames(colour, zone))) +
+    scale_colour_manual(values = with(marine_parks_state, setNames(colour, zone))) +
     ggnewscale::new_scale_color() +
     geom_sf(
       data = marine_parks_amp,

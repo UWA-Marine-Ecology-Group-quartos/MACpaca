@@ -11,20 +11,17 @@ scatterpie_plot_single <- function(benthos_year, site_limits, pie_radius = 0.004
     depth_fills +
     new_scale_fill() +
     geom_sf(data = ausc, fill = "seashell2", colour = "black", linewidth = 0.1) +
-    geom_sf(data = wasanc, fill = "#bfd054", alpha = 2/5, colour = NA) +
-    wampa_fills +
-    labs(fill = "State Marine Parks") +
-    new_scale_fill() +
-    geom_sf(data = npz, fill = "#7bbc63", alpha = 2/5, colour = NA) +
+    geom_sf(data = marine_parks_state, fill = NA, colour = "grey20") +
+    geom_sf(data = marine_parks_amp, fill = NA, colour = "grey50") +
     geom_sf(data = cwatr, colour = "firebrick", alpha = 4/5, linewidth = 0.3) +
     new_scale_fill() +
     geom_scatterpie(
       data = benthos_year,
       aes(x = longitude_dd, y = latitude_dd, r = pie_radius),
       cols = c(
-        "Sand",
+        "Sediment",
         "Sessile invertebrates",
-        "Rock",
+        "Bare rock",
         "Macroalgae"
       ),
       colour = NA

@@ -47,7 +47,7 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
     axis.ticks.x = element_blank()
   )
 
-  ngari_colours <- wasanc %>%
+  ngari_colours <- marine_parks_state %>%
     st_drop_geometry() %>%
     distinct(zone, colour) %>%
     arrange(zone) %>%
@@ -68,7 +68,7 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
       ),
       geom_sf(data = ausc, fill = "seashell2", colour = "black", linewidth = 0.2),
       geom_sf(
-        data        = wasanc,
+        data        = marine_parks_state,
         aes(colour  = zone),
         fill        = NA,
         linewidth   = 0.8,
@@ -77,7 +77,7 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
       scale_colour_manual(
         name   = "State Marine Park",
         guide  = "legend",
-        values = with(wasanc, setNames(colour, zone))
+        values = with(marine_parks_state, setNames(colour, zone))
       ),
       guides(colour = guide_legend(
         order        = 2,
@@ -142,9 +142,13 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
         guide    = guide_colorbar(title.hjust = 0, title.vjust = 0.5, label.hjust = 0)
       )
 
-    if (multi_year) p <- p + ggtitle(yrs[i])
+    if (multi_year) {
+      p <- p + ggtitle(yrs[i])
+    } else {
+      p <- p + ggtitle("Predicted Reef Probability")
+    }
 
-    p + build_base(i, show_x = FALSE, show_park_legend = FALSE)
+    p + build_base(i, show_x = !multi_year, show_park_legend = FALSE)
   })
 
   # ------------------------------------------------------------
@@ -160,7 +164,8 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
         limits   = se_limits,
         oob      = scales::squish
       ) +
-      build_base(i, show_x = TRUE, show_park_legend = FALSE)
+      ggtitle(if (multi_year) NULL else "Standard Error") +
+      build_base(if (multi_year) i else 2, show_x = TRUE, show_park_legend = FALSE)
   })
 
   # ------------------------------------------------------------
@@ -176,24 +181,34 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
       )
   }
 
-  pred_label <- row_label_plot("Predicted Reef Probability")
-  se_label   <- row_label_plot("Standard Error")
-
   # ------------------------------------------------------------
   # Combine
   # ------------------------------------------------------------
-  pred_row <- pred_label + wrap_plots(p_pred, nrow = 1, guides = "collect") +
-    plot_layout(widths = c(0.06, 1))
+  if (!multi_year) {
 
-  se_row <- se_label + wrap_plots(p_se, nrow = 1, guides = "collect") +
-    plot_layout(widths = c(0.06, 1))
+    p_out <- wrap_plots(c(p_pred, p_se), nrow = 1)
 
-  p_out <- (pred_row / se_row) +
-    plot_layout(heights = c(1, 1), guides = "collect") &
+  } else {
+
+    pred_label <- row_label_plot("Predicted Reef Probability")
+    se_label   <- row_label_plot("Standard Error")
+
+    pred_row <- pred_label + wrap_plots(p_pred, nrow = 1, guides = "collect") +
+      plot_layout(widths = c(0.06, 1))
+
+    se_row <- se_label + wrap_plots(p_se, nrow = 1, guides = "collect") +
+      plot_layout(widths = c(0.06, 1))
+
+    p_out <- (pred_row / se_row) +
+      plot_layout(heights = c(1, 1))
+  }
+
+  p_out <- p_out +
+    plot_layout(guides = "collect") &
     theme(
-      legend.position      = "bottom",
-      legend.direction     = "horizontal",
-      legend.box           = "horizontal",
+      legend.position      = "right",
+      legend.direction     = "vertical",
+      legend.box           = "vertical",
       legend.box.just      = "centre",
       legend.justification = "centre",
       legend.title         = element_text(size = 9, margin = margin(b = 2, r = 3)),

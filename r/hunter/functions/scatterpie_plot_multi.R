@@ -9,7 +9,7 @@ scatterpie_plot_multi <- function(benthos, years, site_limits, pie_radius = 0.00
     dplyr::mutate(
       year = factor(year, levels = years)
     ) %>%
-    dplyr::arrange(year, desc(Sand))
+    dplyr::arrange(year, desc(Sediment))
 
   ggplot() +
     geom_contour_filled(
@@ -33,9 +33,9 @@ scatterpie_plot_multi <- function(benthos, years, site_limits, pie_radius = 0.00
       data = benthos_plot,
       aes(x = longitude_dd, y = latitude_dd, r = pie_radius),
       cols = c(
-        "Sand",
+        "Sediment",
         "Sessile invertebrates",
-        "Rock",
+        "Bare rock",
         "Macroalgae"
       ),
       colour = NA

@@ -1,22 +1,22 @@
 marine_park_legend <- function() {
 
-  ngari_colours <- wasanc %>%
+  ngari_colours <- marine_parks_state %>%
     sf::st_drop_geometry() %>%
     dplyr::distinct(zone, colour) %>%
     dplyr::arrange(zone) %>%
     dplyr::pull(colour)
 
   p <- ggplot() +
-    geom_sf(data = wasanc, aes(colour = zone), fill = NA, linewidth = 0.8) +
+    geom_sf(data = marine_parks_state, aes(colour = zone), fill = NA, linewidth = 0.8) +
     scale_colour_manual(
       name   = "State Marine Park",
       guide  = "legend",
-      values = with(wasanc, setNames(colour, zone))
+      values = with(marine_parks_state, setNames(colour, zone))
     ) +
     guides(
       colour = guide_legend(
         order        = 2,
-        ncol         = 1,
+        ncol         = 2,
         override.aes = list(colour = ngari_colours, fill = NA, linewidth = 1)
       )
     ) +
@@ -30,7 +30,7 @@ marine_park_legend <- function() {
     guides(
       colour = guide_legend(
         order        = 1,
-        ncol         = 2,
+        ncol         = 1,
         override.aes = list(fill = NA, linewidth = 1)
       )
     ) +

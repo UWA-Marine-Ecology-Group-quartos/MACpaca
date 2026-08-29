@@ -2,11 +2,11 @@ categoricalhabitat_plot_single <- function(pred_plot, prediction_limits, habitat
 
   # All available colours in canonical display order
   all_colours <- c(
-    "Rock"                  = "grey40",
+    "Bare rock"                  = "grey40",
     "Sessile invertebrates" = "plum",
     "Macroalgae"            = "darkgoldenrod4",
     "Seagrass"              = "forestgreen",
-    "Sand"                  = "wheat"
+    "Sediment"                  = "wheat"
   )
 
   # Filter levels and colours to modelled taxa only, preserving canonical order
@@ -19,10 +19,10 @@ categoricalhabitat_plot_single <- function(pred_plot, prediction_limits, habitat
     dplyr::mutate(
       dom_tag = as.character(dom_tag),
       dom_tag = dplyr::case_when(
-        dom_tag %in% c("sand", "Sand")                                                        ~ "Sand",
+        dom_tag %in% c("sand", "Sand")                                                        ~ "Sediment",
         dom_tag %in% c("macro", "macroalgae", "Macroalgae")                                   ~ "Macroalgae",
        dom_tag %in% c("seagrass", "seagrasses", "Seagrass", "Seagrasses")                    ~ "Seagrass",
-       dom_tag %in% c("rock", "Rock")                                                        ~ "Rock",
+       dom_tag %in% c("rock", "Rock")                                                        ~ "Bare rock",
         dom_tag %in% c("sessile invertebrates", "Sessile Invertebrates", "inverts", "Inverts") ~ "Sessile invertebrates",
         TRUE ~ dom_tag
       ),
@@ -58,13 +58,13 @@ categoricalhabitat_plot_single <- function(pred_plot, prediction_limits, habitat
     scale_colour_manual(values = with(marine_parks_amp, setNames(colour, zone))) +
     new_scale_color() +
     geom_sf(
-      data        = wasanc,
+      data        = marine_parks_state,
       aes(colour  = zone),
       fill        = NA,
       linewidth   = 0.7,
       show.legend = FALSE
     ) +
-    scale_colour_manual(values = with(wasanc, setNames(colour, zone))) +
+    scale_colour_manual(values = with(marine_parks_state, setNames(colour, zone))) +
     new_scale_color() +
     geom_sf(data = cwatr, colour = "red", linewidth = 0.9) +
     coord_sf(

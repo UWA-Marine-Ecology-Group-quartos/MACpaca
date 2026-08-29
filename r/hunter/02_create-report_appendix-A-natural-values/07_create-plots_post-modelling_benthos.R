@@ -46,7 +46,7 @@ file.sources <- list.files(pattern = "*.R", path = paste0("r/", park, "/function
 sapply(file.sources, source, .GlobalEnv)
 
 # TODO Set cropping extent - larger than most zoomed out plot
-e <- ext(152.1818,153.0585,-32.7021,  -32.3267)
+e <- ext(152.2,153.1,-32.7,  -32.31)
 
 # Load necessary spatial files
 ausc <- st_read("data/south-west network/spatial/shapefiles/aus-shapefile-w-investigator-stokes.shp") %>%
@@ -54,7 +54,8 @@ ausc <- st_read("data/south-west network/spatial/shapefiles/aus-shapefile-w-inve
   st_transform(4326)
 
 marine_parks <- st_read("data/amp_shapefile/Australian_Marine_parks_v2.shp") %>%
-  dplyr::filter(name %in% c("Hunter", "Kent Group National Park")) # TODO select relevant parks
+  dplyr::filter(name %in% c("Hunter") |
+                NETNAME %in% c("Port Stephens - Great Lakes")) # TODO select relevant parks
 
 marine_parks_amp <- marine_parks %>%
   dplyr::filter(epbc %in% "Commonwealth") %>%
@@ -86,24 +87,24 @@ names(bathy)[3] <- "Depth"
 
 # Map pretty habitat names to raster layer prefixes in dat
 habitat_lookup <- c(
-  "Sand" = "sand",
-  "Macroalgae" = "macro",
+  "Sediment" = "sand",
+  #"Macroalgae" = "macro",
   #"Seagrass" = "seagrass",
   "Sessile invertebrates" = "inverts",
-  "Rock" = "rock"
+  "Bare Rock" = "rock"
 )
 
 # Optional habitat colours for other functions if needed
 hab_cols <- c(
-  "Sand" = "wheat",
+  "Sediment" = "wheat",
   "Macroalgae" = "darkgoldenrod4",
   #"Seagrass" = "forestgreen",
-  "Rock" = "grey40",
+  "Bare rock" = "grey40",
   "Sessile invertebrates" = "plum"
 )
 
 # TODO Plot extent
-prediction_limits <- c(152.25, 152.98, -32.75, -32.3)
+prediction_limits <- c(152.2626, 152.9701, -32.7749, -32.2449) #changed
 
 # Read all years once
 
@@ -355,7 +356,7 @@ control_all <- purrr::map(years, \(yy) {
       name, "_predicted-habitat_", yy, ".rds"
     )
   )
-  controldata_benthos(dat = dat_yy, year = yy, amp_abbrv = "HMP", state_abbrv = "") # TODO set park abbreviations
+  controldata_benthos(dat = dat_yy, year = yy, amp_abbrv = "HMP", state_abbrv = "PSGLMP") # TODO set park abbreviations
 })
 
 park_dat.shallow <- purrr::map_dfr(control_all, "shallow") %>%
@@ -388,8 +389,8 @@ taxa_lookup <- c(
   #"seagrass"   = "Seagrass",
   #"macroalgae" = "Macroalgae",
   #"rock"       = "Rock",
-  "sand"       = "Sand"
-  #"inverts"    = "Sessile invertebrates"
+  "sand"       = "Sediment",
+  "inverts"    = "Sessile invertebrates"
 )
 
 for (taxa_code in names(taxa_lookup)) {
@@ -400,7 +401,7 @@ for (taxa_code in names(taxa_lookup)) {
     data = park_dat.control,
     taxa = taxa_code,
     amp_abbrv = "HMP", # TODO set park abbreviations
-    state_abbrv = "",
+    state_abbrv = "PSGLMP",
     taxa_label = taxa_lookup[[taxa_code]]
   )
 
@@ -437,7 +438,7 @@ for (taxa_code in names(taxa_lookup)) {
 # ---- Scatterpie data prep ----
 
 # TODO Set the extent of the study
-e <- ext(152.25, 152.98, -32.75, -32.3)
+e <- ext(152.2,153.1,-32.7,  -32.31)
 
 # Load the bathymetry data (GA 250m resolution)
 bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
@@ -459,22 +460,22 @@ benthos <- readRDS(
   dplyr::rename(
     Macroalgae = macroalgae,
     #Seagrass = seagrasses,
-    Sand = sand,
-    Rock = rock,
+    Sediment = sand,
+    "Bare rock" = rock,
     "Sessile invertebrates" = sessile_invertebrates
   ) %>%
   left_join(metadata_bathy_derivatives, by = c("campaignid", "sample", "year", "status")) %>%
-  arrange(desc(Sand))
+  arrange(desc(Sediment))
 
 hab_fills <- scale_fill_manual(
   name = "Habitat",
-  limits = c("Rock", "Sessile invertebrates", "Macroalgae", "Sand"), #, "Seagrass"
+  limits = c("Bare rock", "Sessile invertebrates", "Macroalgae", "Sediment"), #, "Seagrass"
   values = c(
-    "Rock" = "grey40",
+    "Bare rock" = "grey40",
     "Sessile invertebrates" = "plum",
     "Macroalgae" = "darkgoldenrod4",
     #"Seagrass" = "forestgreen",
-    "Sand" = "wheat"
+    "Sediment" = "wheat"
   )
 )
 
@@ -494,7 +495,7 @@ depth_fills <- scale_fill_manual(
   guide = "none"
 )
 
-site_limits <- c(152.25, 152.98, -32.75, -32.3) # TODO set limits
+site_limits <- c(152.2,153.1,-32.7,  -32.31) # TODO set limits
 
 if (combine_benthos) {
 
@@ -507,7 +508,7 @@ if (combine_benthos) {
       is.finite(longitude_dd),
       is.finite(latitude_dd)
     ) %>%
-    dplyr::arrange(desc(Sand))
+    dplyr::arrange(desc(Sediment))
 
   p_scatterpie <- scatterpie_plot_single(
     benthos_year = benthos_pooled,
@@ -546,7 +547,7 @@ if (combine_benthos) {
         is.finite(longitude_dd),
         is.finite(latitude_dd)
       ) %>%
-      dplyr::arrange(desc(Sand))
+      dplyr::arrange(desc(Sediment))
 
     p_scatterpie <- scatterpie_plot_single(
       benthos_year = benthos_year,
