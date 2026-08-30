@@ -1,4 +1,8 @@
 crosssection_plot <- function(crosssection_labels, label_offset, segment_offset) {
+  # Flip so positive = offshore (distance from coast)
+  bath_df1 <- bath_df1 %>%
+    dplyr::mutate(distance.from.coast = -distance.from.coast)
+
   paleo <- data.frame(depth = c(-118, -94, -63, -41),
                       label = c("20-30 Ka", "15-17 Ka", "12-13 Ka", "9-10 Ka"))
 
@@ -20,7 +24,7 @@ crosssection_plot <- function(crosssection_labels, label_offset, segment_offset)
 
   ggplot() +
     geom_rect(aes(xmin = bath_df1$distance.from.coast, xmax = 9, ymin =-Inf, ymax = 0), fill = "#12a5db", alpha = 0.5) +
-    annotate("segment", x = -5.556, xend = -5.556, y = 0, yend = min(bath_df1$depth), colour = "red") +
+    annotate("segment", x = 5.556, xend = 5.556, y = 0, yend = min(bath_df1$depth), colour = "red") +
     geom_line(data = bath_df1, aes(y = depth, x = distance.from.coast)) +
     geom_ribbon(data = bath_df1, aes(ymin = -Inf, ymax = depth, x = distance.from.coast), fill = "tan") +
     theme_classic() +

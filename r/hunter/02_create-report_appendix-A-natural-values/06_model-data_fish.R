@@ -229,7 +229,7 @@ m_richness <- gam(count ~
                     s(geoscience_aspect, k = 3, bs = "cc") +
                     s(geoscience_depth, k = 3, bs = "cr"),
                   data = fabund %>% dplyr::filter(response %in% "species_richness"),
-                  family = gaussian(link = "identity"))
+                  family = nb)
 summary(m_richness)
 # plot(m_richness)
 

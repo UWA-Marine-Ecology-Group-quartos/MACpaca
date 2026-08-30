@@ -9,7 +9,10 @@ sealevel_plot <- function(plot_limits, annotation_labels) {
     depth_fills +
     new_scale_fill() +
     geom_sf(data = ausc, fill = "seashell2", colour = "grey62", size = 0.2) +
-    geom_sf(data = terrnp, aes(fill = leg_catego), alpha = 4/5, colour = NA, show.legend = F) +
+    geom_sf(data = terrnp, aes(fill = TYPE), alpha = 4/5, colour = NA, show.legend = F) +
+    geom_sf(data = marine_parks, fill = NA, colour = "grey40", linewidth = 0.5) +
+    geom_sf(data = cwatr, colour = "firebrick", alpha = 1, linewidth = 0.4, lineend = "round") +
+    geom_sf(data = transect_line, colour = "black", linewidth = 0.6, linetype = "dashed") +
     terr_fills +
     new_scale_fill() +
 

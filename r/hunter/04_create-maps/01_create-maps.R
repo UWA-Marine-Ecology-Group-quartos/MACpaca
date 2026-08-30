@@ -45,7 +45,7 @@ file.sources <- list.files(pattern = "*.R", path = "functions/", full.names = T)
 sapply(file.sources, source, .GlobalEnv)
 
 # TODO Set cropping extent - larger than most zoomed out plot
-e <- ext(152.2,153.056,-32.75,-32.33)
+e <- ext(152.2,153.1,-32.7,  -32.31)
 
 # Load necessary spatial files
 sf_use_s2(T)
@@ -59,7 +59,8 @@ ausc <- st_crop(aus, e)
 aus_marine_parks <- st_read("data/amp_shapefile/Australian_Marine_Parks_v2.shp")
 
 marine_parks <- st_read("data/amp_shapefile/Australian_Marine_Parks_v2.shp") %>%
-  dplyr::filter(name %in% c("Hunter")) %>% # TODO select relevant parks
+  dplyr::filter(name %in% c("Hunter")|
+                  NETNAME == "Port Stephens - Great Lakes") %>% # TODO select relevant parks
   glimpse()
 
 # Australian Marine Parks only (for separate ggplot legends)
@@ -81,7 +82,7 @@ terr_fills <- scale_fill_manual(values = c("National Park" = "#c4cea6", # Set th
 
 # Key Ecological Features
 # This shapefile has added columns in QGIS for hex colour code and abbreviated names
-kef <- st_read("data/south-west network/spatial/shapefiles/AU_DOEE_KEF_2015.shp") %>%
+kef <- st_read("data/amp_shapefile/Marine_Key_Ecological_Features_v2.shp") %>%
   CheckEM::clean_names() %>%
   st_make_valid() %>%
   st_crop(e) %>%
@@ -111,8 +112,8 @@ bathdf <- as.data.frame(bathy, xy = T)
 
 # 1. Location overview plot
 # Set plot inputs
-plot_limits <- c(152.2,153.056,-32.8,-32.33) # TODO Extent of the main plot
-study_limits <- c(152.3,153.056,-32.69,-32.33) # TODO Extent of sampling
+plot_limits <- c(152.2,153.1,-32.7,  -32.31) # TODO Extent of the main plot
+study_limits <- c(152.2,153.1,-32.7,  -32.31) # TODO Extent of sampling
 annotation_labels <- data.frame(x = c(152.32044, 152.526341), # TODO Labels for annotation e.g. nearby towns
                                 y = c(-32.61745,-32.4391539),
                                 label = c("Boughton Island", "Seal Rocks"))
@@ -129,7 +130,7 @@ metadata <- readRDS(paste0("data/", park, "/tidy/", name, "_metadata-bathymetry-
   st_as_sf(coords = c("longitude_dd", "latitude_dd"), crs = 4326) %>%
   glimpse()
 # Set plot inputs
-site_limits <- c(152.2,153.056,-32.75,-32.33) # TODO Plot limits for subsequent plots - tighter zoom
+site_limits <- c(152.27,153.03,-32.67,-32.34) # TODO Plot limits for subsequent plots - tighter zoom
 # Create plot
 site_plot(site_limits, annotation_labels)
 # Save plot
@@ -153,6 +154,11 @@ depth_fills <- scale_fill_manual(values = c("#f9ddb1","#ee9f27", "#dc6601"),
                                  labels = c("9-10 Ka", "15-17 Ka", "20-30 Ka"),
                                  name = "Coastline age")
 # Create plot
+transect_line <- sfheaders::sf_linestring(
+  obj = data.frame(x = c(152.19926, 153.056), y = c(-32.64421, -32.64421), id = 1),
+  x = "x", y = "y", linestring_id = "id"
+) %>%
+  st_set_crs(4326)
 sealevel_plot(plot_limits, annotation_labels)
 # Save plot
 ggsave(filename = paste(paste0('plots/', park, '/spatial/', name) , 'old-sea-levels.png',
@@ -162,11 +168,11 @@ ggsave(filename = paste(paste0('plots/', park, '/spatial/', name) , 'old-sea-lev
 
 # 5. Bathymetry cross sections
 # Create data
-bath_df1 <- dem_cross_section(152.2,153.056,-32.75,-32.33, maxdist = 10) # TODO set coords
+bath_df1 <- dem_cross_section(152.19926, 152.91733,-32.64421, -32.64421, maxdist = 10) # TODO set coords
 # Set plot inputs
-crosssection_labels <- data.frame(x = c(-33, 3), # TODO Labels for annotation
-                                 y = c(-10, 145),
-                                 label = c("Naturaliste Reefs", "Cape Naturaliste"))
+crosssection_labels <- data.frame(x = c(50), # TODO Labels for annotation
+                                 y = c(-20),
+                                 label = c("Shelf Rocky Reef"))
 
 segment_offset <- 5 # Length of the segment
 label_offset <- segment_offset + 2 # Distance from end of segment to label

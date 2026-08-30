@@ -23,14 +23,15 @@ name <- config$name
 park <- config$park
 
 # TODO Set the extent of the study
-e <- ext(152.3,153.056,-32.69,-32.33)
+e <- ext(152.2,153.1,-32.7,  -32.31)
 
 # Read in shapefile data for maps
 aus <- st_read("data/south-west network/spatial/shapefiles/aus-shapefile-w-investigator-stokes.shp")
 ausc <- st_crop(aus, e)
 
 marine_parks <- st_read("data/amp_shapefile/Australian_Marine_Parks_v2.shp") %>%
-  dplyr::filter(name %in% c("Hunter")) # TODO select relevant parks
+  dplyr::filter(name %in% c("Hunter")|
+                  NETNAME == "Port Stephens - Great Lakes") # TODO select relevant parks
 marine_parks <- st_crop(marine_parks, e)
 
 # Spatial plots
@@ -41,7 +42,7 @@ names(sst)
 sst <- sst[[c("Jan", "Mar", "May", "Jul", "Sep", "Nov")]]
 names(sst)
 
-prediction_limits = c(152.3,153.056,-32.69,-32.33)
+prediction_limits = c(152.2626, 152.9701, -32.7749, -32.2449)
 
 plot_sst(prediction_limits) +
   theme(axis.text = element_text(size = 6))
@@ -73,7 +74,7 @@ ggsave(paste0("plots/", park, "/pressures/", name, "_DHW.png"),
 
 pressure_data()
 
-maxyear = c(2011, 2025)
+maxyear = c(2024, 2025)
 pressure_plot(maxyear)
 
 ggsave(filename = paste0('plots/', park, '/pressures/', name, '_oceanography_time-series.png'),
