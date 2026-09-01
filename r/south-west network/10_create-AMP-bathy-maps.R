@@ -760,6 +760,17 @@ network_map_wms_zoomed(
   inset_ylim  = swc_inset_ylim
 )
 
+# ── SW NETWORK -───────────────────────────────────────────────────────────────
+network_map_wms_zoomed(
+  plot_limits = c(110, 123, -39, -33),
+  save_name   = "SW-full-extent-bathy-plot",
+  width       = 9,
+  height      = 4,
+  inset_xlim  = swc_inset_xlim,
+  inset_ylim  = swc_inset_ylim
+)
+
+
 # ==============================================================================
 # End of script
 # ==============================================================================
