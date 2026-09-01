@@ -744,7 +744,7 @@ make_zone_plot_left_legend(
 )
 
 make_zone_plot_left_legend(
-  plot_limits = c(132.3, 132.9, -33.0, -32.2),
+  plot_limits = c(132.3, 132.95, -32.9, -32.1),
   inset_xlim  = c(108, 138),
   inset_ylim  = c(-40, -24),
   break_step  = 0.1,
@@ -790,7 +790,17 @@ make_zone_plot_left_legend(
   height      = 6
 )
 
-
+# ── SWC Western arm ───────────────────────────────────────────────────────────
+make_zone_plot_left_legend(
+  plot_limits = c(113.5, 116.4, -34.7857, -33.2),
+  save_name   = "swc-west_MPs",
+  inset_xlim  = c(108, 138),
+  inset_ylim  = c(-40, -24),
+  break_step  = 0.5,
+  show_inset = TRUE,
+  width       = 11,
+  height      = 5.5
+)
 # ==============================================================================
 # End of script
 # ==============================================================================
