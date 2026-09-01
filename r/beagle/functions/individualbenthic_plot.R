@@ -70,23 +70,23 @@ individualbenthic_plot <- function(habitat_name,
       ),
       geom_sf(data = ausc, fill = "seashell2", colour = "black", linewidth = 0.2),
       geom_sf(
-        data = wasanc,
-        aes(colour = zone),
-        fill = NA,
-        show.legend = FALSE,
-        linewidth = 0.6
-      ),
-      scale_colour_manual(values = with(wasanc, setNames(colour, zone))),
-      ggnewscale::new_scale_color(),
-      geom_sf(
         data = marine_parks_amp,
         aes(colour = zone),
         fill = NA,
         show.legend = FALSE,
         linewidth = 0.6
       ),
-      geom_sf(data = cwatr, colour = "firebrick", linewidth = 0.6),
       scale_colour_manual(values = with(marine_parks_amp, setNames(colour, zone))),
+      geom_sf(data = cwatr, colour = "firebrick", linewidth = 0.6),
+      ggnewscale::new_scale_color(),
+      geom_sf(
+        data = marine_parks_state,
+        aes(colour = zone),
+        fill = NA,
+        show.legend = FALSE,
+        linewidth = 0.6
+      ),
+      scale_colour_manual(values = with(marine_parks_state, setNames(colour, zone))),
       scale_x_continuous(breaks = scales::breaks_width(0.2)),
       scale_y_continuous(breaks = scales::breaks_width(0.2)),
       coord_sf(

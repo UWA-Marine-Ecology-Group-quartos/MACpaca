@@ -41,7 +41,13 @@ categoricalhabitat_plot_multi <- function(dat_list, prediction_limits, habitat_l
       dom_tag = factor(dom_tag, levels = hab_levels)
     )
 
-  ngari_colours <- wasanc %>%
+  ngari_colours <- marine_parks_state %>%
+    st_drop_geometry() %>%
+    distinct(zone, colour) %>%
+    arrange(zone) %>%
+    pull(colour)
+
+  amp_colours <- marine_parks_amp %>%
     st_drop_geometry() %>%
     distinct(zone, colour) %>%
     arrange(zone) %>%
@@ -75,30 +81,7 @@ categoricalhabitat_plot_multi <- function(dat_list, prediction_limits, habitat_l
       linewidth = 0.2
     ) +
     geom_sf(data = ausc, fill = "seashell2", colour = "grey80", linewidth = 0.5) +
-    new_scale_color() +
-    geom_sf(
-      data        = wasanc,
-      aes(colour  = zone),
-      fill        = NA,
-      linewidth   = 0.8,
-      show.legend = TRUE
-    ) +
-    scale_colour_manual(
-      name  = "State Marine Park",
-      guide = "legend",
-      values = with(wasanc, setNames(colour, zone))
-    ) +
-    guides(
-      colour = guide_legend(
-        order        = 3,
-        override.aes = list(
-          colour    = ngari_colours,
-          fill      = NA,
-          linewidth = 1
-        )
-      )
-    ) +
-    new_scale_color() +
+    ggnewscale::new_scale_color() +
     geom_sf(
       data        = marine_parks_amp,
       aes(colour  = zone),
@@ -112,15 +95,38 @@ categoricalhabitat_plot_multi <- function(dat_list, prediction_limits, habitat_l
       values = with(marine_parks_amp, setNames(colour, zone))
     ) +
     guides(
-      colour = guide_legend(
+      colour_ggnewscale_2 = guide_legend(
         order        = 2,
-        override.aes = list(fill = NA, linewidth = 1)
+        override.aes = list(colour = amp_colours, fill = NA, linewidth = 1)
       )
     ) +
     geom_sf(
       data      = st_buffer(cwatr_offset, dist = 0.005),
       colour    = "red",
       linewidth = 0.5
+    ) +
+    ggnewscale::new_scale_color() +
+    geom_sf(
+      data        = marine_parks_state,
+      aes(colour  = zone),
+      fill        = NA,
+      linewidth   = 0.8,
+      show.legend = TRUE
+    ) +
+    scale_colour_manual(
+      name  = "State Marine Park",
+      guide = "legend",
+      values = with(marine_parks_state, setNames(colour, zone))
+    ) +
+    guides(
+      colour = guide_legend(
+        order        = 3,
+        override.aes = list(
+          colour    = ngari_colours,
+          fill      = NA,
+          linewidth = 1
+        )
+      )
     ) +
     coord_sf(
       xlim   = c(prediction_limits[1], prediction_limits[2]),
