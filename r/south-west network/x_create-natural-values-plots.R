@@ -557,8 +557,8 @@ make_natural_values_plot(
   plot_limits = c(119.3, 120.3, -35.3, -33.9),
   break_step  = 0.2,
   save_name   = "bremer",
-  width       = 5,
-  height      = 11.2,
+  width       = 6.5,
+  height      = 10.5,
   park        = park,
   name        = name,
   legend_ncol = 2
@@ -570,18 +570,18 @@ make_natural_values_plot(
   break_step  = 0.2,
   save_name   = "eastern-recherche",
   width       = 7,
-  height      = 9.5,
+  height      = 10.5,
   park        = park,
   name        = name,
   legend_ncol = 2
 )
 
 make_natural_values_plot(
-  plot_limits = c(122.2, 125.6, -37.8, -33.4),
+  plot_limits = c(122.2, 125.3, -37.8, -33.4),
   break_step  = 0.5,
   save_name   = "eastern-recherche-full-extent",
   width       = 6.5,
-  height      = 11,
+  height      = 12.5,
   park        = park,
   name        = name,
   legend_ncol = 2
@@ -604,7 +604,7 @@ make_natural_values_plot(
   plot_limits = c(128.7, 132.5, -33.6, -31.3),
   break_step  = 0.5,
   save_name   = "great-aus-bight",
-  width       = 7,
+  width       = 7.5,
   height      = 6,
   park        = park,
   name        = name,
@@ -612,10 +612,10 @@ make_natural_values_plot(
 )
 
 make_natural_values_plot(
-  plot_limits = c(128.7, 132.5, -37.8, -31.3),
+  plot_limits = c(128.7, 132.45, -37.1, -31.3),
   break_step  = 1,
   save_name   = "great-aus-bight_full-extent",
-  width       = 7,
+  width       = 6,
   height      = 9,
   park        = park,
   name        = name,
@@ -627,7 +627,7 @@ make_natural_values_plot(
   plot_limits = c(114.2, 115.5, -31.0, -30.0),
   break_step  = 0.2,
   save_name   = "jurien",
-  width       = 8,
+  width       = 8.5,
   height      = 9,
   park        = park,
   name        = name,
@@ -651,27 +651,27 @@ make_natural_values_plot(
   plot_limits = c(132.45, 135.5, -35.4, -31.9),
   break_step  = 0.5,
   save_name   = "murat-western-eyre",
-  width       = 8,
-  height      = 9,
+  width       = 6,
+  height      = 8.5,
   park        = park,
   name        = name,
   legend_ncol = 2
 )
 
 make_natural_values_plot(
-  plot_limits = c(131, 137, -39.4, -31.9),
+  plot_limits = c(132.2, 136, -39.3, -31.9),
   break_step  = 1,
   save_name   = "murat-western-eyre_full-extent",
   width       = 6,
-  height      = 11,
+  height      = 11.5,
   park        = park,
   name        = name,
   legend_ncol = 2
 )
 
 make_natural_values_plot(
-  plot_limits = c(132.3, 133, -33.2, -32.2),
-  break_step  = 0.5,
+  plot_limits = c(132.3, 133, -32.9, -32.1),
+  break_step  = 0.2,
   save_name   = "murat",
   width       = 5,
   height      = 7,
@@ -685,11 +685,11 @@ make_natural_values_plot(
   plot_limits = c(113.8, 115.8, -32.8, -31.3),
   break_step  = 0.5,
   save_name   = "rottnest-canyon",
-  width       = 10,
-  height      = 6,
+  width       = 7,
+  height      = 8,
   park        = park,
   name        = name,
-  legend_ncol = 3
+  legend_ncol = 2
 )
 
 # ── SWC Eastern arm ───────────────────────────────────────────────────────────
@@ -697,11 +697,22 @@ make_natural_values_plot(
   plot_limits = c(120.35, 122.2, -35.5, -33.7),
   break_step  = 0.5,
   save_name   = "swc-east",
-  width       = 8,
-  height      = 6,
+  width       = 7,
+  height      = 10,
   park        = park,
   name        = name,
-  legend_ncol = 3
+  legend_ncol = 2
+)
+
+make_natural_values_plot(
+  plot_limits = c(120.2, 122.4, -38, -33.7),
+  break_step  = 1,
+  save_name   = "swc-east-full-extent",
+  width       = 6,
+  height      = 11,
+  park        = park,
+  name        = name,
+  legend_ncol = 2
 )
 
 # ── SWC Western arm ───────────────────────────────────────────────────────────
@@ -709,20 +720,20 @@ make_natural_values_plot(
   plot_limits = c(113.5, 116.4, -34.7857, -33.2643),
   break_step  = 0.5,
   save_name   = "swc-west",
-  width       = 9,
-  height      = 4.5,
+  width       = 7.5,
+  height      = 6,
   park        = park,
   name        = name,
-  legend_ncol = 3
+  legend_ncol = 2
 )
 
 # ── Two Rocks ─────────────────────────────────────────────────────────────────
 make_natural_values_plot(
-  plot_limits = c(114.7, 116.0, -32.0, -31.3),
+  plot_limits = c(114.7, 116.1, -32.0, -31.3),
   break_step  = 0.2,
   save_name   = "two-rocks",
-  width       = 11.5,
-  height      = 5,
+  width       = 10,
+  height      = 7.5,
   park        = park,
   name        = name,
   legend_ncol = 3
@@ -733,11 +744,11 @@ make_natural_values_plot(
   plot_limits = c(125.2, 127.15, -33.3, -32.1),
   break_step  = 0.5,
   save_name   = "twilight",
-  width       = 9,
+  width       = 6,
   height      = 5,
   park        = park,
   name        = name,
-  legend_ncol = 3
+  legend_ncol = 1
 )
 
 # ==============================================================================
