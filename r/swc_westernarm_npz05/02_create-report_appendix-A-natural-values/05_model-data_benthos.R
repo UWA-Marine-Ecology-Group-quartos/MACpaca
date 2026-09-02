@@ -27,10 +27,10 @@ combine_benthos <- config$combine_benthos
 benthos_label <- if (combine_benthos) paste(years, collapse = "_") else NA
 
 ## TODO Run below to install FSSgam package
-if (!requireNamespace("remotes", quietly = TRUE)) {
-  install.packages("remotes")
-}
-remotes::install_github("beckyfisher/FSSgam_package")
+# if (!requireNamespace("remotes", quietly = TRUE)) {
+#   install.packages("remotes")
+# }
+# remotes::install_github("beckyfisher/FSSgam_package")
 
 library(CheckEM)
 library(tidyverse)
@@ -164,54 +164,55 @@ write.csv(all.var.imp,         file = paste0(outdir, name, "_abiotic_all.var.imp
 
 # Sand
 m_sand <- gam(cbind(sand, total_pts - sand) ~
-                s(geoscience_aspect, k = 5, bs = "cc")  +
-                s(geoscience_depth, k = 5, bs = "cr") +
-                s(geoscience_detrended, k = 5, bs = "cr") +
-                s(geoscience_roughness, k = 5, bs = "cr"),
+                year +
+                s(geoscience_depth, k = 3, bs = "cr", by = year) +
+                s(geoscience_detrended, k = 3, bs = "cr", by = year) +
+                s(geoscience_roughness, k = 3, bs = "cr", by = year),
               data = habi, method = "REML", family = binomial("logit"))
 summary(m_sand)
 
 # Rock
 m_rock <- gam(cbind(rock, total_pts - rock) ~
-                s(geoscience_aspect, k = 5, bs = "cc")  +
-                s(geoscience_depth, k = 5, bs = "cr") +
-                s(geoscience_detrended, k = 5, bs = "cr") +
-                s(geoscience_roughness, k = 5, bs = "cr"),
+                year +
+                s(geoscience_depth, k = 3, bs = "cr", by = year) +
+                s(geoscience_detrended, k = 3, bs = "cr", by = year) +
+                s(geoscience_roughness, k = 3, bs = "cr"),
               data = habi, method = "REML", family = binomial("logit"))
 summary(m_rock)
 
-# Macroalgae - roughness dropped, dAICc 1.76 behind and no gain in r2
+# Macroalgae
 m_macro <- gam(cbind(macroalgae, total_pts - macroalgae) ~
-                 s(geoscience_aspect, k = 5, bs = "cc")  +
-                 s(geoscience_depth, k = 5, bs = "cr") +
-                 s(geoscience_detrended, k = 5, bs = "cr"),
+                 year +
+                 s(geoscience_depth, k = 3, bs = "cr", by = year) +
+                 s(geoscience_detrended, k = 3, bs = "cr", by = year) +
+                 s(geoscience_roughness, k = 3, bs = "cr", by = year),
                data = habi, method = "REML", family = binomial("logit"))
 summary(m_macro)
 
-# Seagrass
+# Seagrass - the only response where aspect is retained and detrended is not
 m_seagrass <- gam(cbind(seagrasses, total_pts - seagrasses) ~
-                    s(geoscience_aspect, k = 5, bs = "cc")  +
-                    s(geoscience_depth, k = 5, bs = "cr") +
-                    s(geoscience_detrended, k = 5, bs = "cr") +
-                    s(geoscience_roughness, k = 5, bs = "cr"),
+                    year +
+                    s(geoscience_aspect, k = 3, bs = "cc", by = year) +
+                    s(geoscience_depth, k = 3, bs = "cr", by = year) +
+                    s(geoscience_roughness, k = 3, bs = "cr", by = year),
                   data = habi, method = "REML", family = binomial("logit"))
 summary(m_seagrass)
 
 # Inverts
 m_inverts <- gam(cbind(sessile_invertebrates, total_pts - sessile_invertebrates) ~
-                   s(geoscience_aspect, k = 5, bs = "cc")  +
-                   s(geoscience_depth, k = 5, bs = "cr") +
-                   s(geoscience_detrended, k = 5, bs = "cr") +
-                   s(geoscience_roughness, k = 5, bs = "cr"),
+                   year +
+                   s(geoscience_depth, k = 3, bs = "cr", by = year) +
+                   s(geoscience_detrended, k = 3, bs = "cr", by = year) +
+                   s(geoscience_roughness, k = 3, bs = "cr", by = year),
                  data = habi, method = "REML", family = binomial("logit"))
 summary(m_inverts)
 
 # Reef
 m_reef <- gam(cbind(reef, total_pts - reef) ~
-                s(geoscience_aspect, k = 5, bs = "cc")  +
-                s(geoscience_depth, k = 5, bs = "cr") +
-                s(geoscience_detrended, k = 5, bs = "cr") +
-                s(geoscience_roughness, k = 5, bs = "cr"),
+                year +
+                s(geoscience_depth, k = 3, bs = "cr", by = year) +
+                s(geoscience_detrended, k = 3, bs = "cr", by = year) +
+                s(geoscience_roughness, k = 3, bs = "cr", by = year),
               data = habi, method = "REML", family = binomial("logit"))
 summary(m_reef)
 
@@ -250,7 +251,7 @@ preddf_s <- cbind(preddf, terra::extract(marine_parks, predv)) %>%
 if (combine_benthos) {
   preddf_sy <- preddf_s
 } else {
-  preddf_sy <- purrr::map_dfr(years, \(y) preddf_s %>% dplyr::mutate(year = y)) %>%
+  preddf_sy <- purrr::map_dfr(years, \(yr) preddf_s %>% dplyr::mutate(year = .env$yr)) %>%
     dplyr::mutate(year = factor(year, levels = levels(habi$year)))
 }
 
@@ -501,3 +502,4 @@ for (this_label in pred.labels) {
     overwrite = TRUE
   )
 }
+

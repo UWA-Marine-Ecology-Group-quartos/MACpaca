@@ -198,31 +198,30 @@ stopifnot(all(c("reef") %in% names(tidy_b20)))
 
 # ---- FINAL MODELS (verbatim from 06_model-data_fish.R) ----------------------
 
-# Total abundance
-m_abundance <- gam(count ~ year +
+# Total abundance - only model within delta AICc 2 (r2 0.356)
+m_abundance <- gam(count ~ year + status +
                      s(geoscience_aspect, k = 3, bs = "cc") +
-                     s(geoscience_depth, k = 3, bs = "cr") +
-                     s(geoscience_detrended, k = 3, bs = "cr"),
+                     s(geoscience_roughness, k = 3, bs = "cr") +
+                     s(reef, k = 3, bs = "cr"),
                    data = fabund %>% dplyr::filter(response %in% "total_abundance"),
                    family = poisson)
 
-# Species richness
-m_richness <- gam(count ~ year +
-                    s(geoscience_aspect, k = 3, bs = "cc") +
-                    s(geoscience_depth, k = 3, bs = "cr") +
-                    s(geoscience_detrended, k = 3, bs = "cr") +
-                    s(geoscience_roughness, k = 3, bs = "cr"),
+# Species richness - aspect dropped, 1.435 dAICc behind and r2 0.449 vs 0.454
+m_richness <- gam(count ~ year + status +
+                    s(geoscience_roughness, k = 3, bs = "cr") +
+                    s(reef, k = 3, bs = "cr"),
                   data = fabund %>% dplyr::filter(response %in% "species_richness"),
                   family = gaussian(link = "identity"))
 
-# CTI
-m_cti <- gam(count ~ year +
+# CTI - two models within delta AICc 2, separated by 0.001; this is the
+# simpler of the two (aspect adds an edf for no change in r2, 0.069)
+m_cti <- gam(count ~ year + status +
                s(reef, k = 3, bs = "cr") +
                s(geoscience_roughness, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "cti"),
              family = gaussian(link = "identity"))
 
-# B20
+# B20 - aspect dropped, 1.031 dAICc behind and r2 0.142 vs 0.147
 m_b20 <- gam(count ~ year + status +
                s(reef, k = 3, bs = "cr") +
                s(geoscience_roughness, k = 3, bs = "cr"),

@@ -17,7 +17,9 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
       str_detect(zone, "General Use Zone")     ~ paste(state_abbrv, "other zones"),
       str_detect(zone, "Reef Observation Area")~ paste(state_abbrv, "other zones"),
       TRUE ~ NA_character_
-    ))
+    )) %>%
+    # Control plots only: drop all state marine park zones
+    dplyr::filter(is.na(zone_new) | !stringr::str_starts(zone_new, state_abbrv))
 
   preds <- readRDS(paste0("data/", park, "/spatial/rasters/",
                           name, "_bathymetry-derivatives.rds")) %>%
