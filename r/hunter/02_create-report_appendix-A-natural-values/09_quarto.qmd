@@ -161,7 +161,7 @@ grid::grid.raster(img)
 --->
 {{< pagebreak >}}
 
-### Funcional reef distribution and probability
+### Functional reef distribution and probability
 
 ```{r}
 #| fig-width: 8

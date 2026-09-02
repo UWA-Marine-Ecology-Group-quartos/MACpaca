@@ -190,7 +190,7 @@ sst_tsdf <- terra::global(rast_sst, fun = "mean", na.rm = TRUE) %>%
   tidyr::separate(rowname, into = c("year", "month", "day"), sep = "-") %>%
   dplyr::group_by(year, month) %>%
   summarise(
-    sst = mean(mean, na.rm = TRUE) - 273.15, # Apply -273.15 offset (controlplot_fish adds it back)
+    sst = mean(mean, na.rm = TRUE), # Apply -273.15 offset (controlplot_fish adds it back)
     sd  = mean(sd,   na.rm = TRUE),
     .groups = "drop"
   ) %>%
