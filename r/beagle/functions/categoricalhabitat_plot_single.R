@@ -49,24 +49,24 @@ categoricalhabitat_plot_single <- function(pred_plot, prediction_limits, habitat
     ) +
     geom_sf(data = ausc, fill = "seashell2", colour = "grey80", linewidth = 0.5) +
     geom_sf(
-      data        = marine_parks_amp,
-      aes(colour  = zone),
-      fill        = NA,
-      linewidth   = 1.2,
-      show.legend = FALSE
+      data = marine_parks_amp,
+      aes(colour = zone),
+      fill         = NA,
+      show.legend  = FALSE,
+      linewidth    = 0.6
     ) +
-    scale_colour_manual(values = with(marine_parks_amp, setNames(colour, zone))) +
-    new_scale_color() +
+    scale_colour_manual(
+      values = with(marine_parks_amp, setNames(colour, zone))) +
+    geom_sf(data = cwatr, colour = "firebrick", linewidth = 0.6) +
+    ggnewscale::new_scale_color() +
     geom_sf(
-      data        = wasanc,
-      aes(colour  = zone),
+      data = marine_parks_state,
+      aes(colour = zone),
       fill        = NA,
-      linewidth   = 0.7,
-      show.legend = FALSE
+      show.legend = FALSE,
+      linewidth   = 0.6
     ) +
-    scale_colour_manual(values = with(wasanc, setNames(colour, zone))) +
-    new_scale_color() +
-    geom_sf(data = cwatr, colour = "red", linewidth = 0.9) +
+    scale_colour_manual(values = with(marine_parks_state, setNames(colour, zone))) +
     coord_sf(
       xlim = c(prediction_limits[1], prediction_limits[2]),
       ylim = c(prediction_limits[3], prediction_limits[4]),

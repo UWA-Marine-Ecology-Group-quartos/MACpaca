@@ -1,5 +1,5 @@
 ---
-title: "Appendix A - [TEMPLATE] Marine Park Natural Values Report"
+title: "Appendix A - Beagle Marine Park Natural Values Report"
 subtitle: "[TEMPLATE ] Marine Parks Network"
 filters:
   - figure-numbering.lua

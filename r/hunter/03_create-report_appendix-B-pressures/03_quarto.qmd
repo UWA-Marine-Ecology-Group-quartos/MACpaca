@@ -54,6 +54,6 @@ include_graphics(here("plots/hunter/pressures/HunterAMP_SST.png"))
 
 ```{r}
 #| out-width: "90%"
-#| fig-cap: "Maximum Degree Heating Weeks (NOAA >= 4) at the scale of the Hunter Marine Park. Heatmap values representing high (yellow) and low (blue) monthly Degree Heating Weeks (DHW) for the two most recent marine heatwave periods on record. Grey polygons represent State spatial management and Australian Marine Park boundaries."
+#| fig-cap: "Maximum Degree Heating Weeks at the scale of the Hunter Marine Park. Heatmap values representing high (yellow) and low (blue) monthly Degree Heating Weeks (DHW) for the two most recent marine heatwave periods on record. Grey polygons represent State spatial management and Australian Marine Park boundaries."
 include_graphics(here("plots/hunter/pressures/HunterAMP_DHW.png"))
 ```

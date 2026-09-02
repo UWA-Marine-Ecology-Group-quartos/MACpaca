@@ -47,11 +47,12 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
     axis.ticks.x = element_blank()
   )
 
-  ngari_colours <- wasanc %>%
+  ngari_colours <- marine_parks_state %>%
     st_drop_geometry() %>%
     distinct(zone, colour) %>%
     arrange(zone) %>%
     pull(colour)
+
 
   build_base <- function(i, show_x = TRUE, show_park_legend = TRUE) {
 
@@ -67,26 +68,6 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
         linewidth = 0.1
       ),
       geom_sf(data = ausc, fill = "seashell2", colour = "black", linewidth = 0.2),
-      geom_sf(
-        data        = wasanc,
-        aes(colour  = zone),
-        fill        = NA,
-        linewidth   = 0.8,
-        show.legend = show_park_legend
-      ),
-      scale_colour_manual(
-        name   = "State Marine Park",
-        guide  = "legend",
-        values = with(wasanc, setNames(colour, zone))
-      ),
-      guides(colour = guide_legend(
-        order        = 2,
-        ncol         = 1,
-        title.position = "top",
-        override.aes = list(colour = ngari_colours, fill = NA, linewidth = 1),
-        title.theme  = element_text(size = 9, face = "bold")
-      )),
-      ggnewscale::new_scale_color(),
       geom_sf(
         data        = marine_parks_amp,
         aes(colour  = zone),
@@ -105,6 +86,26 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
         ncol         = 2,
         title.position = "top",
         override.aes = list(fill = NA, linewidth = 1),
+        title.theme  = element_text(size = 9, face = "bold")
+      )),
+      ggnewscale::new_scale_color(),
+      geom_sf(
+        data        = marine_parks_state,
+        aes(colour  = zone),
+        fill        = NA,
+        linewidth   = 0.8,
+        show.legend = show_park_legend
+      ),
+      scale_colour_manual(
+        name   = "State Marine Park",
+        guide  = "legend",
+        values = with(marine_parks_state, setNames(colour, zone))
+      ),
+      guides(colour = guide_legend(
+        order        = 2,
+        ncol         = 1,
+        title.position = "top",
+        override.aes = list(colour = ngari_colours, fill = NA, linewidth = 1),
         title.theme  = element_text(size = 9, face = "bold")
       )),
       coord_sf(

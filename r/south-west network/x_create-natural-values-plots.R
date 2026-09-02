@@ -64,13 +64,14 @@ aus <- st_read("data/south-west network/spatial/shapefiles/STE_2021_AUST_GDA2020
 # parks. VERIFY this list against the shapefile's `name` field — built from
 # the individual park zoom-ins in the AMP bathymetry script, not confirmed.
 marine_parks <- st_read("data/south-west network/spatial/shapefiles/south-and-western-australia_marine-parks-all.shp") %>%
-  dplyr::filter(name %in% c(# Commonwealth AMPs (South-west Network)
+  dplyr::filter(name %in% c(
+    # Commonwealth AMPs (South-west Network)
     "Abrolhos", "Bremer", "Eastern Recherche", "Geographe",
-    "Great Australian Bight", "Jurien", "Kangaroo Island",
-    "Murray", "Western Eyre", "Rottnest Canyon", "South-west Corner",
+    "Great Australian Bight", "Jurien", "Southern Kangaroo Island", "Western Kangaroo Island",
+    "Murray", "Western Eyre", "Perth Canyon", "South-west Corner",
     "Twilight", "Two Rocks", "Murat",
-    # State marine parks (WA/SA) — update to match your shapefile's attributes
-    "Ngari Capes", "Shoalwater Islands", "Marmion", "Walpole and Nornalup Inlets")) %>%
+    # State marine parks (WA/SA)
+    "Ngari Capes", "Shoalwater Islands", "Marmion", "Walpole And Nornalup Inlets")) %>%
   glimpse()
 
 # Commonwealth marine parks only, for the natural values map
@@ -721,7 +722,7 @@ make_natural_values_plot(
   break_step  = 0.5,
   save_name   = "swc-west",
   width       = 7.5,
-  height      = 6,
+  height      = 6.5,
   park        = park,
   name        = name,
   legend_ncol = 2
@@ -749,6 +750,18 @@ make_natural_values_plot(
   park        = park,
   name        = name,
   legend_ncol = 1
+)
+
+# ── SW NETWORK -───────────────────────────────────────────────────────────────
+make_natural_values_plot(
+  plot_limits = c(110, 123, -39, -33),
+  break_step  = 1,
+  save_name   = "SW-full-extent",
+  width       = 10,
+  height      = 7.5,
+  park        = park,
+  name        = name,
+  legend_ncol = 3
 )
 
 # ==============================================================================

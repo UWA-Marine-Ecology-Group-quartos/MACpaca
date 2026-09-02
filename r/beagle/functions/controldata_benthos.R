@@ -1,13 +1,15 @@
 controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
 
   marine_parks <- st_read("data/amp_shapefile/Australian_Marine_Parks_v2.shp") %>%
+    sf::st_make_valid() %>%
     CheckEM::clean_names() %>%
     dplyr::mutate(zone_new = case_when(
       str_detect(zone, "Other State Marine Park Zone")  ~ paste(state_abbrv, "other zones"),
       str_detect(zone, "Habitat Protection Zone") & str_detect(epbc, "State")        ~ paste(state_abbrv, "HPZ"),
       str_detect(zone, "Habitat Protection Zone") & str_detect(epbc, "Commonwealth") ~ paste(amp_abbrv,  "HPZ"),
       str_detect(zone, "Sanctuary Zone")       ~ paste(state_abbrv, "SZ (IUCN II)"),
-      str_detect(zone, "National Park Zone")   ~ paste(amp_abbrv,  "NPZ (IUCN II)"),
+      str_detect(zone, "National Park Zone")   & str_detect(epbc, "Commonwealth") ~ paste(amp_abbrv,  "NPZ (IUCN II)"),
+      str_detect(zone, "National Park Zone")   & str_detect(epbc, "State") ~ paste(state_abbrv,  "NPZ (IUCN II)"),
       str_detect(zone, "Special Purpose Zone") & str_detect(epbc, "State")        ~ paste(state_abbrv, "other zones"),
       str_detect(zone, "Special Purpose Zone") & str_detect(epbc, "Commonwealth") ~ paste(amp_abbrv,  "other zones"),
       str_detect(zone, "Multiple Use Zone")    & str_detect(epbc, "State")        ~ paste(state_abbrv, "other zones"),
