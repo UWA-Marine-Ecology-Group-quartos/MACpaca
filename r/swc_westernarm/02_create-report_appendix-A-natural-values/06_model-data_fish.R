@@ -19,7 +19,8 @@ config <- yaml::read_yaml(
 
 name <- config$name
 park <- config$park
-years <- unlist(config$years)   # read_yaml returns a list
+years <- unlist(config$years)   # read_yaml returns a list - benthos years
+fish_years <- unlist(config$fish_years)   # subset of years modelled for fish
 
 combine_benthos <- config$combine_benthos
 benthos_label <- if (combine_benthos) paste(years, collapse = "_") else NA
@@ -37,7 +38,7 @@ library(CheckEM)
 tidy_maxn <- readRDS(paste0("data/", park, "/tidy/", name, "_tidy-count.rds")) %>% # TODO check outlier removal
   #  dplyr::filter(geoscience_roughness < 4) %>% # Remove outliers in roughness
   # Drop stale factor levels carried in from the RDS
-  dplyr::mutate(year   = droplevels(factor(as.character(year), levels = years)),
+  dplyr::mutate(year   = droplevels(factor(as.character(year), levels = fish_years)),
                 status = droplevels(factor(as.character(status)))) %>%
   glimpse()
 
@@ -67,7 +68,9 @@ resp.vars
 
 # Run the full subset model selection----
 savedir <- paste0("output/model-output/", park, "/fish/maxn/")
-factor.vars <- c("status") # TODO set factors, year forced below
+# status is forced into every model via null.terms, so it is no longer offered
+# as a candidate factor - listing it in both places duplicates the term.
+factor.vars <- NA
 out.all     <- list()
 var.imp     <- list()
 
@@ -75,7 +78,7 @@ var.imp     <- list()
 for(i in 1:length(resp.vars)){
   print(resp.vars[i])
   use.dat <- as.data.frame(tidy_maxn[which(tidy_maxn$response == resp.vars[i]), ])
-  Model1  <- gam(count ~ year + s(geoscience_depth, k = 3, bs = 'cr'),
+  Model1  <- gam(count ~ year + status + s(geoscience_depth, k = 3, bs = 'cr'),
                  family = tw(),  data = use.dat) # TODO check family
 
   model.set <- generate.model.set(use.dat = use.dat,
@@ -83,7 +86,7 @@ for(i in 1:length(resp.vars)){
                                   pred.vars.cont = pred.vars,
                                   pred.vars.fact = factor.vars,
                                   cyclic.vars = "geoscience_aspect",
-                                  null.terms = "year", # force year
+                                  null.terms = "year + status", # force year and status
                                   k = 3, # TODO check this, maybe add cov.cutoff
                                   factor.smooth.interactions = F, # TODO check this
                                   max.predictors = 5 # TODO check this
@@ -127,7 +130,7 @@ write.csv(all.var.imp, file = paste(savedir, paste(name, "all.var.imp.csv", sep 
 # Do FSS for B20
 tidy_b20 <- readRDS(paste0("data/", park, "/tidy/", name, "_tidy-b20.rds")) %>%
   #  dplyr::filter(geoscience_roughness < 4) %>% # TODO check, make same as above
-  dplyr::mutate(year   = droplevels(factor(as.character(year), levels = years)),
+  dplyr::mutate(year   = droplevels(factor(as.character(year), levels = fish_years)),
                 status = droplevels(factor(as.character(status)))) %>%
   glimpse()
 
@@ -157,13 +160,14 @@ savedir <- paste0("output/model-output/", park, "/fish/length/")
 name_b20 <- paste(name,"b20", sep = "_")
 out.all <- list()
 var.imp <- list()
-factor.vars <- c("status") # TODO check, year forced below
+# status forced below alongside year, so not offered as a candidate factor
+factor.vars <- NA
 
 # Loop through the FSS function for each Taxa----
 for(i in 1:length(resp.vars)){
   print(resp.vars[i])
   use.dat = as.data.frame(tidy_b20[which(tidy_b20$response==resp.vars[i]),])
-  Model1  <- gam(count ~ year + s(geoscience_depth, k = 3, bs = 'cr'),
+  Model1  <- gam(count ~ year + status + s(geoscience_depth, k = 3, bs = 'cr'),
                  tw(),  data = use.dat) # TODO check family
 
   model.set <- generate.model.set(use.dat = use.dat,
@@ -171,7 +175,7 @@ for(i in 1:length(resp.vars)){
                                   pred.vars.cont = pred.vars,
                                   pred.vars.fact = factor.vars,
                                   cyclic.vars = "geoscience_aspect",
-                                  null.terms = "year", # force year
+                                  null.terms = "year + status", # force year and status
                                   k = 3, # TODO check this, maybe add cov.cutoff
                                   factor.smooth.interactions = F, # TODO check this
                                   max.predictors = 5 # TODO check this
@@ -214,39 +218,38 @@ write.csv(all.var.imp, file = paste(savedir, paste(name_b20, "all.var.imp.csv", 
 
 # read in
 fabund <- bind_rows(tidy_maxn, tidy_b20) %>%
-  dplyr::mutate(year   = droplevels(factor(as.character(year), levels = years)),
+  dplyr::mutate(year   = droplevels(factor(as.character(year), levels = fish_years)),
                 status = droplevels(factor(as.character(status)))) %>%
   glimpse()
 
 ## TODO Select best models from above then write them below (check all.mod.fits and all.var.imp)
 # For each response, carefully write the selected model choosing model type (family),
 # predictor variables, factor variables, k and bs
+# status is kept in every model regardless of what selection returns
 
-#Total abundance
-m_abundance <- gam(count ~ year +
+# Total abundance - only model within delta AICc 2 (r2 0.356)
+m_abundance <- gam(count ~ year + status +
                      s(geoscience_aspect, k = 3, bs = "cc") +
-                     s(geoscience_depth, k = 3, bs = "cr") +
-                     s(geoscience_detrended, k = 3, bs = "cr"),
+                     s(geoscience_roughness, k = 3, bs = "cr") +
+                     s(reef, k = 3, bs = "cr"),
                    data = fabund %>% dplyr::filter(response %in% "total_abundance"),
                    family = poisson)
 
 summary(m_abundance)
 # plot(m_abundance)
 
-# Species richness - aspect dropped, dAICc 1.39 behind and r2 unchanged
-# TODO re-select model
-m_richness <- gam(count ~ year +
-                    s(geoscience_aspect, k = 3, bs = "cc") +
-                    s(geoscience_depth, k = 3, bs = "cr") +
-                    s(geoscience_detrended, k = 3, bs = "cr") +
-                    s(geoscience_roughness, k = 3, bs = "cr"),
+# Species richness - aspect dropped, 1.435 dAICc behind and r2 0.449 vs 0.454
+m_richness <- gam(count ~ year + status +
+                    s(geoscience_roughness, k = 3, bs = "cr") +
+                    s(reef, k = 3, bs = "cr"),
                   data = fabund %>% dplyr::filter(response %in% "species_richness"),
                   family = gaussian(link = "identity"))
 summary(m_richness)
 # plot(m_richness)
 
-# CTI - six models within delta AICc <= 2, this is the two-predictor one
-m_cti <- gam(count ~ year +
+# CTI - two models within delta AICc 2, separated by 0.001; this is the
+# simpler of the two (aspect adds an edf for no change in r2, 0.069)
+m_cti <- gam(count ~ year + status +
                s(reef, k = 3, bs = "cr") +
                s(geoscience_roughness, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "cti"),
@@ -254,7 +257,7 @@ m_cti <- gam(count ~ year +
 summary(m_cti)
 # plot(m_cti)
 
-# B20 - aspect dropped, dAICc 0.01 behind and r2 unchanged
+# B20 - aspect dropped, 1.031 dAICc behind and r2 0.142 vs 0.147
 m_b20 <- gam(count ~ year + status +
                s(reef, k = 3, bs = "cr") +
                s(geoscience_roughness, k = 3, bs = "cr"),
@@ -299,18 +302,18 @@ if (combine_benthos) {
                            name, "_predicted-habitat_", benthos_label, ".rds")) %>%
     terra::subset("p_reef.fit")
   names(reef_r) <- "reef"
-  reef_by_year <- setNames(rep(list(reef_r), length(years)), years)
+  reef_by_year <- setNames(rep(list(reef_r), length(fish_years)), fish_years)
 } else {
-  reef_by_year <- setNames(lapply(years, function(y) {
+  reef_by_year <- setNames(lapply(fish_years, function(y) {
     r <- readRDS(paste0("output/model-output/", park, "/habitat/",
                         name, "_predicted-habitat_", y, ".rds")) %>%
       terra::subset("p_reef.fit")
     names(r) <- "reef"; r
-  }), years)
+  }), fish_years)
 }
 
 # Build one prediction frame per fish year, each with its reef surface
-preddf_sy <- purrr::map_dfr(years, function(yr) {
+preddf_sy <- purrr::map_dfr(fish_years, function(yr) {
   cbind(preddf_s,
         terra::extract(reef_by_year[[as.character(yr)]], predv)[, "reef", drop = FALSE]) %>%
     dplyr::mutate(year = yr)
@@ -347,17 +350,6 @@ prasts_2020 <- rast(
 plot(prasts_2020)
 summary(prasts_2020)
 
-# 2023 rasters
-prasts_2023 <- rast(
-  predicted_fish %>%
-    dplyr::filter(as.character(year) %in% "2023") %>%
-    dplyr::select(x, y, starts_with("p_")),
-  crs = "epsg:4326"
-)
-
-plot(prasts_2023)
-summary(prasts_2023)
-
 # 2024 rasters
 prasts_2024 <- rast(
   predicted_fish %>%
@@ -383,7 +375,7 @@ summary(prasts_2025)
 # Calculate MESS and mask predictions
 
 resp.vars <- c("p_abundance", "p_richness", "p_cti", "p_b20")
-pred.years <- years
+pred.years <- fish_years
 
 for (y in seq_along(pred.years)) {
 
@@ -470,3 +462,4 @@ for (y in seq_along(pred.years)) {
                      names(preddf_m), "_predicted_", this_year, ".tif"),
               overwrite = TRUE)
 }
+

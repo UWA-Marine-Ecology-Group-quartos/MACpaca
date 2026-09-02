@@ -1,12 +1,10 @@
 controlplot_benthos <- function(data, taxa, amp_abbrv, state_abbrv,
-                                        taxa_label = NULL,
-                                        depth_levels = c("Shallow (0 - 30 m)",
-                                                         "Mesophotic (30 - 70 m)",
-                                                         "Rariphotic (70 - 200 m)")) {
-
+                                taxa_label = NULL,
+                                depth_levels = c("Shallow (0 - 30 m)",
+                                                 "Mesophotic (30 - 70 m)",
+                                                 "Rariphotic (70 - 200 m)")) {
   mean_col <- taxa
   se_col   <- paste0(taxa, "_se")
-
   if (is.null(taxa_label)) {
     taxa_label <- dplyr::case_when(
       taxa == "seagrass"   ~ "Seagrass",
@@ -17,13 +15,11 @@ controlplot_benthos <- function(data, taxa, amp_abbrv, state_abbrv,
       TRUE ~ stringr::str_to_title(taxa)
     )
   }
-
   req_cols <- c("year", "zone_new", "depth_class", mean_col, se_col)
   if (!all(req_cols %in% names(data))) {
     stop("Data is missing one or more required columns: ",
          paste(setdiff(req_cols, names(data)), collapse = ", "))
   }
-
   plot_dat <- data %>%
     dplyr::filter(!is.na(.data[[mean_col]])) %>%
     dplyr::mutate(
@@ -39,12 +35,22 @@ controlplot_benthos <- function(data, taxa, amp_abbrv, state_abbrv,
         )
       )
     )
-
+  # The zone_new levels above are rebuilt from amp_abbrv/state_abbrv, so they
+  # must match the abbreviations passed to controldata_benthos(). If they do
+  # not, every row silently becomes NA and the plot comes out empty.
+  if (all(is.na(plot_dat$zone_new))) {
+    stop("No zone_new value matched the expected levels for ", taxa_label,
+         ". Check that amp_abbrv and state_abbrv match the values used in ",
+         "controldata_benthos().")
+  }
   if (nrow(plot_dat) == 0) {
     message("No data available to plot for ", taxa_label)
     return(NULL)
   }
-
+  # Zones with no data in this park are dropped so they do not appear as empty
+  # entries in the legend.
+  plot_dat <- plot_dat %>%
+    dplyr::mutate(zone_new = droplevels(zone_new))
   fill_vals <- setNames(
     c("#fff8a3", "#7bbc63", "#b9e6fb", "#bfd054", "#bddde1"),
     c(
@@ -55,7 +61,6 @@ controlplot_benthos <- function(data, taxa, amp_abbrv, state_abbrv,
       paste(state_abbrv, "other zones")
     )
   )
-
   shape_vals <- setNames(
     c(21, 21, 21, 25, 25),
     c(
@@ -66,7 +71,6 @@ controlplot_benthos <- function(data, taxa, amp_abbrv, state_abbrv,
       paste(state_abbrv, "other zones")
     )
   )
-
   p <- ggplot(
     data = plot_dat,
     aes(x = year, y = .data[[mean_col]], fill = zone_new, shape = zone_new)
@@ -95,8 +99,8 @@ controlplot_benthos <- function(data, taxa, amp_abbrv, state_abbrv,
     ) +
     facet_wrap(~depth_class, ncol = 1, scales = "free_y") +
     theme_classic() +
-    scale_x_continuous(breaks = c(2014, 2024)) + # TODO set to your survey years
-    coord_cartesian(xlim = c(2013, 2025), ylim = c(0, NA)) +
+    scale_x_continuous(breaks = c(2020, 2021, 2024, 2025)) +
+    coord_cartesian(xlim = c(2019.5, 2025.5), ylim = c(0, NA)) +
     scale_fill_manual(values = fill_vals, name = "Marine Parks", drop = FALSE) +
     scale_shape_manual(values = shape_vals, name = "Marine Parks", drop = FALSE) +
     labs(x = "Year", y = "Mean predicted probability") +
@@ -105,6 +109,5 @@ controlplot_benthos <- function(data, taxa, amp_abbrv, state_abbrv,
       strip.background = element_blank(),
       strip.text = element_text(face = "bold")
     )
-
   return(p)
 }

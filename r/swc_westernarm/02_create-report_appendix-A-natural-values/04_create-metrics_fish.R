@@ -20,6 +20,7 @@ config <- yaml::read_yaml(
 
 name <- config$name
 park <- config$park
+fish_years <- unlist(config$fish_years)   # read_yaml returns a list
 
 # Load necessary libraries
 library(CheckEM)
@@ -50,6 +51,11 @@ if (!"method" %in% names(metadata)) {
 
 metadata_fish <- metadata %>%
   dplyr::filter(method %in% "BRUV") %>%
+  # Fish is modelled on `fish_years` from 00_config.yml, which is a subset of
+  # `years`. Every fish join below keys on metadata_fish, so dropping the years
+  # here drops them from the metrics, the AMP subset and the B20 data as well.
+  # The benthos is driven by `years` and is untouched by this filter.
+  dplyr::filter(as.character(year) %in% fish_years) %>%
   dplyr::select(-method)
 
 message("Metadata samples: ", nrow(metadata),
@@ -63,6 +69,7 @@ benthos <- readRDS(paste0("data/", park, "/tidy/", name, "_benthos-count.RDS")) 
   glimpse()
 
 count <- readRDS(paste0("data/", park, "/raw/_count-with-zeros.RDS")) %>%
+  dplyr::semi_join(metadata_fish, by = c("campaignid", "sample")) %>%
   dplyr::select(campaignid, sample, family, genus, species, count) %>%
   dplyr::mutate(scientific_name = paste(family, genus, species, sep = " ")) %>%
   glimpse()
@@ -190,6 +197,7 @@ saveRDS(tidy_maxn, file = paste0("data/", park, "/tidy/", name, "_tidy-count.rds
 
 # Create df for calculating B20
 b20_length <- readRDS(paste0("data/", park, "/raw/_length-with-zeros.RDS")) %>%
+  dplyr::semi_join(metadata_fish, by = c("campaignid", "sample")) %>%
   dplyr::select(campaignid, sample, family, genus, species, length_mm, count) %>%
   mutate(length_cm = length_mm / 10) %>%
   left_join(CheckEM::australia_life_history) %>%
@@ -517,4 +525,3 @@ b20_tidy <- biomass %>% # TODO this needs tweaking, not working 100% because som
 nrow(filter(b20_tidy, count > 0))/nrow(b20_tidy)
 
 saveRDS(b20_tidy, file = paste0("data/", park, "/tidy/", name, "_tidy-b20.rds"))
-

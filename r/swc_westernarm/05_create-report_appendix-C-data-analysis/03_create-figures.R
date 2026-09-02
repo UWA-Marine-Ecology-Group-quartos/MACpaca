@@ -1,8 +1,8 @@
 ###
 # Project: NESP 4.21 - Australian Marine Parks Natural Values Reporting
 # Data:    FSS variable importance CSVs (05/06) + final models (01_)
-# Task:    Build Appendix C figures - importance heatmaps (C 1.1, C 2.1) and
-#          GAM response-curve panels (C 1.2, C 2.2)
+# Task:    Build Appendix C1 figures - importance heatmaps and GAM
+#          response-curve panels (rendered in order as Figure C1.1-C1.4)
 # Author:  Annika Leunig
 # Date:    August 2026
 ###

@@ -1,15 +1,15 @@
 ###
 # Project: NESP 4.21 - Australian Marine Parks Natural Values Reporting
-# Data:    FSS variable importance CSVs (05/06) + final models (01_)
-# Task:    Build Appendix C figures - importance heatmaps (C 1.1, C 2.1) and
-#          GAM response-curve panels (C 1.2, C 2.2)
+# Data:    FSS variable importance CSVs (05) + final models (01_)
+# Task:    Build Appendix C figures - importance heatmap and per-year GAM
+#          response-curve panels
 # Author:  Annika Leunig
 # Date:    August 2026
 ###
 
 rm(list = ls())
 
-# Locate this folder.
+# Locate folder
 if (!exists("appc_dir") || !file.exists(file.path(appc_dir, "00_config.yml"))) {
   appc_dir <- local({
     cands <- getwd()
@@ -36,72 +36,36 @@ years           <- unlist(config$years)
 year_levels     <- as.character(sort(years))
 combine_benthos <- config$combine_benthos
 
-# TODO WHICH YEAR DO THE CURVES SHOW? -----------------------------------------
-# Fish only. Habitat is pooled here, so no habitat model contains `year` and
-# nothing is held at a reference level on those panels.
-factor_ref <- c(year = year_levels[1], status = "Fished")
-
 figdir <- file.path(appc_out, "figures")
 dir.create(figdir, recursive = TRUE, showWarnings = FALSE)
 
 models <- load_final_models()
 dat    <- load_model_data()
 
-# =============================================================================
-# WHICH TERMS DID EACH FINAL MODEL ACTUALLY KEEP?
-# =============================================================================
-# Model selection does not return the same shape for every response:
-#   * benthos is pooled, so no habitat model keeps year or status at all
-#   * year is forced into every fish model
-#   * only B20 kept status
-# curve_data() already copes - it only fills the factors that appear in
-# gam_predictor_set(model), and predict.gam ignores anything else. These
-# messages exist so the mismatch is visible when the figures are rebuilt,
-# rather than being discovered in a caption that claims a hold that never
-# happened.
-
+# Model structure
 model_has_term <- function(mod, tm) tm %in% gam_predictor_set(mod)
 
-# TRUE when at least one smooth in the model is fitted separately by year
 model_has_by_year <- function(mod) {
   if (!length(mod$smooth)) return(FALSE)
-  any(vapply(mod$smooth,
-             function(s) identical(s$by, "year"),
-             logical(1)))
-}
-
-report_terms <- function(model_list, what) {
-  for (resp in names(model_list)) {
-    mod <- model_list[[resp]]
-    kept <- c("year", "status")[
-      vapply(c("year", "status"), function(t) model_has_term(mod, t), logical(1))
-    ]
-    message("  [", what, "] ", resp,
-            " - factors: ", if (length(kept)) paste(kept, collapse = "+") else "none",
-            "; year-varying smooths: ", if (model_has_by_year(mod)) "yes" else "no")
-  }
+  any(vapply(mod$smooth, function(s) identical(s$by, "year"), logical(1)))
 }
 
 message("Final model structure:")
-report_terms(models$habitat, "habitat")
-report_terms(models$fish,    "fish")
-
-# Pooled benthos means one habitat curve figure, not one per year. If a habitat
-# model has picked up a year term the figure below would silently be drawn at
-# whichever level came first - fail loudly instead.
-if (combine_benthos &&
-    any(vapply(models$habitat, model_has_term, logical(1), tm = "year"))) {
-  stop("combine_benthos is TRUE but a habitat model contains `year`. ",
-       "Either re-run 01_fit-final-models.R, or restore the per-year figure ",
-       "loop and the sub-figure numbering block in 04_quarto.qmd.")
+for (resp in names(models)) {
+  message("  ", resp,
+          " - year term: ", if (model_has_term(models[[resp]], "year")) "yes" else "no",
+          "; year-varying smooths: ", if (model_has_by_year(models[[resp]])) "yes" else "no")
 }
 
-# =============================================================================
-# PART 1 - VARIABLE IMPORTANCE HEATMAPS
-# =============================================================================
+# Guard
+if (!combine_benthos &&
+    !all(vapply(models, model_has_term, logical(1), tm = "year"))) {
+  stop("combine_benthos is FALSE but a habitat model has no `year` term. ",
+       "Re-run 01_fit-final-models.R, or pool the benthos and collapse the ",
+       "per-year figure loop below.")
+}
 
-# all.var.imp is rbind()ed over responses, so write.csv puts the response name
-# in the first (unnamed) column and one column per predictor.
+# Importance heatmap
 read_var_imp <- function(path) {
   if (!file.exists(path)) stop("Variable importance CSV not found:\n  ", path)
   x <- read.csv(path, stringsAsFactors = FALSE, check.names = FALSE)
@@ -112,24 +76,17 @@ read_var_imp <- function(path) {
                   importance = as.numeric(importance))
 }
 
-# FSSgam importance weights are unsigned.
+# FSSgam weights are unsigned
 term_sign <- function(y, x) {
   if (all(is.na(x)) || all(is.na(y))) return(1)
   r <- suppressWarnings(stats::cor(y, x, method = "spearman", use = "complete.obs"))
   if (is.na(r) || r == 0) 1 else sign(r)
 }
 
-habitat_signs <- purrr::map_dfr(names(models$habitat), function(resp) {
-  y <- dat$habitat[[resp]] / dat$habitat$total_pts
+habitat_signs <- purrr::map_dfr(names(models), function(resp) {
+  y <- dat[[resp]] / dat$total_pts
   purrr::map_dfr(habitat_term_order, function(tm) {
-    tibble(response = resp, term = tm, sgn = term_sign(y, dat$habitat[[tm]]))
-  })
-})
-
-fish_signs <- purrr::map_dfr(names(models$fish), function(resp_i) {
-  d <- dat$fish %>% dplyr::filter(.data$response == resp_i)
-  purrr::map_dfr(fish_term_order, function(tm) {
-    tibble(response = resp_i, term = tm, sgn = term_sign(d$count, d[[tm]]))
+    tibble(response = resp, term = tm, sgn = term_sign(y, dat[[tm]]))
   })
 })
 
@@ -182,36 +139,17 @@ fig_c1_1 <- build_importance_plot(
   var_imp  = read_var_imp(here("output", "model-output", park, "habitat",
                                paste0(name, "_abiotic_all.var.imp.csv"))),
   signs    = habitat_signs,
-  models   = models$habitat,
+  models   = models,
   response_order = habitat_response_order,
   term_order     = habitat_term_order,
   italic_y = TRUE
 )
 
-fig_c2_1 <- build_importance_plot(
-  var_imp = dplyr::bind_rows(
-    read_var_imp(here("output", "model-output", park, "fish", "maxn",
-                      paste0(name, "_all.var.imp.csv"))),
-    read_var_imp(here("output", "model-output", park, "fish", "length",
-                      paste0(name, "_b20_all.var.imp.csv")))
-  ),
-  signs    = fish_signs,
-  models   = models$fish,
-  response_order = fish_response_order,
-  term_order     = fish_term_order,
-  italic_y = FALSE
-)
-
 ggsave(file.path(figdir, paste0(name, "_habitat-importance.png")), fig_c1_1,
-       width = 7, height = 6, dpi = 300, bg = "white")     # 6 responses, not 4
-ggsave(file.path(figdir, paste0(name, "_fish-importance.png")), fig_c2_1,
-       width = 7, height = 5, dpi = 300, bg = "white")
+       width = 7, height = 6, dpi = 300, bg = "white")
 
-# =============================================================================
-# PART 2 - RESPONSE-CURVE PANELS
-# =============================================================================
-curve_data <- function(model, data, term, obs_y, n = 200, ref = factor_ref,
-                       ylim = NULL) {
+# Response curves
+curve_data <- function(model, data, term, obs_y, n = 200, ref = NULL) {
 
   force(term)
 
@@ -224,10 +162,9 @@ curve_data <- function(model, data, term, obs_y, n = 200, ref = factor_ref,
     if (is.numeric(data[[v]])) {
       newdat[[v]] <- mean(data[[v]], na.rm = TRUE)
     } else {
-      # Levels come from the FITTED MODEL
       lv <- model$xlevels[[v]]
       if (is.null(lv)) lv <- levels(droplevels(factor(data[[v]])))
-      pick <- if (!is.na(ref[v]) && ref[v] %in% lv) unname(ref[v]) else lv[1]
+      pick <- if (!is.null(ref) && !is.na(ref[v]) && ref[v] %in% lv) unname(ref[v]) else lv[1]
       newdat[[v]] <- factor(pick, levels = lv)
     }
   }
@@ -267,10 +204,9 @@ curve_panel <- function(cd, x_lab, title = NULL, tag = NULL, ylim = NULL) {
   p
 }
 
-# Assemble the response-curve panels.
 build_curve_grid <- function(models, data_for, obs_for, response_order,
                              term_order, ncol, pad_rows = TRUE,
-                             ref = factor_ref, ylim_for = NULL) {
+                             ref = NULL, ylim_for = NULL) {
 
   panels <- list()
   tag_i  <- 0
@@ -286,9 +222,6 @@ build_curve_grid <- function(models, data_for, obs_for, response_order,
     tms <- smooth_predictor_set(mod, d)
     tms <- tms[order(match(tms, term_order))]
 
-    # ylim_for lets the caller fix the y axis across several figures. Not used
-    # here - benthos is pooled into a single figure - but kept so the habitat
-    # loop can be restored unchanged if combine_benthos is ever switched off.
     ylim <- if (is.null(ylim_for)) range(ys, na.rm = TRUE) else ylim_for(resp)
 
     for (j in seq_along(tms)) {
@@ -303,7 +236,6 @@ build_curve_grid <- function(models, data_for, obs_for, response_order,
       )
     }
 
-    # pad the row out so the next response starts on a fresh line
     if (pad_rows && length(tms) < ncol) {
       for (k in seq_len(ncol - length(tms))) {
         panels[[length(panels) + 1]] <- patchwork::plot_spacer()
@@ -312,16 +244,10 @@ build_curve_grid <- function(models, data_for, obs_for, response_order,
   }
 
   out <- patchwork::wrap_plots(panels, ncol = ncol)
-
-  # row count, so the caller can size the saved file to the actual grid rather
-  # than to the number of responses
   attr(out, "n_rows") <- ceiling(length(panels) / ncol)
   out
 }
 
-# Widest response decides the grid, so every response gets exactly one row.
-# Hard-coding this breaks whenever a park's selected models keep a different
-# number of smooths - habitat runs to four here, fish to two.
 grid_ncol <- function(model_list, data_for) {
   max(vapply(names(model_list),
              function(r) length(smooth_predictor_set(model_list[[r]], data_for(r))),
@@ -330,70 +256,39 @@ grid_ncol <- function(model_list, data_for) {
 
 row_height_in <- 1.5
 
-# ---- Habitat: one pooled figure ---------------------------------------------
-# combine_benthos is TRUE, so all survey years go into one set of panels and
-# the observed points are every benthos sample, not a single year's.
-habitat_data <- function(resp) dat$habitat
-habitat_obs  <- function(resp) dat$habitat[[resp]] / dat$habitat$total_pts
+# One figure per year
+hab_ncol <- grid_ncol(models, function(resp) dat)
 
-hab_ncol <- grid_ncol(models$habitat, habitat_data)
+# Fixed across years so the panels stay comparable
+hab_ylim <- function(resp) range(dat[[resp]] / dat$total_pts, na.rm = TRUE)
 
-fig_c1_2 <- build_curve_grid(
-  models         = models$habitat,
-  data_for       = habitat_data,
-  obs_for        = habitat_obs,
-  response_order = habitat_response_order,
-  term_order     = habitat_term_order,
-  ncol           = hab_ncol,
-  pad_rows       = TRUE
-)
+curve_years <- levels(dat$year)
 
-ggsave(file.path(figdir, paste0(name, "_habitat-response-curves.png")), fig_c1_2,
-       width = 2 * hab_ncol, height = row_height_in * attr(fig_c1_2, "n_rows"),
-       dpi = 300, bg = "white")
+for (yr in curve_years) {
 
-# ---- Fish: modelled count metric --------------------------------------------
-fish_subset <- function(resp) dat$fish %>% dplyr::filter(.data$response == resp)
+  message("Building habitat response curves for: ", yr)
 
-fish_ncol <- grid_ncol(models$fish, fish_subset)
+  dat_yr <- dat %>% dplyr::filter(as.character(year) == yr)
 
-fig_c2_2 <- build_curve_grid(
-  models         = models$fish,
-  data_for       = fish_subset,
-  obs_for        = function(resp) fish_subset(resp)$count,
-  response_order = fish_response_order,
-  term_order     = fish_term_order,
-  ncol           = fish_ncol,
-  pad_rows       = TRUE
-)
+  fig_yr <- build_curve_grid(
+    models         = models,
+    data_for       = function(resp) dat_yr,
+    obs_for        = function(resp) dat_yr[[resp]] / dat_yr$total_pts,
+    response_order = habitat_response_order,
+    term_order     = habitat_term_order,
+    ncol           = hab_ncol,
+    pad_rows       = TRUE,
+    ref            = c(year = yr),
+    ylim_for       = hab_ylim
+  )
 
-ggsave(file.path(figdir, paste0(name, "_fish-response-curves.png")), fig_c2_2,
-       width = 2.7 * fish_ncol, height = 2.1 * attr(fig_c2_2, "n_rows"),
-       dpi = 300, bg = "white")
+  ggsave(file.path(figdir, paste0(name, "_habitat-response-curves_", yr, ".png")),
+         fig_yr,
+         width = 2 * hab_ncol, height = row_height_in * attr(fig_yr, "n_rows"),
+         dpi = 300, bg = "white")
+}
 
 message("Appendix C figures written to: ", figdir)
-message("Habitat response curves drawn from pooled benthos across ",
-        paste(sort(unique(as.character(dat$habitat$year))), collapse = ", "),
-        " - no year or status hold.")
+message("Habitat response curves drawn per year: ",
+        paste(curve_years, collapse = ", "))
 
-# Only claim a hold for the metrics that still contain the term.
-fish_no_year   <- names(models$fish)[
-  !vapply(models$fish, model_has_term, logical(1), tm = "year")
-]
-fish_no_status <- names(models$fish)[
-  !vapply(models$fish, model_has_term, logical(1), tm = "status")
-]
-
-message("Fish response curves drawn at year = ", factor_ref["year"],
-        ", status = ", factor_ref["status"],
-        " for the metrics that retain those terms.")
-if (length(fish_no_year)) {
-  message("  year NOT in the final model for: ",
-          paste(unname(response_labels[fish_no_year]), collapse = ", "))
-}
-if (length(fish_no_status)) {
-  message("  status NOT in the final model for: ",
-          paste(unname(response_labels[fish_no_status]), collapse = ", "))
-}
-message("04_quarto.qmd builds the fish caption from the same objects, so the ",
-        "caption follows automatically.")

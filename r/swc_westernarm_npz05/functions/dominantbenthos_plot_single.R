@@ -71,11 +71,8 @@ dominantbenthos_plot_single <- function(pred_plot, prediction_limits, habitat_lo
     scale_colour_manual(
       values = with(marine_parks_amp, setNames(colour, zone))
     ) +
-    scale_x_continuous(
-      breaks = seq(floor(prediction_limits[1] * 2.5) / 2.5,
-                   ceiling(prediction_limits[2] * 2.5) / 2.5,
-                   by = 0.4)
-    ) +
+    scale_x_continuous(breaks = scales::breaks_width(0.3)) +
+    scale_y_continuous(breaks = scales::breaks_width(0.04)) +
     coord_sf(
       xlim   = c(prediction_limits[1], prediction_limits[2]),
       ylim   = c(prediction_limits[3], prediction_limits[4]),

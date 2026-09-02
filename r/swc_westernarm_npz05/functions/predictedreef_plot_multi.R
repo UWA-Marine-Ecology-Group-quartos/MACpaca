@@ -53,9 +53,10 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
     arrange(zone) %>%
     pull(colour)
 
-  build_base <- function(i, show_x = TRUE, show_park_legend = TRUE) {
+  # `col` is the grid column: 1 = prediction (keeps the y axis), 2 = SE.
+  build_base <- function(col, show_x = TRUE, show_park_legend = TRUE) {
 
-    y_theme <- if (i == 1) theme_left else theme_inner
+    y_theme <- if (col == 1) theme_left else theme_inner
     x_theme <- if (show_x) theme() else theme_top
 
     list(
@@ -107,11 +108,8 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
         override.aes = list(fill = NA, linewidth = 1),
         title.theme  = element_text(size = 9, face = "bold")
       )),
-      scale_x_continuous(
-        breaks = seq(floor(prediction_limits[1] * 2.5) / 2.5,
-                     ceiling(prediction_limits[2] * 2.5) / 2.5,
-                     by = 0.4)
-      ),
+      scale_x_continuous(breaks = scales::breaks_width(0.3)),
+      scale_y_continuous(breaks = scales::breaks_width(0.04)),
       coord_sf(
         xlim   = c(prediction_limits[1], prediction_limits[2]),
         ylim   = c(prediction_limits[3], prediction_limits[4]),
@@ -148,12 +146,13 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
       )
 
     if (multi_year) {
-      p <- p + ggtitle(yrs[i])
+      p <- p + ggtitle(if (i == 1) "Predicted Reef Probability" else NULL)
     } else {
       p <- p + ggtitle("Predicted Reef Probability")
     }
 
-    p + build_base(i, show_x = !multi_year, show_park_legend = FALSE)
+    p + build_base(1, show_x = !multi_year || i == length(yrs),
+                   show_park_legend = FALSE)
   })
 
   # ------------------------------------------------------------
@@ -170,11 +169,12 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
         breaks   = c(0, 0.03, 0.06),
         oob      = scales::squish
       ) +
-      ggtitle(if (multi_year) NULL else "Standard Error") +
-      build_base(if (multi_year) i else 2, show_x = TRUE, show_park_legend = FALSE)
+      ggtitle(if (multi_year && i > 1) NULL else "Standard Error") +
+      build_base(2, show_x = !multi_year || i == length(yrs),
+                 show_park_legend = FALSE)
   })
   # ------------------------------------------------------------
-  # Row labels
+  # Row labels (one per year)
   # ------------------------------------------------------------
   row_label_plot <- function(label) {
     ggplot() +
@@ -195,17 +195,15 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
 
   } else {
 
-    pred_label <- row_label_plot("Predicted Reef Probability")
-    se_label   <- row_label_plot("Standard Error")
+    # The mapped area is a wide, shallow strip, so years run down the page as
+    # rows and prediction/SE sit side by side as the two columns. The reverse
+    # (a year per column) makes each panel far too short to read.
+    year_rows <- lapply(seq_along(yrs), function(i) {
+      row_label_plot(yrs[i]) + p_pred[[i]] + p_se[[i]] +
+        plot_layout(widths = c(0.06, 1, 1))
+    })
 
-    pred_row <- pred_label + wrap_plots(p_pred, nrow = 1, guides = "collect") +
-      plot_layout(widths = c(0.06, 1))
-
-    se_row <- se_label + wrap_plots(p_se, nrow = 1, guides = "collect") +
-      plot_layout(widths = c(0.06, 1))
-
-    p_out <- (pred_row / se_row) +
-      plot_layout(heights = c(1, 1))
+    p_out <- wrap_plots(year_rows, ncol = 1)
   }
 
   p_out <- p_out +

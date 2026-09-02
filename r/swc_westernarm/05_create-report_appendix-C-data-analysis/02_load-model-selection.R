@@ -1,7 +1,7 @@
 ###
 # Project: NESP 4.21 - Australian Marine Parks Natural Values Reporting
 # Data:    FSS candidate CSVs (05/06) + final models (01_fit-final-models.R)
-# Task:    Build the Table C 1.1 / C 2.1 data, and shared helper functions
+# Task:    Build the Table C1.1 / C1.2 data, and shared helper functions
 # Author:  Annika Leunig
 # Date:    August 2026
 ###
@@ -77,7 +77,7 @@ habitat_term_order <- c("geoscience_detrended", "geoscience_roughness",
 fish_term_order    <- c("geoscience_detrended", "geoscience_roughness",
                         "geoscience_aspect", "geoscience_depth", "reef")
 
-# Row order in Table C 1.1 / C 2.1 and on the heatmaps. All six benthic classes
+# Row order in Table C1.1 / C1.2 and on the heatmaps. All six benthic classes
 # are modelled here. Note `seagrasses` is plural - it must match the response
 # string used by 03_create-metrics_benthos.R and the FSS loop in 05.
 habitat_response_order <- c("macroalgae", "sand", "seagrasses", "rock",
@@ -341,9 +341,9 @@ get_fish_report_table <- function(models = NULL) {
     expected = names(models)
   )
 
-  # year is forced into every fish candidate via null.terms in 06
+  # year and status are forced into every fish candidate via null.terms in 06
   candidates <- dplyr::bind_rows(maxn, b20) %>%
-    dplyr::mutate(modname = paste0(modname, "+year"))
+    dplyr::mutate(modname = paste0(modname, "+year+status"))
 
   mark_selected(candidates, models) %>%
     format_report_table(fish_response_order)

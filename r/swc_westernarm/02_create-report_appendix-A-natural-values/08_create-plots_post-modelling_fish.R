@@ -20,7 +20,8 @@ config <- yaml::read_yaml(
 
 name <- config$name
 park <- config$park
-years <- config$years
+# 08 is fish-only, so every "years" below is the fish year list from 00_config.yml
+years <- unlist(config$fish_years)
 
 # Load libraries
 library(tidyverse)
@@ -388,6 +389,10 @@ marine_parks_amp <- st_read("data/south-west network/spatial/shapefiles/western-
   st_transform(4326)
 
 metadata_amp <- readRDS(paste0("data/", park, "/raw/metadata.RDS")) %>%
+  # metadata.RDS is the full BRUV + BOSS record for every survey year. The
+  # bar plots below semi_join their raw count data against this, so without
+  # the year filter they pick up years that are not modelled for fish.
+  dplyr::filter(as.character(year) %in% years) %>%
   distinct(campaignid, sample, .keep_all = TRUE) %>%
   st_as_sf(coords = c("longitude_dd", "latitude_dd"), crs = 4326, remove = FALSE) %>%
   st_join(
@@ -570,7 +575,7 @@ bar_maxn <- ggplot(
   geom_col(colour = "black", linewidth = 0.25) +
   geom_errorbar(aes(ymin = pmax(maxn - se, 0), ymax = maxn + se), width = 0.2) +
   coord_flip() +
-  facet_wrap(~year, scales = "free_y") +
+  facet_wrap(~year, nrow = 2, ncol = 2, scales = "free_y") +
   scale_x_reordered() +
   labs(
     x = "Species",
@@ -647,9 +652,9 @@ bar_cti <- ggplot(
     ),
     width = 0.2
   ) +
-  geom_text(aes(y = 23, label = niche_lab), hjust = 0, size = 3) +
+  geom_text(aes(y = 40, label = niche_lab), hjust = 0, size = 3) +
   coord_flip(clip = "off") +
-  facet_wrap(~year, scales = "free_y") +
+  facet_wrap(~year, nrow = 2, ncol = 2, scales = "free_y") +
   scale_x_reordered() +
   scale_y_continuous(
     trans = log1p10_trans,
@@ -740,7 +745,7 @@ plot_b20_bars <- function(plot_data, fill_values, fill_breaks) {
       breaks = c(0, 1, 10, 100, 1000),
       labels = scales::label_number()
     ) +
-    facet_wrap(~year, scales = "free_y") +
+    facet_wrap(~year, nrow = 2, ncol = 2, scales = "free_y") +
     scale_x_reordered() +
     scale_fill_manual(
       values = fill_values,

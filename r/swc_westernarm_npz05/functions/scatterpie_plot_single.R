@@ -1,4 +1,15 @@
-scatterpie_plot_single <- function(benthos_year, site_limits, pie_radius = 0.004) {
+scatterpie_plot_single <- function(benthos_year, site_limits = NULL,
+                                   pie_radius = 0.004, pad = 0.05) {
+
+  # Frame the plot on the samples rather than a hardcoded extent. Pass
+  # site_limits explicitly to override (e.g. to keep every year's panel on the
+  # same window when this is called in a per-year loop).
+  if (is.null(site_limits)) {
+    site_limits <- c(
+      range(benthos_year$longitude_dd, na.rm = TRUE),
+      range(benthos_year$latitude_dd,  na.rm = TRUE)
+    ) + c(-pad, pad, -pad, pad)
+  }
 
   ggplot() +
     geom_contour_filled(
@@ -32,6 +43,8 @@ scatterpie_plot_single <- function(benthos_year, site_limits, pie_radius = 0.004
     ) +
     labs(x = "Longitude", y = "Latitude", fill = "Habitat") +
     hab_fills +
+    scale_x_continuous(breaks = scales::breaks_width(0.2)) +
+    scale_y_continuous(breaks = scales::breaks_width(0.2)) +
     coord_sf(
       xlim = c(site_limits[1], site_limits[2]),
       ylim = c(site_limits[3], site_limits[4]),

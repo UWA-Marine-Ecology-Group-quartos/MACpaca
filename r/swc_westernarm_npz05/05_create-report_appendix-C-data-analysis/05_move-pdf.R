@@ -1,11 +1,8 @@
-# Clear your environment
 rm(list = ls())
 
-# Load the fs package for robust file/folder operations
-# (base R's file.rename() struggles with moving non-empty folders on Windows)
+# fs handles non-empty folders on Windows, file.rename() does not
 library(fs)
 
-# Set the study name
 script_dir <- dirname(
   rstudioapi::getActiveDocumentContext()$path
 )
@@ -15,26 +12,24 @@ config <- yaml::read_yaml(
 name <- config$name
 park <- config$park
 
-# Built from `report_name` in 00_config.yml, which must match the two
-# `output-file:` values in 04_quarto.qmd minus their extensions.
+# Must match the two output-file values in 04_quarto.qmd
 pdf_name  <- paste0(config$report_name, ".pdf")
 html_name <- paste0(config$report_name, ".html")
-html_files_dir <- "04_quarto_files" # supporting folder Quarto generates alongside the HTML
+html_files_dir <- "04_quarto_files"
 
-# TODO Check the drive letter and the appendix-C folder name match your machine
+# TODO check the drive letter and folder name
 source_dir <- paste0(
   "r/", park,
   "/05_create-report_appendix-C-data-analysis"
 )
-dest_dir <- paste0("E:/australian-marine-parks/quartos/", park)
+dest_dir <- paste0("quartos/", park)
 
 if (!dir.exists(dest_dir)) dir.create(dest_dir, recursive = TRUE)
 
-# --- Move the PDF ---
+# PDF
 if (file.exists(file.path(source_dir, pdf_name))) {
   dest_pdf_path <- file.path(dest_dir, pdf_name)
 
-  # Remove any stale copy left over from a previous run
   if (file.exists(dest_pdf_path)) file_delete(dest_pdf_path)
 
   file_move(
@@ -46,7 +41,7 @@ if (file.exists(file.path(source_dir, pdf_name))) {
   message("No PDF found to move at: ", file.path(source_dir, pdf_name))
 }
 
-# --- Move the HTML ---
+# HTML
 if (file.exists(file.path(source_dir, html_name))) {
   dest_html_path <- file.path(dest_dir, html_name)
 
@@ -61,12 +56,10 @@ if (file.exists(file.path(source_dir, html_name))) {
   message("No HTML found to move at: ", file.path(source_dir, html_name))
 }
 
-# --- Move the HTML's supporting _files directory ---
+# Supporting files
 if (dir.exists(file.path(source_dir, html_files_dir))) {
   dest_files_path <- file.path(dest_dir, html_files_dir)
 
-  # Remove any stale leftover folder from a previous run
-  # (this is what was silently blocking file.rename() before)
   if (dir.exists(dest_files_path)) dir_delete(dest_files_path)
 
   dir_copy(

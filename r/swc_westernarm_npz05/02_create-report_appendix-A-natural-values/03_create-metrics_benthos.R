@@ -22,6 +22,7 @@ config <- yaml::read_yaml(
 
 name <- config$name
 park <- config$park
+years <- unlist(config$years)   # read_yaml returns a list
 
 # National Park Zone ----
 # Same filter as 02_spatial-layers.R - the benthos models are fitted to NPZ
@@ -34,7 +35,11 @@ npz <- st_read("data/south-west network/spatial/shapefiles/western-australia_mar
   st_make_valid() %>%
   st_union()
 
-benthos_all <- readRDS(paste0("data/", park, "/raw/", name, "_benthos.RDS"))
+benthos_all <- readRDS(paste0("data/", park, "/raw/", name, "_benthos.RDS")) %>%
+  # Keep only the survey years listed in 00_config.yml. Downstream, 05 coerces
+  # any year outside `years` to NA rather than removing the row, so filter here
+  # once and both 05 and 07 inherit it.
+  dplyr::filter(as.character(year) %in% years)
 
 benthos_raw <- benthos_all %>%
   st_as_sf(coords = c("longitude_dd", "latitude_dd"), crs = 4326, remove = FALSE) %>%
@@ -44,6 +49,10 @@ benthos_raw <- benthos_all %>%
 # TODO Check this matches the NPZ sample count reported by 02_spatial-layers.R
 message("Benthos samples inside the NPZ: ", nrow(benthos_raw), " of ",
         nrow(benthos_all))
+
+# TODO Check the years that survived the config filter
+message("Years retained: ", paste(sort(unique(as.character(benthos_raw$year))),
+                                  collapse = ", "))
 
 if (nrow(benthos_raw) == 0) {
   stop("No benthos samples fall inside the NPZ - check the shapefile and the ",
