@@ -1,47 +1,56 @@
-dem_cross_section <- function(xstart, xend, ystart, yend, maxdist) {
+dem_cross_section <- function(xstart, xend, ystart, yend, maxdist, cwatr = NULL) {
   require(sf)
   require(terra)
   require(tidyverse)
-  sf_use_s2(T)
-  points <- data.frame(x = c(xstart, xend),
-                       y = c(ystart, yend), id = 1)
-
-  tran <- sfheaders::sf_linestring(obj = points,
-                                   x = "x",
-                                   y = "y",
-                                   linestring_id = "id")
+  sf_use_s2(FALSE)
+  start_pt <- st_point(c(xstart, ystart)) %>% st_sfc(crs = 4326)
+  points <- data.frame(x = c(xstart, xend), y = c(ystart, yend), id = 1)
+  tran <- sfheaders::sf_linestring(obj = points, x = "x", y = "y", linestring_id = "id")
   st_crs(tran) <- 4326
   tranv <- vect(tran)
-
+  # Distance along the transect for any point, measured from start_pt (km)
+  dist_along_transect <- function(pts_sf) {
+    as.numeric(st_distance(pts_sf, start_pt)) / 1000
+  }
+  # ---- Bathymetry profile ----
   topo <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif")
   names(topo) <- "depth"
-  batht <- terra::extract(topo, tranv, xy = T, ID = F)
-
-  bath_cross <- st_as_sf(x = batht, coords = c("x", "y"), crs = 4326)
-
+  batht <- terra::extract(topo, tranv, xy = TRUE, ID = FALSE)
+  bath_cross <- st_as_sf(x = batht, coords = c("x", "y"), crs = 4326, remove = FALSE)
+  # ---- Coastline, used to find the zero-point (where transect crosses coast) ----
   aus <- st_read("data/south-west network/spatial/shapefiles/aus-shapefile-w-investigator-stokes.shp") %>%
-    dplyr::filter(FEAT_CODE %in% "mainland") %>%
+    dplyr::filter(FEAT_CODE %in% c("mainland")) %>%
     st_transform(4326) %>%
+    sf::st_make_valid() %>%
     st_union()
   ausout <- st_cast(aus, "MULTILINESTRING")
-
-  bath_cross %>%
-    dplyr::mutate("distance.from.coast" = st_distance(bath_cross, bath_cross$geometry[which.min(st_distance(bath_cross, ausout))]),
-                  land = lengths(st_intersects(bath_cross, aus)) > 0,
-                  coast = bath_cross$geometry[which.min(st_distance(bath_cross, ausout))]) %>%
-    bind_cols(st_coordinates(.)) %>%
-    dplyr::rename(from_longitude = X, from_latitude = Y) %>%
-    bind_cols(st_coordinates(.$coast)) %>%
-    dplyr::rename(to_longitude = X, to_latitude = Y) %>%
-    # dplyr::mutate(bearing = calculate_bearing(alon = .$from_longitude,
-    #                                           alat = .$from_latitude,
-    #                                           blon = .$to_longitude,
-    #                                           blat = .$to_latitude)) %>%
-    dplyr::mutate(distance.from.coast = ifelse(land == F, distance.from.coast * -1, distance.from.coast)) %>%
+  coast_crossing <- st_intersection(tran, ausout) %>% st_cast("POINT")
+  coast_crossing_dist <- min(dist_along_transect(coast_crossing))
+  bath_df <- bath_cross %>%
+    dplyr::mutate(
+      land = lengths(st_intersects(bath_cross, aus)) > 0,
+      distance.from.coast = dist_along_transect(bath_cross) - coast_crossing_dist
+    ) %>%
     as.data.frame() %>%
     dplyr::select(-geometry) %>%
-    dplyr::mutate(distance.from.coast = as.numeric(distance.from.coast/1000)) %>%
-    dplyr::filter(distance.from.coast < maxdist) %>%
-    glimpse()
-
+    dplyr::filter(distance.from.coast < maxdist)
+  # ---- Coastal waters limit crossings (optional) ----
+  cwatr_crossings <- NULL
+  if (!is.null(cwatr)) {
+    cwatr <- st_transform(cwatr, 4326)
+    cross_pts <- st_intersection(tran, st_geometry(cwatr)) %>% st_cast("POINT")
+    if (length(cross_pts) > 0) {
+      coords <- st_coordinates(cross_pts)
+      cwatr_crossings <- data.frame(lon = coords[, "X"], lat = coords[, "Y"])
+      cross_pts_sf <- st_as_sf(cwatr_crossings, coords = c("lon", "lat"), crs = 4326, remove = FALSE)
+      cwatr_crossings <- cwatr_crossings %>%
+        dplyr::mutate(
+          distance.from.coast = dist_along_transect(cross_pts_sf) - coast_crossing_dist
+        ) %>%
+        dplyr::arrange(distance.from.coast)
+    }
+  }
+  list(profile = bath_df, cwatr_crossings = cwatr_crossings, line = tran)
 }
+
+this is only showing 8km from coast when i want close to 90km

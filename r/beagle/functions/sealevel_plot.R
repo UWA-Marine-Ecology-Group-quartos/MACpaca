@@ -8,8 +8,10 @@ sealevel_plot <- function(plot_limits, annotation_labels) {
                                    breaks = c(0, -40, -70, -125)) +
     depth_fills +
     new_scale_fill() +
-    geom_sf(data = ausc, fill = "seashell2", colour = "grey62", size = 0.2) +
-    geom_sf(data = terrnp, aes(fill = leg_catego), alpha = 4/5, colour = NA, show.legend = F) +
+    geom_sf(data = terrnp, aes(fill = TYPE), alpha = 4/5, colour = NA, show.legend = F) +
+    geom_sf(data = marine_parks, fill = NA, colour = "grey40", linewidth = 0.5) +
+    geom_sf(data = cwatr, colour = "firebrick", alpha = 1, linewidth = 0.4, lineend = "round") +
+    geom_sf(data = transect_line, colour = "black", linewidth = 0.6, linetype = "dashed") +
     terr_fills +
     new_scale_fill() +
 
@@ -20,11 +22,17 @@ sealevel_plot <- function(plot_limits, annotation_labels) {
                size = 1,
                stroke = 0.5,
                colour = "black") +
-    geom_text(data = annotation_labels,
+    geom_text(data = annotation_labels[1:2, ],       # first two, unchanged styling
               aes(x = x, y = y, label = label),
               size = 1.65,
               fontface = "italic",
-              nudge_y = -0.02) +
+              nudge_y = -0.03) +
+    geom_text(data = annotation_labels[3, ],          # Wilsons Promontory only
+              aes(x = x, y = y, label = label),
+              size = 1.65,
+              fontface = "italic",
+              hjust = 0,          # left-align text so it grows rightward from the anchor point
+              nudge_x = 0.03) +   # shift right of the point instead of nudging vertically
     # <<< END NEW >>>
 
     coord_sf(xlim = c(plot_limits[1], plot_limits[2]), ylim = c(plot_limits[3], plot_limits[4]), crs = 4326) +

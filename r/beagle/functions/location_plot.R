@@ -14,7 +14,7 @@ location_plot <- function(plot_limits, study_limits, annotation_labels) {
                             breaks = c(-30, -70, -200, - 700, -2000 , -4000, -6000), colour = "white",
                             alpha = 3/5, linewidth = 0.1, show.legend = F) +
     geom_sf(data = ausc, fill = "seashell2", colour = "grey80", linewidth = 0.1) +
-    geom_sf(data = terrnp, aes(fill = leg_catego), colour = NA, alpha = 0.8) +
+    geom_sf(data = terrnp, aes(fill = TYPE), colour = NA, alpha = 0.8) +
     terr_fills +
     new_scale_fill() +
     geom_sf(data = marine_parks_state, aes(fill = zone), colour = NA, alpha = 0.4) +
@@ -35,11 +35,17 @@ location_plot <- function(plot_limits, study_limits, annotation_labels) {
                size = 1,
                stroke = 0.5,
                colour = "black") +
-    geom_text(data = annotation_labels,
+    geom_text(data = annotation_labels[1:2, ],       # first two, unchanged styling
               aes(x = x, y = y, label = label),
               size = 1.65,
               fontface = "italic",
               nudge_y = -0.03) +
+    geom_text(data = annotation_labels[3, ],          # Wilsons Promontory only
+              aes(x = x, y = y, label = label),
+              size = 1.65,
+              fontface = "italic",
+              hjust = 0,          # left-align text so it grows rightward from the anchor point
+              nudge_x = 0.03) +   # shift right of the point instead of nudging vertically
     # <<< END NEW >>>
 
     annotate("rect", xmin = study_limits[1], xmax = study_limits[2], ymin = study_limits[3], ymax = study_limits[4],
@@ -51,7 +57,7 @@ location_plot <- function(plot_limits, study_limits, annotation_labels) {
   p1.1 <- ggplot(data = aus) +
     geom_sf(fill = "seashell1", colour = "grey90", linewidth = 0.05, alpha = 4/5) +
     geom_sf(data = aus_marine_parks, alpha = 5/6, colour = "grey85", linewidth = 0.02) +
-    coord_sf(xlim = c(110, 125), ylim = c(-37, -13)) + # This is constant for all plots - its just a map of WA
+    coord_sf(xlim = c(140, 154), ylim = c(-37, -47.5)) + # This is constant for all plots - its just a map of WA
     annotate("rect", xmin = plot_limits[1], xmax = plot_limits[2], ymin = plot_limits[3], ymax = plot_limits[4],
              colour = "grey25", fill = "white", alpha = 1/5, linewidth = 0.2) +
     theme_bw() +
@@ -60,5 +66,6 @@ location_plot <- function(plot_limits, study_limits, annotation_labels) {
           panel.grid.major = element_blank(),
           panel.border = element_rect(colour = "grey70"))
 
-  p1.1 + p1
+  p1.1 / p1 + plot_layout(heights = c(0.45,1))
 }
+
