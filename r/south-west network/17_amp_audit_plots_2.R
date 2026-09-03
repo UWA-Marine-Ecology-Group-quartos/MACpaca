@@ -402,7 +402,8 @@ method_groups <- list(
                 "RLS-UVC.Representative"  = "#d7191c",
                 "AIMS-UVC.Preferential"   = "#FFD590",
                 "AIMS-UVC.Representative" = "#f4a9a0"),
-    label = "UVC (RLS vs AIMS)"
+    label = "UVC (RLS vs AIMS)",
+    network_size = list(min_r = 0.15, max_r = 0.7)   # NEW - smaller ceiling
   ),
 
   rov = list(
@@ -411,9 +412,9 @@ method_groups <- list(
                 "stereo-ROV.Representative" = "#d7191c",
                 "mono-ROV.Preferential"     = "#FFD590",
                 "mono-ROV.Representative"   = "#f4a9a0"),
-    label = "ROV (stereo + mono)"
+    label = "ROV (stereo + mono)",
+    network_size = list(min_r = 0.15, max_r = 0.7)   # NEW - smaller ceiling
   ),
-
   drop_camera = list(
     platforms = c("drop camera (downward facing)"),
     palette = c("drop camera (downward facing).Preferential"   = "#FFA500",
