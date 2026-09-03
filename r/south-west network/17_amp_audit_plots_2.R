@@ -565,8 +565,9 @@ add_pies <- function(pie_data, palette, min_r = 0.1, max_r = 1, overlap_margin =
       data      = pie_data,
       aes(x = X, y = Y, r = r),
       cols      = names(palette),
-      colour    = "white",
-      linewidth = 0.15
+      colour    = "black",
+      linewidth = 0.15,
+      alpha     = 0.85
     ),
     scale_fill_manual(
       name   = "Survey design",
