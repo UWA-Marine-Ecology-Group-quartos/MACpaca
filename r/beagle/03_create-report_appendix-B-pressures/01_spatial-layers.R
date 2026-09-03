@@ -88,7 +88,7 @@ sst_list <- list()
 for (month in sort(unique(month(time(rast_sst))))) {
   monthly_rast <- subset(rast_sst, month(time(rast_sst)) == month) %>%
     mean(na.rm = TRUE) %>%
-    app(fun = function(i) {i - 273.15})
+    app(fun = function(i) {i})
   names(monthly_rast) <- month.abb[month]
   sst_list[[month.abb[month]]] <- monthly_rast
 }
