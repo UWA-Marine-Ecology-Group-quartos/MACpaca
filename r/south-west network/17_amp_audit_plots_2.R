@@ -368,56 +368,57 @@ fed_mps_national <- fed_mps_national %>%
 # Each pie = one method family, sliced by platform x design (Preferential/
 # Representative).
 #
-# Colour scheme differs by group now (per your last request):
-#   - bruv, uvc, rov: back to the ORIGINAL scheme - hue = platform
-#     (red-family vs blue-family), shade = design (dark = Preferential,
-#     light = Representative). 4 distinct colours, 4 legend entries.
-#   - drop_camera: also back to its original single red-family
-#     dark/light pair (it only has one platform, so this was never
-#     ambiguous either way).
-#   - boss: KEPT on the red = Preferential / green = Representative
-#     scheme, since it only has one platform (stereo-BOSS) - collapsing
-#     to 2 colours here loses no platform information.
-# The legend logic in add_pies() (Section 6) auto-detects which case
-# applies: if a group's palette only has 2 distinct colours (like boss),
-# the legend shows just "Preferential"/"Representative"; otherwise it
-# shows the full platform.design breakdown, same as before.
-PREF_COLOUR <- "#d7191c"  # red   - Preferential (boss only)
-REP_COLOUR  <- "#1a9641"  # green - Representative (boss only)
+# Colour scheme differs by group:
+#   - bruv, uvc, rov: hue = platform (orange/red-family vs light-family),
+#     shade = design (dark = Preferential, light = Representative).
+#     4 distinct colours, 4 legend entries.
+#   - drop_camera: single red-family dark/light pair (one platform).
+#   - boss: red = Preferential / green = Representative - the one group
+#     where a 2-colour scheme loses no platform information, since it
+#     only has one platform (stereo-BOSS).
+PREF_COLOUR <- "#FFA500"  # orange - Preferential (boss only)
+REP_COLOUR  <- "#d7191c"  # red    - Representative (boss only)
 
 method_groups <- list(
 
   bruv = list(
     platforms = c("stereo-BRUV", "mono-BRUV"),
-    palette = c("stereo-BRUV.Preferential"   = "#d7191c",
-                "stereo-BRUV.Representative" = "#1a9641",
-                "mono-BRUV.Preferential"     = "#f4a9a0",
-                "mono-BRUV.Representative"   = "#bfe2ca"),
+    palette = c("stereo-BRUV.Preferential"   = "#FFA500",
+                "stereo-BRUV.Representative" = "#d7191c",
+                "mono-BRUV.Preferential"     = "#FFD590",
+                "mono-BRUV.Representative"   = "#f4a9a0"),
     label = "BRUV (stereo + mono)"
   ),
 
   uvc = list(
     platforms = c("RLS-UVC", "AIMS-UVC"),
-    palette = c("RLS-UVC.Preferential"    = "#d7191c",
-                "RLS-UVC.Representative"  = "#1a9641",
-                "AIMS-UVC.Preferential"   = "#f4a9a0",
-                "AIMS-UVC.Representative" = "#bfe2ca"),
-    label = "UVC (RLS vs AIMS)"
+    palette = c("RLS-UVC.Preferential"    = "#FFA500",
+                "RLS-UVC.Representative"  = "#d7191c",
+                "AIMS-UVC.Preferential"   = "#FFD590",
+                "AIMS-UVC.Representative" = "#f4a9a0"),
+    label = "UVC (RLS vs AIMS)",
+    # Smaller than the network-map default (min_r=0.25, max_r=2) - UVC's
+    # effort is heavily concentrated in one or two parks, so at the shared
+    # default its biggest pie was rendering noticeably larger than the
+    # other groups'. Only uvc/rov get this override; every other group
+    # still uses the function defaults.
+    network_size = list(min_r = 0.18, max_r = 1.4)
   ),
 
   rov = list(
     platforms = c("stereo-ROV", "mono-ROV"),
-    palette = c("stereo-ROV.Preferential"   = "#d7191c",
-                "stereo-ROV.Representative" = "#1a9641",
-                "mono-ROV.Preferential"     = "#f4a9a0",
-                "mono-ROV.Representative"   = "#bfe2ca"),
-    label = "ROV (stereo + mono)"
+    palette = c("stereo-ROV.Preferential"   = "#FFA500",
+                "stereo-ROV.Representative" = "#d7191c",
+                "mono-ROV.Preferential"     = "#FFD590",
+                "mono-ROV.Representative"   = "#f4a9a0"),
+    label = "ROV (stereo + mono)",
+    network_size = list(min_r = 0.18, max_r = 1.4)
   ),
 
   drop_camera = list(
     platforms = c("drop camera (downward facing)"),
-    palette = c("drop camera (downward facing).Preferential"   = "#d7191c",
-                "drop camera (downward facing).Representative" = "#1a9641"),
+    palette = c("drop camera (downward facing).Preferential"   = "#FFA500",
+                "drop camera (downward facing).Representative" = "#d7191c"),
     label = "Drop camera (mono, downward)"
   ),
 
@@ -498,7 +499,13 @@ amp_centres <- capad_commonwealth %>%
 
 swc_manual_centres <- tribble(
   ~amp_group,                                    ~X,     ~Y,
-  "South-west Corner Marine Park (western arm)", 114.9, -34.0,
+  # Western arm shifted from 114.9 to 112.5 (further west) - the pie here
+  # was one of the tightest-clustered against the Murat/Western Eyre pies
+  # sitting near 114-115 deg E, which was capping every pie's size down
+  # via the no-overlap check in add_pies(). Giving it more clear space
+  # lets the whole map's pies render bigger. Y left unchanged. Move it
+  # back or elsewhere if this drifts it into a spot you don't like.
+  "South-west Corner Marine Park (western arm)", 112.5, -34.0,
   "South-west Corner Marine Park (eastern arm)", 120.6, -35.2,
   "South-west Corner Marine Park (offshore)",    117.5, -37.5
 )
@@ -511,44 +518,46 @@ amp_group_centres <- survey %>%
 # ==============================================================================
 # 6. PIE LAYER (shared by both plot levels)
 # ==============================================================================
-# Every pie is drawn at the SAME radius, capped automatically so pies never
-# overlap: `r` below is now a MAXIMUM/target radius, not a fixed value. If
-# any two pie centres in this map are close enough that a shared radius `r`
-# would make their circles touch or overlap, the actual radius used is
-# shrunk (for every pie in that map, so they stay uniform) down to just
-# under half the closest pair's distance. This means you can safely set
-# `r` generously high on each make_*() call below and let this cap do the
-# work of keeping pies both big AND non-overlapping - no manual re-tuning
-# needed if park spacing changes.
-add_pies <- function(pie_data, palette, r = 0.35, overlap_margin = 0.92) {
+# Pie radius encodes total survey effort again: rescaled from
+# sqrt(total sites) onto [min_r, max_r] (bigger effort = bigger pie), same
+# approach as the original script. On top of that, a no-overlap guarantee
+# (added in UPDATE 3, kept here): if the rescaled radii would make any two
+# pies on this map touch or overlap, ALL radii are shrunk by the same
+# proportional factor - preserving relative size differences - until the
+# worst-case pair clears `overlap_margin`. So `min_r`/`max_r` below are
+# upper-bound TARGETS: actual sizes may come out smaller if pies are
+# tightly clustered.
+add_pies <- function(pie_data, palette, min_r = 0.1, max_r = 1, overlap_margin = 0.92) {
 
   pie_data <- pie_data %>% filter(total > 0)
+  n <- nrow(pie_data)
 
-  if (nrow(pie_data) >= 2) {
+  if (n > 0) {
+    max_total <- max(pie_data$total, na.rm = TRUE)
+    pie_data$r <- if (max_total > 0) {
+      scales::rescale(sqrt(pie_data$total), to = c(min_r, max_r), from = c(0, sqrt(max_total)))
+    } else {
+      min_r
+    }
+  } else {
+    pie_data$r <- numeric(0)
+  }
+
+  if (n >= 2) {
     d <- as.matrix(dist(pie_data[, c("X", "Y")]))
     diag(d) <- NA
-    min_gap <- min(d, na.rm = TRUE)
-    r <- min(r, (min_gap / 2) * overlap_margin)
-  }
-  pie_data$r <- r
-
-  # Legend: groups where colour is design-only (currently just boss, which
-  # has 2 distinct colours in its palette) get a collapsed 2-entry legend
-  # ("Preferential"/"Representative"). Groups that still distinguish
-  # platform by hue (bruv, uvc, rov, drop_camera - 4, or 2 for single-
-  # platform groups keeping their own dark/light pair) fall back to
-  # showing every platform.design combination, same as the original script.
-  design <- ifelse(grepl("\\.Preferential$", names(palette)), "Preferential", "Representative")
-  if (length(unique(palette)) == 2 && length(unique(design)) == 2) {
-    first_pref <- names(palette)[match("Preferential", design)]
-    first_rep  <- names(palette)[match("Representative", design)]
-    legend_breaks <- c(first_pref, first_rep)
-    legend_labels <- c("Preferential", "Representative")
-  } else {
-    legend_breaks <- names(palette)
-    legend_labels <- names(palette)
+    r_sum <- outer(pie_data$r, pie_data$r, "+")
+    overlap_ratio <- r_sum / (d * overlap_margin)
+    max_ratio <- suppressWarnings(max(overlap_ratio, na.rm = TRUE))
+    if (is.finite(max_ratio) && max_ratio > 1) {
+      pie_data$r <- pie_data$r / max_ratio
+    }
   }
 
+  # Legend: always shows every platform.design combination in `palette` by
+  # its full name (e.g. "stereo-BOSS.Preferential"), same for every group -
+  # no collapsing to a generic "Preferential"/"Representative" pair, even
+  # for boss/drop_camera which only have 2 distinct colours.
   list(
     ggnewscale::new_scale_fill(),
     scatterpie::geom_scatterpie(
@@ -561,8 +570,7 @@ add_pies <- function(pie_data, palette, r = 0.35, overlap_margin = 0.92) {
     scale_fill_manual(
       name   = "Survey design",
       values = palette,
-      breaks = legend_breaks,
-      labels = legend_labels
+      labels = names(palette)
     )
   )
 }
@@ -571,7 +579,7 @@ add_pies <- function(pie_data, palette, r = 0.35, overlap_margin = 0.92) {
 # 7. NATIONAL PLOT (Image 1 + 2) - now built on the national CAPAD layer
 # ==============================================================================
 make_national_pie_map <- function(group_name, save_name = NULL,
-                                  r = 3,    # TUNE - MAX radius; auto-shrinks to avoid overlap
+                                  min_r = 0.5, max_r = 3,  # TUNE - max_r is a ceiling; auto-shrinks to avoid overlap
                                   width = 11, height = 6) {
 
   grp <- method_groups[[group_name]]
@@ -589,7 +597,7 @@ make_national_pie_map <- function(group_name, save_name = NULL,
     geom_sf(data = fed_mps_national, aes(fill = zone_type), colour = NA, alpha = 0.8) +
     scale_fill_manual(values = amp_zone_colours_national, name = "Australian Marine Parks",
                       guide = guide_legend(order = 1)) +
-    add_pies(pie_data, grp$palette, r = r) +
+    add_pies(pie_data, grp$palette, min_r = min_r, max_r = max_r) +
     coord_sf(xlim = c(90, 175), ylim = c(-60, -5), expand = FALSE) +
     labs(x = NULL, y = NULL) +
     theme_minimal() +
@@ -611,7 +619,7 @@ make_national_pie_map <- function(group_name, save_name = NULL,
 # 8. NETWORK-LEVEL PLOT (Image 3) - one pie per marine park / SWC arm
 # ==============================================================================
 make_network_pie_map <- function(group_name, network_name, save_name = NULL,
-                                 xlim, ylim, r = 1.2,  # TUNE - MAX radius; auto-shrinks to avoid overlap
+                                 xlim, ylim, min_r = 0.25, max_r = 2,  # TUNE - max_r is a ceiling; auto-shrinks to avoid overlap
                                  width = 10, height = 5) {
 
   grp <- method_groups[[group_name]]
@@ -643,7 +651,7 @@ make_network_pie_map <- function(group_name, network_name, save_name = NULL,
     geom_sf(data = net_state, aes(fill = zone), colour = NA, alpha = 0.5) +
     scale_fill_manual(name = "State Marine Parks",
                       values = with(net_state, setNames(colour, zone))) +
-    add_pies(pie_data, grp$palette, r = r) +
+    add_pies(pie_data, grp$palette, min_r = min_r, max_r = max_r) +
     coord_sf(xlim = xlim, ylim = ylim, expand = FALSE) +
     labs(x = NULL, y = NULL) +
     theme_minimal() +
@@ -677,7 +685,7 @@ make_network_pie_map <- function(group_name, network_name, save_name = NULL,
 #     very wide and mostly empty).
 # ==============================================================================
 make_network_pie_map_national <- function(group_name, network_name, save_name = NULL,
-                                          pad = 3, r = 1.2,  # TUNE both - r auto-shrinks to avoid overlap
+                                          pad = 3, min_r = 0.25, max_r = 2,  # TUNE - max_r auto-shrinks to avoid overlap
                                           width = 11, height = 5) {
 
   grp <- method_groups[[group_name]]
@@ -704,7 +712,7 @@ make_network_pie_map_national <- function(group_name, network_name, save_name = 
     geom_sf(data = aus, fill = "seashell2", colour = "grey80", linewidth = 0.1) +
     geom_sf(data = net_amp, aes(fill = zone_type), colour = NA, alpha = 0.8) +
     scale_fill_manual(values = amp_zone_colours_national, name = "Australian Marine Parks") +
-    add_pies(pie_data, grp$palette, r = r) +
+    add_pies(pie_data, grp$palette, min_r = min_r, max_r = max_r) +
     coord_sf(xlim = xlim, ylim = ylim, expand = FALSE) +
     labs(x = NULL, y = NULL) +
     theme_minimal() +
@@ -728,14 +736,24 @@ for (g in names(method_groups)) {
   make_national_pie_map(g, save_name = paste0("national-", g, "-pies"))
 }
 
+# Per-group size override: if a method_groups entry has a `network_size`
+# list (currently just uvc/rov - see Section 3), use its min_r/max_r for
+# the network-level maps instead of make_network_pie_map()'s defaults.
+# Groups without `network_size` (bruv, drop_camera, boss) are unaffected
+# and keep rendering at the function's default size.
 for (g in names(method_groups)) {
-  make_network_pie_map(
-    group_name   = g,
-    network_name = "South-west Marine Parks Network",
-    xlim         = c(106, 139),
-    ylim         = c(-40, -24),
-    save_name    = paste0("swc-", g, "-pies")
-  )
+  grp <- method_groups[[g]]
+  size_args <- if (!is.null(grp$network_size)) grp$network_size else list()
+  do.call(make_network_pie_map, c(
+    list(
+      group_name   = g,
+      network_name = "South-west Marine Parks Network",
+      xlim         = c(106, 139),
+      ylim         = c(-40, -24),
+      save_name    = paste0("swc-", g, "-pies")
+    ),
+    size_args
+  ))
 }
 # ==============================================================================
 # End of script
