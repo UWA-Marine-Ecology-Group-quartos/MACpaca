@@ -368,16 +368,22 @@ fed_mps_national <- fed_mps_national %>%
 # Each pie = one method family, sliced by platform x design (Preferential/
 # Representative).
 #
-# Colour scheme differs by group:
-#   - bruv, uvc, rov: hue = platform (orange/red-family vs light-family),
-#     shade = design (dark = Preferential, light = Representative).
-#     4 distinct colours, 4 legend entries.
-#   - drop_camera: single red-family dark/light pair (one platform).
-#   - boss: red = Preferential / green = Representative - the one group
-#     where a 2-colour scheme loses no platform information, since it
-#     only has one platform (stereo-BOSS).
-PREF_COLOUR <- "#FFA500"  # orange - Preferential (boss only)
-REP_COLOUR  <- "#d7191c"  # red    - Representative (boss only)
+# Colour scheme differs by group now (per your last request):
+#   - bruv, uvc, rov: back to the ORIGINAL scheme - hue = platform
+#     (red-family vs blue-family), shade = design (dark = Preferential,
+#     light = Representative). 4 distinct colours, 4 legend entries.
+#   - drop_camera: also back to its original single red-family
+#     dark/light pair (it only has one platform, so this was never
+#     ambiguous either way).
+#   - boss: KEPT on the red = Preferential / green = Representative
+#     scheme, since it only has one platform (stereo-BOSS) - collapsing
+#     to 2 colours here loses no platform information.
+# The legend logic in add_pies() (Section 6) auto-detects which case
+# applies: if a group's palette only has 2 distinct colours (like boss),
+# the legend shows just "Preferential"/"Representative"; otherwise it
+# shows the full platform.design breakdown, same as before.
+PREF_COLOUR <- "#FFA500"  # red   - Preferential (boss only)
+REP_COLOUR  <- "#d7191c"  # green - Representative (boss only)
 
 method_groups <- list(
 
@@ -396,13 +402,7 @@ method_groups <- list(
                 "RLS-UVC.Representative"  = "#d7191c",
                 "AIMS-UVC.Preferential"   = "#FFD590",
                 "AIMS-UVC.Representative" = "#f4a9a0"),
-    label = "UVC (RLS vs AIMS)",
-    # Smaller than the network-map default (min_r=0.25, max_r=2) - UVC's
-    # effort is heavily concentrated in one or two parks, so at the shared
-    # default its biggest pie was rendering noticeably larger than the
-    # other groups'. Only uvc/rov get this override; every other group
-    # still uses the function defaults.
-    network_size = list(min_r = 0.18, max_r = 1.4)
+    label = "UVC (RLS vs AIMS)"
   ),
 
   rov = list(
@@ -411,8 +411,7 @@ method_groups <- list(
                 "stereo-ROV.Representative" = "#d7191c",
                 "mono-ROV.Preferential"     = "#FFD590",
                 "mono-ROV.Representative"   = "#f4a9a0"),
-    label = "ROV (stereo + mono)",
-    network_size = list(min_r = 0.18, max_r = 1.4)
+    label = "ROV (stereo + mono)"
   ),
 
   drop_camera = list(
@@ -479,6 +478,7 @@ network_centres <- purrr::map_dfr(unique(network_lookup$network), function(net) 
   tibble(network = net, X = geom[1, "X"], Y = geom[1, "Y"])
 }) %>%
   filter(!is.na(X))
+
 
 # 5b. AMP / group centres - sourced from the NATIONAL capad_commonwealth
 # layer (previously this used the regional marine_parks_amp layer, which
@@ -758,3 +758,5 @@ for (g in names(method_groups)) {
 # ==============================================================================
 # End of script
 # ==============================================================================
+
+
