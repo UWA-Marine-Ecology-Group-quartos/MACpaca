@@ -40,8 +40,8 @@
 - [Appendix A1 - Natural Values Report](quartos/swc_westernarm/Project%204.21-SWC-western-arm-2-Appendix%20A1-q-Natural%20values.html)
 - [Appendix B - Pressures Report](quartos/swc_westernarm/Project%204.21-swc_westernarm-2-Appendix%20B-q-Pressures.html)
 - [Appendix C1 - Data Analysis Report](quartos/swc_westernarm/Project%204.21-swc_westernarm-3-Appendix%20C1-q-Data%20analysis.html)
-- [Appendix A2 - Natural Values Report (NPZ only) TO BE ADDED](quartos/swc_westernarm/Project%204.21-swc_westernarm-2-Appendix%20A-q-Natural%20values.html)
-- [Appendix C2 - Data Analysis Report  (NPZ only) TO BE ADDED](quartos/swc_westernarm/Project%204.21-Swc_westernarm-3-Appendix%20C-q-Data%20analysis.html)
+- [Appendix A2 - Natural Values Report (NPZ only)](quartos/swc_westernarm_npz05/Project%204.21-SWC-western-arm-2-Appendix%20A2-q-Natural%20values.html)
+- [Appendix C2 - Data Analysis Report (NPZ only)](quartos/swc_westernarm_npz05/Project%204.21-swc_westernarm-3-Appendix%20C2-q-Data%20analysis.html)
 
 #### Abrolhos Marine Park (Clio Bank)
 - Data syntheses - [BRUV](https://dev.globalarchive.org/ui/main/syntheses/71)

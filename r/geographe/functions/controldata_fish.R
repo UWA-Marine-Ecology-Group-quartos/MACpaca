@@ -16,8 +16,11 @@ controldata_fish <- function(dat, year, amp_abbrv, state_abbrv) {
       str_detect(zone, "Recreational Use Zone") & str_detect(epbc, "Commonwealth")     ~ paste(amp_abbrv,  "other zones"),
       str_detect(zone, "General Use Zone")                                              ~ paste(state_abbrv, "other zones"),
       str_detect(zone, "Reef Observation Area")                                         ~ paste(state_abbrv, "other zones"),
-      TRUE ~ NA_character_
+      str_detect(epbc, "Commonwealth")                                                  ~ paste(amp_abbrv,  "other zones"),
+      TRUE                                                                              ~ "Coastal waters"
     )) %>%
+    # Control plots only: drop all state marine park zones
+    dplyr::filter(!stringr::str_starts(zone_new, state_abbrv)) %>%
     dplyr::mutate(status = ifelse(str_detect(zone_new, "SZ|NPZ"), "No-Take", "Fished"))
 
   preds <- readRDS(paste0("data/", park, "/spatial/rasters/",

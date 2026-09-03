@@ -20,11 +20,43 @@ format:
         \floatplacement{table}{H}
         \newcounter{metric}
         \counterwithin*{figure}{metric}
-        \renewcommand{\thefigure}{A2 \arabic{figure}}
         \captionsetup{format=plain, indention=0pt}
+        % Appendix prefix. Change A2 here and in figure-numbering.lua together.
+        \renewcommand{\thefigure}{A2.\arabic{figure}}
+        \renewcommand{\thetable}{A2.\arabic{table}}
   html:
     output-file: "Project 4.21-SWC-western-arm-2-Appendix A2-q-Natural values.html"
     fig-dpi: 96
+    include-in-header:
+      text: |
+        <style>
+          caption,
+          .gt_caption,
+          .table-caption,
+          figcaption,
+          .figure-caption,
+          .quarto-float-caption,
+          .quarto-float-caption-top,
+          .quarto-float-tbl figcaption {
+            text-align: justify !important;
+            text-justify: inter-word;
+            hyphens: auto;
+          }
+        </style>
+    include-after-body:
+      text: |
+        <script>
+        // Figures are prefixed by figure-numbering.lua. Quarto builds the table
+        // caption after that filter runs, so the table prefix is applied here.
+        // TODO Keep "A2" in step with fig_prefix in figure-numbering.lua.
+        document.querySelectorAll("caption, .gt_caption, .table-caption, figcaption")
+          .forEach(function (el) {
+            // el.innerHTML re-serialises a non-breaking space as the literal
+            // "&nbsp;" entity text, not a whitespace character, so \s alone
+            // does not match it - match either form here.
+            el.innerHTML = el.innerHTML.replace(/^(\s*Table(?:\s|&nbsp;)+)(\d+)/, "$1A2.$2");
+          });
+        </script>
 toc: true
 execute:
   echo: false
@@ -177,7 +209,7 @@ grid::grid.raster(img)
 % figure number so the majors carry on sequentially from wherever the extent
 % figures finished.
 \setcounter{metric}{\value{figure}}
-\renewcommand{\thefigure}{A2 \arabic{metric}.\arabic{figure}}
+\renewcommand{\thefigure}{A2.\arabic{metric}.\arabic{figure}}
 ```
 
 ### Sand

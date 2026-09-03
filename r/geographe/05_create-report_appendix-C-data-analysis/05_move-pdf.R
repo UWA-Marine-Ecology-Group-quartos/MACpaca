@@ -25,7 +25,7 @@ source_dir <- paste0(
   "r/", park,
   "/05_create-report_appendix-C-data-analysis"
 )
-dest_dir <- paste0("E:/australian-marine-parks/quartos/", park)
+dest_dir <- paste0("quartos/", park)
 
 if (!dir.exists(dest_dir)) dir.create(dest_dir, recursive = TRUE)
 

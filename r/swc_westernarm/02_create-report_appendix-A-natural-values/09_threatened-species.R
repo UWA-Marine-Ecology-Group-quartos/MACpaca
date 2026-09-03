@@ -32,10 +32,11 @@ library(sf)
 library(terra)
 library(ggplot2)
 library(ggnewscale)
+library(ggforce)
 library(CheckEM)
 
 # Make sure the output folders exist
-for (d in c(paste0("plots/", park, "/fish/threatened/"),
+for (d in c(paste0("plots/", park, "/fish/"),
             paste0("data/", park, "/tidy/"))) {
   if (!dir.exists(d)) dir.create(d, recursive = TRUE)
 }
@@ -147,13 +148,19 @@ threatened_species <- threatened_obs %>%
     zones_seen  = paste(sort(unique(as.character(status))), collapse = ", "),
     .groups = "drop"
   ) %>%
-  # Reported as the IUCN category, with an asterisk marking species that are
-  # also listed under the EPBC Act. The asterisk is explained in the table
-  # caption in 09_quarto.qmd - change it there too if this changes.
+  # Reported as the IUCN category. The species name carries a footnote marker
+  # for its EPBC status instead - * Conservation Dependent, ^ Vulnerable.
+  # Explained in the table caption in 10_quarto.qmd - change it there too if
+  # this changes.
   dplyr::mutate(
-    listing = paste0(
-      dplyr::coalesce(iucn_ranking, "Not listed"),
-      dplyr::if_else(epbc_threat_status %in% epbc_categories, "*", "")
+    listing = dplyr::coalesce(iucn_ranking, "Not listed"),
+    species_label = paste0(
+      scientific_name,
+      dplyr::case_when(
+        epbc_threat_status %in% "Conservation Dependent" ~ "*",
+        epbc_threat_status %in% "Vulnerable"              ~ "^",
+        TRUE                                               ~ ""
+      )
     )
   ) %>%
   dplyr::arrange(dplyr::desc(n_samples), scientific_name)
@@ -258,151 +265,98 @@ base_map <- function() {
 year_colours <- c("2020" = "#9C27B0", "2023" = "#1E88E5",
                    "2024" = "#009688", "2025" = "#43A047")
 
-# Faceted overview - one panel per threatened species ---------------------
-occ_points <- threatened_obs_elasmo %>%
-  dplyr::filter(is.finite(longitude_dd), is.finite(latitude_dd))
+# Faceted overview plots - one panel per species, 4 per row, and paginated
+# at 3 rows (12 species) per page so a long species list splits across pages
+# instead of one huge figure. Labels are wrapped so long names (e.g.
+# Rhynchobatus australiae) don't get clipped at the panel edge.
+facet_cols    <- 4
+rows_per_page <- 3
+spp_per_page  <- facet_cols * rows_per_page
 
-p_overview <- ggplot() +
-  base_map() +
-  geom_point(data = all_drops,
-             aes(x = longitude_dd, y = latitude_dd),
-             colour = "grey80", size = 0.3) +
-  geom_point(data = occ_points,
-             aes(x = longitude_dd, y = latitude_dd, size = count,
-                 colour = as.factor(year)),
-             alpha = 0.8) +
-  scale_size_continuous(name = "MaxN", range = c(1.5, 5)) +
-  scale_colour_manual(name = "Year", values = year_colours) +
-  guides(colour = guide_legend(order = 1),
-         size = guide_legend(order = 2)) +
-  facet_wrap(~scientific_name) +
-  theme(strip.text = element_text(face = "italic"),
-        legend.title = element_text(face = "bold"),
-        legend.position = "bottom",
-        legend.box = "vertical")
-
-print(p_overview)
-
-# TODO Height scales with the number of species - check the rendered figure
-n_spp <- dplyr::n_distinct(occ_points$scientific_name)
-overview_height <- max(5, 2.6 * ceiling(n_spp / 3))
-
-ggsave(
-  filename = paste0("plots/", park, "/fish/", name,
-                    "_threatened-species-occurrence_",
-                    paste(years, collapse = "-"), ".png"),
-  plot = p_overview,
-  height = overview_height, width = 9, dpi = 300, units = "in", bg = "white"
-)
-
-saveRDS(p_overview,
-        paste0("plots/", park, "/fish/", name,
-               "_threatened-species-occurrence_",
-               paste(years, collapse = "-"), ".rds"))
-
-# One map per species -----------------------------------------------------
-for (spp in sort(unique(occ_points$scientific_name))) {
-
-  message("Building occurrence map for: ", spp)
-
-  spp_points <- occ_points %>%
-    dplyr::filter(scientific_name %in% spp)
-
-  spp_row <- threatened_species %>%
-    dplyr::filter(scientific_name %in% spp) %>%
-    dplyr::slice(1)
-
-  subtitle <- paste0(
-    dplyr::coalesce(spp_row$australian_common_name, "No common name"),
-    " | EPBC: ", dplyr::coalesce(spp_row$epbc_threat_status, "Not listed"),
-    " | IUCN: ", dplyr::coalesce(spp_row$iucn_ranking, "Not listed")
-  )
-
-  p_spp <- ggplot() +
-    base_map() +
-    geom_point(data = all_drops,
-               aes(x = longitude_dd, y = latitude_dd),
-               colour = "grey80", size = 0.5) +
-    geom_point(data = spp_points,
-               aes(x = longitude_dd, y = latitude_dd, size = count,
-                   colour = as.factor(year)),
-               alpha = 0.85) +
-    scale_size_continuous(name = "MaxN", range = c(2, 6)) +
-    scale_colour_manual(name = "Year", values = year_colours) +
-    guides(colour = guide_legend(order = 1),
-           size = guide_legend(order = 2)) +
-    labs(title = spp, subtitle = subtitle) +
-    theme(plot.title = element_text(face = "bold.italic"),
-          legend.title = element_text(face = "bold"))
-
-  print(p_spp)
-
-  out_name <- spp %>%
-    stringr::str_to_lower() %>%
-    stringr::str_replace_all("\\s+", "-")
-
-  ggsave(
-    filename = paste0("plots/", park, "/fish/threatened/", name,
-                      "_threatened-occurrence_", out_name, ".png"),
-    plot = p_spp,
-    height = 5, width = 6, dpi = 300, units = "in", bg = "white"
-  )
-
-  saveRDS(p_spp,
-          paste0("plots/", park, "/fish/threatened/", name,
-                 "_threatened-occurrence_", out_name, ".rds"))
-}
-
-# Species x year grid - rows are species, columns are year, 4 species per
-# page so the grid stays readable ------------------------------------------
-grid_years <- sort(unique(occ_points$year))
-spp_list   <- sort(unique(occ_points$scientific_name))
-
-spp_per_page <- 4
-n_pages <- ceiling(length(spp_list) / spp_per_page)
-
-for (pg in seq_len(n_pages)) {
-
-  spp_page <- spp_list[(((pg - 1) * spp_per_page) + 1):
-                          min(pg * spp_per_page, length(spp_list))]
-
-  message("Building species x year grid, page ", pg, ": ",
-          paste(spp_page, collapse = ", "))
-
-  grid_points <- occ_points %>%
-    dplyr::filter(scientific_name %in% spp_page) %>%
-    dplyr::mutate(scientific_name = factor(scientific_name, levels = spp_page),
-                  year = factor(year, levels = grid_years))
-
-  p_grid <- ggplot() +
+save_paginated_overview <- function(occ_points, file_stem) {
+  # Built once from the full species set, so the MaxN size scale trains on
+  # all the data (as it always did) rather than being set by hand. Paging is
+  # done by ggforce::facet_wrap_paginate below, not by splitting the data.
+  base_plot <- ggplot() +
     base_map() +
     geom_point(data = all_drops,
                aes(x = longitude_dd, y = latitude_dd),
                colour = "grey80", size = 0.3) +
-    geom_point(data = grid_points,
+    geom_point(data = occ_points,
                aes(x = longitude_dd, y = latitude_dd, size = count,
-                   colour = year),
+                   colour = as.factor(year)),
                alpha = 0.8) +
     scale_size_continuous(name = "MaxN", range = c(1.5, 5)) +
-    scale_colour_manual(name = "Year", values = year_colours, drop = FALSE) +
+    scale_colour_manual(name = "Year", values = year_colours) +
     guides(colour = guide_legend(order = 1),
            size = guide_legend(order = 2)) +
-    facet_grid(scientific_name ~ year, drop = FALSE) +
-    theme(strip.text.y = element_text(face = "italic"),
-          legend.title = element_text(face = "bold"),
+    theme(strip.text = element_text(face = "italic", size = 16),
+          axis.text = element_text(size = 18),
+          legend.text = element_text(size = 19),
+          legend.title = element_text(face = "bold", size = 21),
           legend.position = "bottom",
-          legend.box = "vertical")
+          legend.box = "vertical",
+          panel.spacing = unit(1.2, "lines"))
 
-  print(p_grid)
+  n_pages <- ggforce::n_pages(base_plot +
+    ggforce::facet_wrap_paginate(~scientific_name, ncol = facet_cols,
+                                 nrow = rows_per_page, page = 1,
+                                 labeller = ggplot2::label_wrap_gen(width = 14)))
 
-  ggsave(
-    filename = paste0("plots/", park, "/fish/", name,
-                      "_threatened-species-grid_page-", pg, ".png"),
-    plot = p_grid,
-    height = 10, width = 9, dpi = 300, units = "in", bg = "white"
+  for (pg in seq_len(n_pages)) {
+    p <- base_plot +
+      ggforce::facet_wrap_paginate(~scientific_name, ncol = facet_cols,
+                                   nrow = rows_per_page, page = pg,
+                                   labeller = ggplot2::label_wrap_gen(width = 14))
+
+    print(p)
+
+    page_stem <- paste0("plots/", park, "/fish/", name, "_", file_stem,
+                        "_page", pg, "_", paste(years, collapse = "-"))
+
+    # RDS is what the report reads - fig-width/fig-height are set by hand in
+    # the qmd, same as every other RDS figure in this appendix. PNG is a
+    # fixed-size copy saved alongside, in case it's ever needed.
+    ggsave(
+      filename = paste0(page_stem, ".png"),
+      plot = p,
+      height = 8, width = 10, dpi = 600, units = "in", bg = "white"
+    )
+    saveRDS(p, paste0(page_stem, ".rds"))
+  }
+
+  message(file_stem, ": ", dplyr::n_distinct(occ_points$scientific_name),
+          " species across ", n_pages, " page(s).")
+  n_pages
+}
+
+# Threatened species - occurrence overview ---------------------------------
+occ_points <- threatened_obs_elasmo %>%
+  dplyr::filter(is.finite(longitude_dd), is.finite(latitude_dd))
+
+save_paginated_overview(occ_points, "threatened-species-occurrence")
+
+# Non-threatened sharks and rays - occurrence overview ----------------------
+# Every other observed elasmobranch, i.e. not already covered by the
+# threatened species plots above.
+non_threatened_obs <- observations %>%
+  dplyr::filter(class %in% elasmo_classes) %>%
+  dplyr::filter(!(epbc_threat_status %in% epbc_categories |
+                    iucn_ranking %in% iucn_categories)) %>%
+  dplyr::filter(!scientific_name %in% "Unknown spp") %>%
+  dplyr::left_join(
+    metadata_fish %>%
+      dplyr::select(campaignid, sample, year, status,
+                    longitude_dd, latitude_dd),
+    by = c("campaignid", "sample")
   )
 
-  saveRDS(p_grid,
-          paste0("plots/", park, "/fish/", name,
-                 "_threatened-species-grid_page-", pg, ".rds"))
+if (nrow(non_threatened_obs) == 0) {
+  stop("No non-threatened shark/ray species found. Check elasmo_classes ",
+       "against the class values printed above.")
 }
+
+occ_points_other <- non_threatened_obs %>%
+  dplyr::filter(is.finite(longitude_dd), is.finite(latitude_dd))
+
+save_paginated_overview(occ_points_other, "non-threatened-species-occurrence")

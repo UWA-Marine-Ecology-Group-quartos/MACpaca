@@ -21,15 +21,48 @@ format:
         \newcounter{metric}
         \counterwithin*{figure}{metric}
         \captionsetup{format=plain, indention=0pt}
+        % Appendix prefix. Change A here and in figure-numbering.lua together.
+        \renewcommand{\thefigure}{A.\arabic{figure}}
+        \renewcommand{\thetable}{A.\arabic{table}}
   html:
     output-file: "Project 4.21-Geographe-2-Appendix A-q-Natural values.html"
     fig-dpi: 96
+    include-in-header:
+      text: |
+        <style>
+          caption,
+          .gt_caption,
+          .table-caption,
+          figcaption,
+          .figure-caption,
+          .quarto-float-caption,
+          .quarto-float-caption-top,
+          .quarto-float-tbl figcaption {
+            text-align: justify !important;
+            text-justify: inter-word;
+            hyphens: auto;
+          }
+        </style>
+    include-after-body:
+      text: |
+        <script>
+        // Figures are prefixed by figure-numbering.lua. Quarto builds the table
+        // caption after that filter runs, so the table prefix is applied here.
+        // TODO Keep "A" in step with fig_prefix in figure-numbering.lua.
+        document.querySelectorAll("caption, .gt_caption, .table-caption, figcaption")
+          .forEach(function (el) {
+            // el.innerHTML re-serialises a non-breaking space as the literal
+            // "&nbsp;" entity text, not a whitespace character, so \s alone
+            // does not match it - match either form here.
+            el.innerHTML = el.innerHTML.replace(/^(\s*Table(?:\s|&nbsp;)+)(\d+)/, "$1A.$2");
+          });
+        </script>
 toc: true
 execute:
   echo: false
   warning: false
   message: false
-post-render: 10_move-pdf.R
+post-render: 11_move-pdf.R
 ---
 
 ```{r}
@@ -169,8 +202,9 @@ grid::grid.raster(img)
 % Continue the running figure number into the benchmark sections, then switch
 % to <metric>.<plot> numbering. `metric` is seeded to the last benthic-extent
 % figure number so the majors carry on sequentially (4, 5, 6, ...).
+% A must match fig_prefix in figure-numbering.lua.
 \setcounter{metric}{\value{figure}}
-\renewcommand{\thefigure}{\arabic{metric}.\arabic{figure}}
+\renewcommand{\thefigure}{A.\arabic{metric}.\arabic{figure}}
 ```
 
 ### Seagrass
@@ -256,7 +290,7 @@ grid::grid.raster(img)
 
 ```{=latex}
 \stepcounter{metric}
-\renewcommand{\thefigure}{\arabic{metric}}
+\renewcommand{\thefigure}{A.\arabic{metric}}
 ```
 
 ```{r}
@@ -270,7 +304,7 @@ p_bubble
 {{< pagebreak >}}
 
 ```{=latex}
-\renewcommand{\thefigure}{\arabic{metric}.\arabic{figure}}
+\renewcommand{\thefigure}{A.\arabic{metric}.\arabic{figure}}
 ```
 
 ### Species richness
@@ -429,4 +463,97 @@ p_bar
 #| fig-cap: "Demersal fish - Reef Fish Thermal Index: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 img <- png::readPNG(here("plots/geographe/fish/GeographeAMP_predicted-individual-fish-metric_cti_2014-2024.png"))
 grid::grid.raster(img)
+```
+
+{{< pagebreak >}}
+
+## Threatened species
+
+```{=latex}
+\stepcounter{metric}
+```
+
+```{r}
+#| label: tbl-threatened-species
+#| tbl-cap: "Threatened species recorded in stereo-BRUV imagery across all survey years, showing IUCN Red List category, the number of samples each species was recorded in, and the total abundance (MaxN) summed across those samples. *This species is also listed as ‘Conservation dependent’ on the EPBC Act List of Threatened Fauna. ^This species is also listed as ‘Vulnerable’ on the EPBC Act List of Threatened Fauna."
+
+threatened_species <- readRDS(here("data", park, "tidy",
+                                   paste0(name, "_threatened-species.RDS")))
+
+threatened_species %>%
+  dplyr::select(species_label, australian_common_name, family, listing,
+                n_samples, total_maxn, years_seen) %>%
+  gt() %>%
+  cols_label(species_label           = "Species",
+             australian_common_name = "Common name",
+             family                 = "Family",
+             listing                = "IUCN category",
+             n_samples              = "Samples",
+             total_maxn             = "Total MaxN",
+             years_seen             = "Years recorded") %>%
+  sub_missing(missing_text = "-") %>%
+  cols_width(species_label           ~ pct(21),
+             australian_common_name ~ pct(19),
+             family                 ~ pct(16),
+             listing                ~ pct(14),
+             n_samples              ~ pct(9),
+             total_maxn             ~ pct(10),
+             years_seen             ~ pct(11)) %>%
+  cols_align(align = "left",
+             columns = c(species_label, australian_common_name, family)) %>%
+  cols_align(align = "center",
+             columns = c(listing, n_samples, total_maxn, years_seen)) %>%
+  tab_style(style = cell_text(style = "italic"),
+            locations = cells_body(columns = species_label)) %>%
+  opt_row_striping() %>%
+  tab_style(style = cell_text(weight = "bold"),
+            locations = cells_column_labels()) %>%
+  tab_options(table.width               = pct(100),
+              table.font.size           = px(11),
+              data_row.padding          = px(4),
+              latex.use_longtable       = TRUE,
+              column_labels.border.top.style = "none",
+              table.border.top.style    = "none",
+              table_body.hlines.style   = "none")
+```
+
+{{< pagebreak >}}
+
+### Threatened shark and ray species
+
+```{r}
+#| fig-width: 13
+#| fig-height: 13
+#| fig-cap: "Occurrence of threatened, IUCN Red List category, sharks and rays in stereo-BRUV imagery. Points are scaled by abundance (MaxN) and coloured by survey year; grey points show every stereo-BRUV deployment. State and Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters."
+readRDS(here("plots/geographe/fish/GeographeAMP_threatened-species-occurrence_page1_2014-2024.rds"))
+```
+
+{{< pagebreak >}}
+
+### Other shark and ray species
+
+<!-- 09_threatened-species.R paginates this plot at 12 species/page (3 cols x
+4 rows) and prints how many pages it made. This assumes 2 pages - add or
+remove a chunk below to match if the actual page count differs. fig-width/
+fig-height are just a starting point - adjust freely, the .rds is a live
+ggplot object so it re-flows to whatever size you give it. -->
+
+```{r}
+#| fig-width: 13
+#| fig-height: 13
+#| fig-cap: "Occurrence of shark and ray species that are not threatened in stereo-BRUV imagery. Points are scaled by abundance (MaxN) and coloured by survey year; grey points show every stereo-BRUV deployment, so a panel with no coloured points is a genuine absence rather than an absence of sampling. State and Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters."
+readRDS(here("plots/geographe/fish/GeographeAMP_non-threatened-species-occurrence_page1_2014-2024.rds"))
+```
+
+{{< pagebreak >}}
+
+:::{.content-hidden when-format="html"}
+### Other shark and ray species {.unlisted .unnumbered}
+:::
+
+```{r}
+#| fig-width: 14
+#| fig-height: 11
+#| fig-cap: "Occurrence of shark and ray species that are not threatened in stereo-BRUV imagery (continued). Points are scaled by abundance (MaxN) and coloured by survey year; grey points show every stereo-BRUV deployment, so a panel with no coloured points is a genuine absence rather than an absence of sampling. State and Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters."
+readRDS(here("plots/geographe/fish/GeographeAMP_non-threatened-species-occurrence_page2_2014-2024.rds"))
 ```

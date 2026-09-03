@@ -1,11 +1,11 @@
 ---
-title: "Appendix C - South-west Corner Marine Park (western arm) Data Analysis Report"
+title: "Appendix C - Geographe Marine Park Data Analysis Report"
 subtitle: "South-west Marine Parks Network"
 filters:
   - appendix-c-numbering.lua
 format:
   pdf:
-    output-file: "Project 4.21-swc_westernarm-3-Appendix C-q-Data analysis.pdf"
+    output-file: "Project 4.21-Geographe-3-Appendix C-q-Data analysis.pdf"
     fig-pos: 'H'
     geometry:
       - top=2cm
@@ -21,25 +21,49 @@ format:
         \renewcommand{\arraystretch}{1.35}
         \floatplacement{table}{H}
         \floatplacement{figure}{H}
-        % Appendix C numbers floats as "C <section>.<n>". The section counter is
-        % managed by hand (\stepcounter{sec} before each heading) because Quarto
-        % renders unnumbered headings, which do not advance \thesection.
-        \newcounter{sec}
-        % Scratch counter used to hold a figure's number while its sub-figures
-        % (C 1.2.1, C 1.2.2) are numbered off the figure counter. Unused in this
-        % park - benthos is pooled, so there is a single habitat response-curve
-        % figure - but left defined so the split can be restored if
-        % combine_benthos is ever switched off. See the commented block below.
         \newcounter{parentfig}
-        \counterwithin*{figure}{sec}
-        \counterwithin*{table}{sec}
-        \renewcommand{\thefigure}{C \arabic{sec}.\arabic{figure}}
-        \renewcommand{\thetable}{C \arabic{sec}.\arabic{table}}
+        \renewcommand{\thefigure}{C.\arabic{figure}}
+        \renewcommand{\thetable}{C.\arabic{table}}
         \captionsetup{format=plain, indention=0pt}
   html:
-    output-file: "Project 4.21-swc_westernarm-3-Appendix C-q-Data analysis.html"
+    output-file: "Project 4.21-Geographe-3-Appendix C-q-Data analysis.html"
     fig-dpi: 96
     embed-resources: true
+    include-in-header:
+      text: |
+        <style>
+          caption,
+          .gt_caption,
+          .table-caption,
+          figcaption,
+          .figure-caption,
+          .quarto-float-caption,
+          .quarto-float-caption-top,
+          .quarto-float-tbl figcaption {
+            text-align: justify !important;
+            text-justify: inter-word;
+            hyphens: auto;
+          }
+        </style>
+    include-after-body:
+      text: |
+        <script>
+        // appendix-c-numbering.lua only numbers figures - tables are prefixed
+        // here, flat as C.<n> to match the PDF's \thetable.
+        (function () {
+          var tbl = 0;
+          document.querySelectorAll("#quarto-document-content figcaption.quarto-float-tbl").forEach(function (el) {
+            tbl += 1;
+            // el.innerHTML re-serialises a non-breaking space as the literal
+            // "&nbsp;" entity text, not a whitespace character, so \s alone
+            // does not match it - match either form here.
+            el.innerHTML = el.innerHTML.replace(
+              /^(\s*Table(?:\s|&nbsp;)+)\d+/,
+              "$1C." + tbl
+            );
+          });
+        })();
+        </script>
 toc: true
 execute:
   echo: false
@@ -64,6 +88,10 @@ source("02_load-model-selection.R")
 # build_habitat_model_table, build_fish_model_table). Quarto sets the working
 # directory to this folder, so the relative path resolves during render.
 source("Gt_model_tables.R")
+
+# Significance tables at the end of the appendix - see Gt_stats_tables.R.
+# Sourced after Gt_model_tables.R, which it reuses helpers from.
+source("Gt_stats_tables.R")
 
 habitat_table <- get_habitat_report_table()
 fish_table    <- get_fish_report_table()
@@ -127,6 +155,12 @@ curve_hold_note <- if (length(curve_hold_clauses)) {
   paste0(" These terms are held only where model selection retained them: ",
          list_and(curve_hold_clauses), ".")
 } else ""
+
+# Significance tables (end of appendix) - see Gt_stats_tables.R.
+fish_dat          <- load_model_data()$fish
+fish_subset       <- function(resp) fish_dat %>% dplyr::filter(.data$response == resp)
+pvalue_table      <- build_fish_term_pvalue_table(fish_models, fish_response_order)
+status_year_table <- build_status_by_year_table(fish_models, fish_subset, fish_response_order)
 ```
 
 # Data Analysis
@@ -135,10 +169,6 @@ Statistical methods and model selection results underpinning the natural values
 reported in Appendix A.
 
 {{< pagebreak >}}
-
-```{=latex}
-\stepcounter{sec}
-```
 
 ## Benthic ecosystem extent
 
@@ -160,18 +190,18 @@ knitr::include_graphics(fig("habitat-importance.png"))
 <!--
 If combine_benthos is ever switched back to FALSE for this park, the habitat
 response curves split into one figure per survey year and are numbered
-C <sec>.<parent>.<n>. Restore the block below around the per-year figures, and
+C.<parent>.<n>. Restore the block below around the per-year figures, and
 restore the `for (yr in year_levels)` loop in 03_create-figures.R.
 
 ```{=latex}
 \setcounter{parentfig}{\numexpr\value{figure}+1\relax}
 \setcounter{figure}{0}
-\renewcommand{\thefigure}{C \arabic{sec}.\arabic{parentfig}.\arabic{figure}}
+\renewcommand{\thefigure}{C.\arabic{parentfig}.\arabic{figure}}
 ```
 ... the per-year figure chunks ...
 ```{=latex}
 \setcounter{figure}{\value{parentfig}}
-\renewcommand{\thefigure}{C \arabic{sec}.\arabic{figure}}
+\renewcommand{\thefigure}{C.\arabic{figure}}
 ```
 -->
 
@@ -183,10 +213,6 @@ knitr::include_graphics(fig("habitat-response-curves.png"))
 ```
 
 {{< pagebreak >}}
-
-```{=latex}
-\stepcounter{sec}
-```
 
 ## Demersal fish assemblage
 
@@ -210,4 +236,20 @@ knitr::include_graphics(fig("fish-importance.png"))
 #| fig-align: center
 #| fig-cap: !expr paste0('Plots of the best model found to predict the probability of occurrence of key fish groups. Individual panes display the predicted relationships between model covariates and each demersal fish metric. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value, with year held at ', curve_year, ' and zone status held at areas ', curve_status, '.', curve_hold_note, ' Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data from all survey years and zones. \\*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays.')
 knitr::include_graphics(fig("fish-response-curves.png"))
+```
+
+{{< pagebreak >}}
+
+## Significance of year and zone status
+
+```{r}
+#| label: tbl-c3-1
+#| tbl-cap: 'Significance of the year and zone status terms in each demersal fish GAMM. Estimate, standard error (SE), test statistic and p-value are taken from the parametric coefficient table of each model summary, one row per factor-level contrast (e.g. a survey year against the reference year, or No-Take against Fished).'
+build_fish_term_pvalue_report(pvalue_table)
+```
+
+```{r}
+#| label: tbl-c3-2
+#| tbl-cap: 'Zone status test for each demersal fish metric, laid out by survey year. Zone status (No-Take vs Fished) is fitted as a single term across all years (no year by status interaction), so the status estimate, SE and p-value are the same in every row for a given metric; predicted values and their SE are shown per year, with other model covariates held at their mean.'
+build_status_by_year_report(status_year_table)
 ```

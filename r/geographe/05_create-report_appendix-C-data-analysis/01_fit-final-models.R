@@ -173,25 +173,29 @@ m_abundance <- gam(count ~ year + status +
                    data = fabund %>% dplyr::filter(response %in% "total_abundance"),
                    family = poisson)
 
-# Species richness
+# Species richness - most parsimonious model within delta AICc 2 (0.548 behind
+# the top aspect+depth+detrended+reef model, r2 0.409 vs 0.411)
 m_richness <- gam(count ~ year + status +
-                    s(geoscience_aspect, k = 3, bs = "cc") +
+                    s(geoscience_depth, k = 3, bs = "cr") +
                     s(geoscience_detrended, k = 3, bs = "cr") +
                     s(reef, k = 3, bs = "cr"),
                   data = fabund %>% dplyr::filter(response %in% "species_richness"),
                   family = gaussian(link = "identity"))
 
-# CTI - no year, no status
-m_cti <- gam(count ~ s(geoscience_depth, k = 3, bs = "cr") +
+# CTI
+m_cti <- gam(count ~ year + status +
+               s(geoscience_depth, k = 3, bs = "cr") +
                s(geoscience_detrended, k = 3, bs = "cr") +
                s(reef, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "cti"),
              family = gaussian(link = "identity"))
 
-# B20 - year retained, status dropped
-m_b20 <- gam(count ~ year +
+# B20 - lowest AICc among the 3-term candidates within delta AICc 2
+# (detrended+depth+reef is 1.075 behind and has lower importance, 0.537 vs
+# aspect's 0.653)
+m_b20 <- gam(count ~ year + status +
+               s(geoscience_aspect, k = 3, bs = "cc") +
                s(geoscience_depth, k = 3, bs = "cr") +
-               s(geoscience_detrended, k = 3, bs = "cr") +
                s(reef, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "b20"),
              family = tw())

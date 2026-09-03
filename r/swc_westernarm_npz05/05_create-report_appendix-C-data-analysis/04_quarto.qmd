@@ -21,20 +21,50 @@ format:
         \renewcommand{\arraystretch}{1.35}
         \floatplacement{table}{H}
         \floatplacement{figure}{H}
-        % Quarto renders unnumbered headings, so the section counter is stepped
-        % by hand before each one.
-        \newcounter{sec}
         % Holds a figure's number while its per-year sub-figures are numbered.
         \newcounter{parentfig}
-        \counterwithin*{figure}{sec}
-        \counterwithin*{table}{sec}
-        \renewcommand{\thefigure}{C \arabic{sec}.\arabic{figure}}
-        \renewcommand{\thetable}{C \arabic{sec}.\arabic{table}}
+        \renewcommand{\thefigure}{C2.\arabic{figure}}
+        \renewcommand{\thetable}{C2.\arabic{table}}
         \captionsetup{format=plain, indention=0pt}
   html:
     output-file: "Project 4.21-swc_westernarm-3-Appendix C2-q-Data analysis.html"
     fig-dpi: 96
     embed-resources: true
+    include-in-header:
+      text: |
+        <style>
+          caption,
+          .gt_caption,
+          .table-caption,
+          figcaption,
+          .figure-caption,
+          .quarto-float-caption,
+          .quarto-float-caption-top,
+          .quarto-float-tbl figcaption {
+            text-align: justify !important;
+            text-justify: inter-word;
+            hyphens: auto;
+          }
+        </style>
+    include-after-body:
+      text: |
+        <script>
+        // appendix-c-numbering.lua only numbers figures - tables are prefixed
+        // here, flat as C2.<n> to match the PDF's \thetable.
+        (function () {
+          var tbl = 0;
+          document.querySelectorAll("#quarto-document-content figcaption.quarto-float-tbl").forEach(function (el) {
+            tbl += 1;
+            // el.innerHTML re-serialises a non-breaking space as the literal
+            // "&nbsp;" entity text, not a whitespace character, so \s alone
+            // does not match it - match either form here.
+            el.innerHTML = el.innerHTML.replace(
+              /^(\s*Table(?:\s|&nbsp;)+)\d+/,
+              "$1C2." + tbl
+            );
+          });
+        })();
+        </script>
 toc: true
 execute:
   echo: false
@@ -97,10 +127,6 @@ reported in Appendix A.
 
 {{< pagebreak >}}
 
-```{=latex}
-\stepcounter{sec}
-```
-
 ## Benthic ecosystem extent
 
 ```{r}
@@ -119,7 +145,7 @@ knitr::include_graphics(fig("habitat-importance.png"))
 ```{=latex}
 \setcounter{parentfig}{\numexpr\value{figure}+1\relax}
 \setcounter{figure}{0}
-\renewcommand{\thefigure}{C \arabic{sec}.\arabic{parentfig}.\arabic{figure}}
+\renewcommand{\thefigure}{C2.\arabic{parentfig}.\arabic{figure}}
 ```
 {{< pagebreak >}}
 
@@ -164,5 +190,5 @@ knitr::include_graphics(fig("habitat-response-curves_2025.png"))
 
 ```{=latex}
 \setcounter{figure}{\value{parentfig}}
-\renewcommand{\thefigure}{C \arabic{sec}.\arabic{figure}}
+\renewcommand{\thefigure}{C2.\arabic{figure}}
 ```

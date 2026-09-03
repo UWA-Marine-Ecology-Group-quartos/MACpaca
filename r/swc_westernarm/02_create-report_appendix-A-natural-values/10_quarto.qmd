@@ -489,16 +489,16 @@ grid::grid.raster(img)
 
 ```{r}
 #| label: tbl-threatened-species
-#| tbl-cap: "Threatened species recorded in stereo-BRUV imagery across all survey years, showing IUCN Red List category, the number of samples each species was recorded in, and the total abundance (MaxN) summed across those samples. An asterisk denotes a species also listed as threatened under the EPBC Act 1999."
+#| tbl-cap: "Threatened species recorded in stereo-BRUV imagery across all survey years, showing IUCN Red List category, the number of samples each species was recorded in, and the total abundance (MaxN) summed across those samples. *This species is also listed as ‘Conservation dependent’ on the EPBC Act List of Threatened Fauna. ^This species is also listed as ‘Vulnerable’ on the EPBC Act List of Threatened Fauna."
 
 threatened_species <- readRDS(here("data", park, "tidy",
                                    paste0(name, "_threatened-species.RDS")))
 
 threatened_species %>%
-  dplyr::select(scientific_name, australian_common_name, family, listing,
+  dplyr::select(species_label, australian_common_name, family, listing,
                 n_samples, total_maxn, years_seen) %>%
   gt() %>%
-  cols_label(scientific_name        = "Species",
+  cols_label(species_label           = "Species",
              australian_common_name = "Common name",
              family                 = "Family",
              listing                = "IUCN category",
@@ -506,7 +506,7 @@ threatened_species %>%
              total_maxn             = "Total MaxN",
              years_seen             = "Years recorded") %>%
   sub_missing(missing_text = "-") %>%
-  cols_width(scientific_name        ~ pct(21),
+  cols_width(species_label           ~ pct(21),
              australian_common_name ~ pct(19),
              family                 ~ pct(16),
              listing                ~ pct(14),
@@ -514,11 +514,11 @@ threatened_species %>%
              total_maxn             ~ pct(10),
              years_seen             ~ pct(11)) %>%
   cols_align(align = "left",
-             columns = c(scientific_name, australian_common_name, family)) %>%
+             columns = c(species_label, australian_common_name, family)) %>%
   cols_align(align = "center",
              columns = c(listing, n_samples, total_maxn, years_seen)) %>%
   tab_style(style = cell_text(style = "italic"),
-            locations = cells_body(columns = scientific_name)) %>%
+            locations = cells_body(columns = species_label)) %>%
   opt_row_striping() %>%
   tab_style(style = cell_text(weight = "bold"),
             locations = cells_column_labels()) %>%
@@ -533,44 +533,41 @@ threatened_species %>%
 
 {{< pagebreak >}}
 
+### Threatened shark and ray species
+
+```{r}
+#| fig-width: 12
+#| fig-height: 12
+#| fig-cap: "Occurrence of threatened, IUCN Red List category, sharks and rays in stereo-BRUV imagery. Points are scaled by abundance (MaxN) and coloured by survey year; grey points show every stereo-BRUV deployment. Commonwealth and coastal marine park boundaries are shown. The red line delimits coastal and Commonwealth waters."
+readRDS(here("plots/swc_westernarm/fish/swc_westernarm_threatened-species-occurrence_page1_2020-2021-2023-2024-2025.rds"))
+```
+
+{{< pagebreak >}}
+
+### Other shark and ray species
+
+<!-- 09_threatened-species.R paginates this plot at 12 species/page (4 cols x
+3 rows) and prints how many pages it made. This assumes 2 pages - add or
+remove a chunk below to match if the actual page count differs. fig-width/
+fig-height are just a starting point - adjust freely, the .rds is a live
+ggplot object so it re-flows to whatever size you give it. -->
+
+```{r}
+#| fig-width: 14
+#| fig-height: 14
+#| fig-cap: "Occurrence of shark and ray species that are not threatened in stereo-BRUV imagery. Points are scaled by abundance (MaxN) and coloured by survey year; grey points show every stereo-BRUV deployment, so a panel with no coloured points is a genuine absence rather than an absence of sampling. Commonwealth and state marine park boundaries are shown. The red line delimits state and commonwealth waters."
+readRDS(here("plots/swc_westernarm/fish/swc_westernarm_non-threatened-species-occurrence_page1_2020-2021-2023-2024-2025.rds"))
+```
+
+{{< pagebreak >}}
+
 :::{.content-hidden when-format="html"}
-### Threatened species {.unlisted .unnumbered}
+### Other shark and ray species {.unlisted .unnumbered}
 :::
 
 ```{r}
-#| fig-width: 8
-#| fig-height: 8
-#| fig-cap: "Occurrence of threatened sharks and rays in stereo-BRUV imagery. Points are scaled by abundance (MaxN) and coloured by survey year; grey points show every stereo-BRUV deployment, so a panel with no coloured points is a genuine absence rather than an absence of sampling. Commonwealth and state marine park boundaries are shown. The red line delimits state and commonwealth waters."
-p_threatened <- readRDS(here("plots/swc_westernarm/fish/swc_westernarm_threatened-species-occurrence_2020-2021-2023-2024-2025.rds"))
-p_threatened
-```
-
-{{< pagebreak >}}
-
-```{r}
-#| fig-width: 9
-#| fig-height: 10
-#| fig-cap: "Occurrence of threatened sharks and rays by species (rows) and survey year (columns), page 1. Points are scaled by abundance (MaxN); grey points show every stereo-BRUV deployment, so a blank panel is a genuine absence rather than an absence of sampling."
-p_threatened_grid_1 <- readRDS(here("plots/swc_westernarm/fish/swc_westernarm_threatened-species-grid_page-1.rds"))
-p_threatened_grid_1
-```
-
-{{< pagebreak >}}
-
-```{r}
-#| fig-width: 9
-#| fig-height: 10
-#| fig-cap: "Occurrence of threatened sharks and rays by species (rows) and survey year (columns), page 2. Points are scaled by abundance (MaxN); grey points show every stereo-BRUV deployment, so a blank panel is a genuine absence rather than an absence of sampling."
-p_threatened_grid_2 <- readRDS(here("plots/swc_westernarm/fish/swc_westernarm_threatened-species-grid_page-2.rds"))
-p_threatened_grid_2
-```
-
-{{< pagebreak >}}
-
-```{r}
-#| fig-width: 9
-#| fig-height: 10
-#| fig-cap: "Occurrence of threatened sharks and rays by species (rows) and survey year (columns), page 3. Points are scaled by abundance (MaxN); grey points show every stereo-BRUV deployment, so a blank panel is a genuine absence rather than an absence of sampling."
-p_threatened_grid_3 <- readRDS(here("plots/swc_westernarm/fish/swc_westernarm_threatened-species-grid_page-3.rds"))
-p_threatened_grid_3
+#| fig-width: 14
+#| fig-height: 14
+#| fig-cap: "Occurrence of shark and ray species that are not threatened in stereo-BRUV imagery (continued). Points are scaled by abundance (MaxN) and coloured by survey year; grey points show every stereo-BRUV deployment, so a panel with no coloured points is a genuine absence rather than an absence of sampling. Commonwealth and state marine park boundaries are shown. The red line delimits state and commonwealth waters."
+readRDS(here("plots/swc_westernarm/fish/swc_westernarm_non-threatened-species-occurrence_page2_2020-2021-2023-2024-2025.rds"))
 ```

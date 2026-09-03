@@ -5,11 +5,11 @@
 # YOU DO NOT NEED TO EDIT THIS FILE. THIS IS HERE SO THE HTML CAN PICK UP HOW
 # TO NUMBER THE FIGURES
 #
-# Appendix C numbers its figures "C <section>.<n>", and the two habitat
-# response-curve figures as "C <section>.<parent>.<n>". All of that is driven
-# by raw LaTeX counters in 04_quarto.qmd, which pandoc discards for HTML. This
-# filter watches the same raw-LaTeX markers and rebuilds the equivalent labels
-# in the HTML captions.
+# Appendix C2 numbers its figures flat as "C2.<n>" across the whole appendix,
+# and the per-year habitat response-curve figures as "C2.<parent>.<n>". All of
+# that is driven by raw LaTeX counters in 04_quarto.qmd, which pandoc
+# discards for HTML. This filter watches the same raw-LaTeX markers and
+# rebuilds the equivalent labels in the HTML captions.
 --]]
 
 -- Only run for HTML targets - PDF keeps its existing LaTeX-driven numbering.
@@ -17,17 +17,16 @@ if not FORMAT:match("html") then
   return {}
 end
 
-local sec       = 0      -- \stepcounter{sec}
-local fig       = 0      -- figures within the current section
+local fig       = 0      -- figures in the document (never resets)
 local parent    = 0      -- number the split figure would have taken
-local sub_mode  = false  -- inside the C x.y.z block?
+local sub_mode  = false  -- inside the C2.y.z block?
 
 local function make_label()
   fig = fig + 1
   if sub_mode then
-    return "C " .. tostring(sec) .. "." .. tostring(parent) .. "." .. tostring(fig)
+    return "C2." .. tostring(parent) .. "." .. tostring(fig)
   else
-    return "C " .. tostring(sec) .. "." .. tostring(fig)
+    return "C2." .. tostring(fig)
   end
 end
 
@@ -45,12 +44,7 @@ end
 -- escaping as Lua patterns.
 local function RawBlock(el)
   if el.format == "tex" or el.format == "latex" then
-    if el.text:find("stepcounter{sec}", 1, true) then
-      -- new section: figure numbering restarts
-      sec      = sec + 1
-      fig      = 0
-      sub_mode = false
-    elseif el.text:find("value{parentfig}", 1, true) then
+    if el.text:find("value{parentfig}", 1, true) then
       -- closing block: hand the count back to the parent figure
       fig      = parent
       sub_mode = false

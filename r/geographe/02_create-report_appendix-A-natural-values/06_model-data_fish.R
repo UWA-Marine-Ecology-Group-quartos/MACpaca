@@ -57,7 +57,9 @@ resp.vars
 
 # Run the full subset model selection----
 savedir <- paste0("output/model-output/", park, "/fish/maxn/")
-factor.vars <- c("status", "year") # TODO set factors
+# status and year are forced into every model via null.terms below, so they
+# are no longer offered as candidate factors here
+factor.vars <- NA
 out.all     <- list()
 var.imp     <- list()
 
@@ -65,7 +67,7 @@ var.imp     <- list()
 for(i in 1:length(resp.vars)){
   print(resp.vars[i])
   use.dat <- as.data.frame(tidy_maxn[which(tidy_maxn$response == resp.vars[i]), ])
-  Model1  <- gam(count ~ s(geoscience_depth, k = 3, bs = 'cr'),
+  Model1  <- gam(count ~ year + status + s(geoscience_depth, k = 3, bs = 'cr'),
                  family = gaussian(link = "identity"),  data = use.dat) # TODO check family
 
   model.set <- generate.model.set(use.dat = use.dat,
@@ -73,9 +75,9 @@ for(i in 1:length(resp.vars)){
                                   pred.vars.cont = pred.vars,
                                   pred.vars.fact = factor.vars,
                                   cyclic.vars = "geoscience_aspect",
+                                  null.terms = "year + status", # force year and status
                                   k = 3, # TODO check this, maybe add cov.cutoff
-                                  factor.smooth.interactions = "year", # TODO check this
-                                  factor.factor.interactions = c("status", "year"),
+                                  factor.smooth.interactions = F, # TODO check this
                                   max.predictors = 5 # TODO check this
   )
   out.list <- fit.model.set(model.set,
@@ -145,13 +147,15 @@ savedir <- paste0("output/model-output/", park, "/fish/length/")
 name_b20 <- paste(name,"b20", sep = "_")
 out.all <- list()
 var.imp <- list()
-factor.vars <- c("status", "year") # TODO check
+# status and year are forced into every model via null.terms below, so they
+# are no longer offered as candidate factors here
+factor.vars <- NA
 
 # Loop through the FSS function for each Taxa----
 for(i in 1:length(resp.vars)){
   print(resp.vars[i])
   use.dat = as.data.frame(tidy_b20[which(tidy_b20$response==resp.vars[i]),])
-  Model1  <- gam(count ~ s(geoscience_depth, k = 3, bs = 'cr'),
+  Model1  <- gam(count ~ year + status + s(geoscience_depth, k = 3, bs = 'cr'),
                  tw(),  data = use.dat) # TODO HE changed to gaussian
 
   model.set <- generate.model.set(use.dat = use.dat,
@@ -159,6 +163,7 @@ for(i in 1:length(resp.vars)){
                                   pred.vars.cont = pred.vars,
                                   pred.vars.fact = factor.vars,
                                   cyclic.vars = "geoscience_aspect",
+                                  null.terms = "year + status", # force year and status
                                   k = 3, # TODO check this, maybe add cov.cutoff
                                   factor.smooth.interactions = F, # TODO check this
                                   max.predictors = 5 # TODO check this
@@ -215,9 +220,10 @@ m_abundance <- gam(count ~ year + status +
 summary(m_abundance)
 # plot(m_abundance)
 
-# Species richness
+# Species richness - most parsimonious model within delta AICc 2 (0.548 behind
+# the top aspect+depth+detrended+reef model, r2 0.409 vs 0.411)
 m_richness <- gam(count ~ year + status +
-                    s(geoscience_aspect, k = 3, bs = "cc") +
+                    s(geoscience_depth, k = 3, bs = "cr") +
                     s(geoscience_detrended, k = 3, bs = "cr") +
                     s(reef, k = 3, bs = "cr"),
                   data = fabund %>% dplyr::filter(response %in% "species_richness"),
@@ -226,7 +232,8 @@ summary(m_richness)
 # plot(m_richness)
 
 # CTI
-m_cti <- gam(count ~ s(geoscience_depth, k = 3, bs = "cr") +
+m_cti <- gam(count ~ year + status +
+               s(geoscience_depth, k = 3, bs = "cr") +
                s(geoscience_detrended, k = 3, bs = "cr") +
                s(reef, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "cti"),
@@ -234,10 +241,12 @@ m_cti <- gam(count ~ s(geoscience_depth, k = 3, bs = "cr") +
 summary(m_cti)
 # plot(m_cti)
 
-# B20
-m_b20 <- gam(count ~ year +
+# B20 - lowest AICc among the 3-term candidates within delta AICc 2
+# (detrended+depth+reef is 1.075 behind and has lower importance, 0.537 vs
+# aspect's 0.653)
+m_b20 <- gam(count ~ year + status +
+               s(geoscience_aspect, k = 3, bs = "cc") +
                s(geoscience_depth, k = 3, bs = "cr") +
-               s(geoscience_detrended, k = 3, bs = "cr") +
                s(reef, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "b20"),
              family = tw())
@@ -437,3 +446,4 @@ for (y in seq_along(pred.years)) {
                      names(preddf_m), "_predicted_", this_year, ".tif"),
               overwrite = TRUE)
 }
+

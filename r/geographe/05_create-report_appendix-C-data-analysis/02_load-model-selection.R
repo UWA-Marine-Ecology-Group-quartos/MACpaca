@@ -335,7 +335,11 @@ get_fish_report_table <- function(models = NULL) {
     expected = names(models)
   )
 
-  mark_selected(dplyr::bind_rows(maxn, b20), models) %>%
+  # year and status are forced into every fish candidate via null.terms in 06
+  candidates <- dplyr::bind_rows(maxn, b20) %>%
+    dplyr::mutate(modname = paste0(modname, "+year+status"))
+
+  mark_selected(candidates, models) %>%
     format_report_table(fish_response_order)
 }
 
