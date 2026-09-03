@@ -73,7 +73,7 @@ ggsave(paste0("plots/", park, "/pressures/", name, "_DHW.png"),
 
 pressure_data()
 
-maxyear = c(2011, 2025)
+maxyear = c(2024, 2025)
 pressure_plot(maxyear)
 
 ggsave(filename = paste0('plots/', park, '/pressures/', name, '_oceanography_time-series.png'),

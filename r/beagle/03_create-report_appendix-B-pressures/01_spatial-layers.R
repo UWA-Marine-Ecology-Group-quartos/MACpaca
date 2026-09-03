@@ -186,10 +186,10 @@ names(rast_dhw) <- dates_dhw
 plot(rast_dhw)
 
 # Highest periods
-dhw.2011 <- subset(rast_dhw, year(time(rast_dhw)) == 2011 & month(time(rast_dhw)) == 5) %>%
+dhw.2024 <- subset(rast_dhw, year(time(rast_dhw)) == 2024 & month(time(rast_dhw)) == 3) %>%
   mean(na.rm = T)
-names(dhw.2011) <- "May 2011"
-plot(dhw.2011)
+names(dhw.2024) <- "March 2024"
+plot(dhw.2024)
 dhw.2012 <- subset(rast_dhw, year(time(rast_dhw)) == 2012 & month(time(rast_dhw)) == 4) %>%
   mean(na.rm = T)
 names(dhw.2012) <- "April 2012"
@@ -200,7 +200,7 @@ dhw.2025 <- subset(rast_dhw, year(time(rast_dhw)) == 2025 & month(time(rast_dhw)
 names(dhw.2025) <- "April 2025"
 plot(dhw.2025)
 
-dhw <- rast(list(dhw.2011, dhw.2025))
+dhw <- rast(list(dhw.2024, dhw.2025))
 plot(dhw)
 
 saveRDS(dhw, paste0("data/", park, "/spatial/oceanography/", name, "_DHW_raster.rds"))
