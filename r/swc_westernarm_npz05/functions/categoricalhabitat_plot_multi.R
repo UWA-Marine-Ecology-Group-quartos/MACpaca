@@ -122,13 +122,15 @@ categoricalhabitat_plot_multi <- function(dat_list, prediction_limits, habitat_l
       colour    = "red",
       linewidth = 0.5
     ) +
+    scale_x_continuous(breaks = scales::breaks_width(0.3)) +
+    scale_y_continuous(breaks = scales::breaks_width(0.04)) +
     coord_sf(
       xlim   = c(prediction_limits[1], prediction_limits[2]),
       ylim   = c(prediction_limits[3], prediction_limits[4]),
       crs    = 4326,
       expand = FALSE
     ) +
-    facet_wrap(~year, nrow = 1) +
+    facet_wrap(~year, nrow = 2, ncol = 2) +
     theme_minimal() +
     theme(
       panel.background = element_rect(fill = "white", colour = NA),

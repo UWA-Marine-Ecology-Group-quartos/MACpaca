@@ -1,7 +1,7 @@
 ---
 title: "Appendix B - South-west Corner (Western arm) Marine Park Pressures Report"
 subtitle: "South-west Marine Parks Network"
-figure-number-prefix: "B"
+figure-number-prefix: "B."
 filters:
   - figure-numbering.lua
 format:
@@ -21,7 +21,7 @@ format:
         \floatplacement{table}{H}
         \newcounter{metric}
         \counterwithin*{figure}{metric}
-        \renewcommand{\thefigure}{B\arabic{figure}}
+        \renewcommand{\thefigure}{B.\arabic{figure}}
         \captionsetup{format=plain, indention=0pt}
   html:
     output-file: "Project 4.21-swc_westernarm-2-Appendix B-q-Pressures.html"
@@ -32,7 +32,7 @@ execute:
   echo: false
   warning: false
   message: false
-post-render: 11_move-pdf.R
+post-render: 04_move-pdf.R
 ---
 ```{r}
 #| include: false
@@ -49,7 +49,7 @@ name <- "swc_westernarm"
 Understanding of Pressures
 ```{r}
 #| out-width: "100%"
-#| fig-cap: "Seasonal sea level anomaly, seasonal sea surface temperature and Degree Heating Weeks at the scale of the SWCMP (Western arm). Solid lines represent mean values for sea level anomaly (SLA), sea surface temperature (SST) and Degree Heating Weeks (DHW). Confidence bounds represent standard errors. Red dashed vertical lines represent maximum DHW values that are plotted spatially in Figure B4."
+#| fig-cap: "Seasonal sea level anomaly, seasonal sea surface temperature and Degree Heating Weeks at the scale of the SWCMP (Western arm). Solid lines represent mean values for sea level anomaly (SLA), sea surface temperature (SST) and Degree Heating Weeks (DHW). Confidence bounds represent standard errors. Red dashed vertical lines represent maximum DHW values that are plotted spatially in Figure B.4."
 include_graphics(here("plots/swc_westernarm/pressures/swc_westernarm_oceanography_time-series.png"))
 ```
 ```{r}

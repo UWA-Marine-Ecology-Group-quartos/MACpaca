@@ -1,5 +1,6 @@
 name: "swc_westernarm"
 park: "swc_westernarm"
-years: ["2020", "2023", "2024", "2025"]    # EVERY survey year
+years:      ["2020", "2021", "2023", "2024", "2025"]   # EVERY survey year - drives the benthos
+fish_years: ["2020", "2024", "2025"]                   # Years modelled for fish
 combine_benthos: true       # true = pool benthos years into ONE
                              # Combine benthos if years have samples in different spatial areas

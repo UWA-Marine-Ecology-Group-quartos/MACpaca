@@ -46,7 +46,7 @@ file.sources <- list.files(pattern = "*.R", path = paste0("r/", park, "/function
 sapply(file.sources, source, .GlobalEnv)
 
 # TODO Set cropping extent - larger than most zoomed out plot
-e <- ext(114.0, 116.0, -34.7, -33.1)
+e <- ext(114.20, 115.40, -34.60, -33.90)   # TODO must be wider than every plot window, and must reach the shoreline or ausc/cwatr crop to nothing
 
 # Load necessary spatial files
 ausc <- st_read("data/south-west network/spatial/shapefiles/aus-shapefile-w-investigator-stokes.shp") %>%
@@ -103,7 +103,7 @@ hab_cols <- c(
 )
 
 # TODO Plot extent
-prediction_limits <- c(114.2601, 115.7901, -34.6924, -33.3974)
+prediction_limits <- c(114.44, 114.99, -34.17, -34.03)
 
 # Read all years once
 
@@ -128,85 +128,75 @@ if (combine_benthos) {
 }
 
 # -------------------------------------------------------------------
-# PART 1: Single-year plots (categorical + dominant benthos)
+# PART 1: Multi-year plots (categorical + dominant benthos)
 # -------------------------------------------------------------------
-for (yr in pred.labels) {
+# One faceted figure per plot type covering every year, rather than one
+# figure per year. The multi functions take dat_list directly and do their
+# own as.data.frame() and normalise_se() internally.
 
-  message("Building per-year plots for: ", yr)
+p_cat <- categoricalhabitat_plot_multi(
+  dat_list          = dat_list,
+  prediction_limits = prediction_limits,
+  habitat_lookup    = habitat_lookup
+)
 
-  dat <- dat_list[[as.character(yr)]]
+print(p_cat)
 
-  pred_class <- as.data.frame(dat, xy = TRUE) %>%
-    dplyr::mutate(year = yr)
+# TODO Sized for a 2 x 2 grid of years - revisit if the year count changes
+ggsave(
+  filename = paste0(
+    "plots/", park, "/habitat/", name,
+    "_predicted-habitat-categorical_",
+    paste(pred.labels, collapse = "-"), ".png"
+  ),
+  plot = p_cat,
+  height = 9,
+  width = 8,
+  dpi = 300,
+  units = "in",
+  bg = "white"
+)
 
-  pred_plot <- normalise_se(data = pred_class)
+saveRDS(p_cat,
+        paste0(
+          "plots/", park, "/habitat/", name,
+          "_predicted-habitat-categorical_",
+          paste(pred.labels, collapse = "-"), ".rds"
+        )
+)
 
-  p_cat <- categoricalhabitat_plot_single(
-    pred_plot = pred_plot,
-    prediction_limits = prediction_limits,
-    habitat_lookup = habitat_lookup
-  )
+p_dom <- dominantbenthos_plot_multi(
+  dat_list          = dat_list,
+  prediction_limits = prediction_limits,
+  habitat_lookup    = habitat_lookup
+)
 
-  print(p_cat)
+print(p_dom)
 
-  ggsave(
-    filename = paste0(
-      "plots/", park, "/habitat/", name,
-      "_predicted-habitat-categorical_", yr, ".png"
-    ),
-    plot = p_cat,
-    height = 8,
-    width = 7,
-    dpi = 300,
-    units = "in",
-    bg = "white"
-  )
+# TODO dominantbenthos_plot_multi stacks the years down the page with a
+# prediction column and an SE column, so this is sized tall. With four years
+# it will not fit an A4 portrait page at full size - check the rendered PDF.
+ggsave(
+  filename = paste0(
+    "plots/", park, "/habitat/", name,
+    "_predicted-dominant-habitat_",
+    paste(pred.labels, collapse = "-"), ".png"
+  ),
+  plot = p_dom,
+  height = 13,
+  width = 7,
+  dpi = 300,
+  units = "in",
+  bg = "white"
+)
 
-  saveRDS(p_cat,
-          paste0(
-            "plots/", park, "/habitat/", name,
-            "_predicted-habitat-categorical_", yr, ".rds"
-          )
-  )
-
-  p_dom <- dominantbenthos_plot_single(
-    pred_plot = pred_plot,
-    prediction_limits = prediction_limits,
-    habitat_lookup = habitat_lookup
-  ) +
-    theme(
-      legend.position = "bottom",
-      legend.direction = "vertical",
-      legend.box = "horizontal",
-      legend.box.just = "left",
-      legend.text = element_text(size = 5),
-      legend.title = element_text(size = 7),
-      legend.key.size = unit(0.5, "cm"),
-      legend.margin = margin(t = -0.1, unit = "cm")
-    )
-
-  print(p_dom)
-
-  ggsave(
-    filename = paste0(
-      "plots/", park, "/habitat/", name,
-      "_predicted-dominant-habitat_", yr, ".png"
-    ),
-    plot = p_dom,
-    height = 8,
-    width = 7,
-    dpi = 300,
-    units = "in",
-    bg = "white"
-  )
-
-  saveRDS(p_dom,
-          paste0(
-            "plots/", park, "/habitat/", name,
-            "_predicted-dominant-habitat_", yr, ".rds"
-          )
-  )
-}
+saveRDS(p_dom,
+        paste0(
+          "plots/", park, "/habitat/", name,
+          "_predicted-dominant-habitat_",
+          paste(pred.labels, collapse = "-"), ".rds"
+        )
+)
 
 
 ## Predicted reef
@@ -223,7 +213,7 @@ ggsave(
     "_predicted-reef-and-se_",
     paste(years, collapse = "-"), ".png"
   ),
-  plot = p_reef, height = 5.5, width = 8, dpi = 300, units = "in", bg = "white"
+  plot = p_reef, height = 9, width = 9, dpi = 300, units = "in", bg = "white"
 )
 
 saveRDS(p_reef,
@@ -263,8 +253,8 @@ for (habitat_name in names(habitat_lookup)) {
       paste(pred.labels, collapse = "-"), ".png"
     ),
     plot = p_hab,
-    height = 5,
-    width = 8,
+    height = 7,
+    width = 10,
     dpi = 300,
     units = "in",
     bg = "white"
@@ -291,7 +281,7 @@ if (!combine_benthos) {
         name, "_predicted-habitat_", yy, ".rds"
       )
     )
-    controldata_benthos(dat = dat_yy, year = yy, amp_abbrv = "AMP", state_abbrv = "STATE MP") # TODO set park abbreviations
+    controldata_benthos(dat = dat_yy, year = yy, amp_abbrv = "SWCMP", state_abbrv = "NCMP")
   })
 
   park_dat.shallow <- purrr::map_dfr(control_all, "shallow") %>%
@@ -309,6 +299,7 @@ if (!combine_benthos) {
     park_dat.rari
   ) %>%
     dplyr::mutate(
+      year = as.numeric(as.character(year)),
       depth_class = factor(
         depth_class,
         levels = c(
@@ -335,7 +326,7 @@ if (!combine_benthos) {
     p_taxa <- controlplot_benthos(
       data = park_dat.control,
       taxa = taxa_code,
-      amp_abbrv = "GMP", # TODO set park abbreviations
+      amp_abbrv = "SWCMP",
       state_abbrv = "NCMP",
       taxa_label = taxa_lookup[[taxa_code]]
     )
@@ -373,7 +364,7 @@ if (!combine_benthos) {
 # ---- Scatterpie data prep ----
 
 # TODO Set the extent of the study
-e <- ext(114.0, 116.0, -34.7, -33.1)
+e <- ext(114.20, 115.40, -34.60, -33.90)   # TODO must be wider than every plot window, and must reach the shoreline or ausc/cwatr crop to nothing
 
 # Load the bathymetry data (GA 250m resolution)
 bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
@@ -430,7 +421,24 @@ depth_fills <- scale_fill_manual(
   guide = "none"
 )
 
-site_limits <- c(114.2601, 115.7901, -34.6924, -33.3974) # TODO set limits
+# Frame the scatterpies on the samples rather than a hardcoded box. Computed
+# once here and passed to both the per-year and multi-year plots so every
+# panel sits on the same window.
+# TODO Widen site_pad if the coastline falls outside the frame
+site_pad <- 0.05
+
+site_limits <- benthos %>%
+  dplyr::filter(is.finite(longitude_dd), is.finite(latitude_dd)) %>%
+  dplyr::summarise(
+    xmin = min(longitude_dd) - site_pad,
+    xmax = max(longitude_dd) + site_pad,
+    ymin = min(latitude_dd)  - site_pad,
+    ymax = max(latitude_dd)  + site_pad
+  ) %>%
+  unlist(use.names = FALSE)
+
+# TODO Check the frame the scatterpies will be drawn on
+message("Scatterpie extent: ", paste(round(site_limits, 3), collapse = ", "))
 
 if (combine_benthos) {
 
@@ -459,7 +467,7 @@ if (combine_benthos) {
     ),
     plot = p_scatterpie,
     height = 7,
-    width = 6,
+    width = 10,
     dpi = 300,
     bg = "white"
   )
@@ -498,7 +506,7 @@ if (combine_benthos) {
       ),
       plot = p_scatterpie,
       height = 7,
-      width = 6,
+      width = 10,
       dpi = 300,
       bg = "white"
     )
@@ -526,7 +534,7 @@ if (combine_benthos) {
     ),
     plot = p_scatterpie_multi,
     height = 7,
-    width = 6,
+    width = 10,
     dpi = 300,
     bg = "white"
   )
@@ -538,3 +546,4 @@ if (combine_benthos) {
             paste(years, collapse = "-"), ".rds"
           ))
 }
+

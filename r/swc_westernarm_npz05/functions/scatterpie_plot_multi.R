@@ -1,5 +1,5 @@
-scatterpie_plot_multi <- function(benthos, years, site_limits, pie_radius = 0.004) {
-
+scatterpie_plot_multi <- function(benthos, years, site_limits = NULL,
+                                  pie_radius = 0.004, pad = 0.05) {
   benthos_plot <- benthos %>%
     dplyr::filter(as.character(year) %in% as.character(years)) %>%
     dplyr::filter(
@@ -10,7 +10,14 @@ scatterpie_plot_multi <- function(benthos, years, site_limits, pie_radius = 0.00
       year = factor(year, levels = years)
     ) %>%
     dplyr::arrange(year, desc(Sand))
-
+  # Computed from every retained year together, so the facets stay on a common
+  # window. Pass site_limits explicitly to override.
+  if (is.null(site_limits)) {
+    site_limits <- c(
+      range(benthos_plot$longitude_dd, na.rm = TRUE),
+      range(benthos_plot$latitude_dd,  na.rm = TRUE)
+    ) + c(-pad, pad, -pad, pad)
+  }
   ggplot() +
     geom_contour_filled(
       data = bathy,
@@ -43,8 +50,9 @@ scatterpie_plot_multi <- function(benthos, years, site_limits, pie_radius = 0.00
     ) +
     labs(x = "Longitude", y = "Latitude", fill = "Habitat") +
     hab_fills +
-    facet_wrap(~year, nrow = 1) +
+    facet_wrap(~year, nrow = 2, ncol = 2) +
     scale_x_continuous(breaks = scales::breaks_width(0.2)) +
+    scale_y_continuous(breaks = scales::breaks_width(0.2)) +
     coord_sf(
       xlim = c(site_limits[1], site_limits[2]),
       ylim = c(site_limits[3], site_limits[4]),
@@ -55,6 +63,7 @@ scatterpie_plot_multi <- function(benthos, years, site_limits, pie_radius = 0.00
       panel.background = element_rect(fill = "#b9d1d6", colour = NA),
       panel.grid.major = element_blank(),
       panel.grid.minor = element_blank(),
+      panel.spacing.x = unit(6, "mm"),
       legend.position = "bottom",
       legend.direction = "horizontal",
       legend.box = "horizontal",

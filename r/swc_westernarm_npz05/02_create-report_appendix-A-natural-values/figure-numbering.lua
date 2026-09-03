@@ -2,14 +2,18 @@
   figure-numbering.lua
 
 ### NOTE ###
-# YOU DO NOT NEED TO EDIT THIS FILE. THIS IS HERE SO THE HTML CAN PICK UP HOW
-# TO NUMBER THE FIGURES
+# THIS IS HERE SO THE HTML CAN PICK UP HOW TO NUMBER THE FIGURES.
+# The only thing to change is fig_prefix below - it must match the appendix
+# prefix set by \renewcommand{\thefigure} in 09_quarto.qmd, or the HTML and
+# PDF figure numbers will disagree.
 --]]
 
 -- Only run for HTML targets - PDF keeps its existing LaTeX-driven numbering.
 if not FORMAT:match("html") then
   return {}
 end
+
+local fig_prefix = "A2"
 
 local flat_counter = 0
 local metric = 0
@@ -29,7 +33,11 @@ end
 local function prepend_number(inlines)
   local label = make_label()
   local out = pandoc.List()
-  out:insert(pandoc.Str("Figure " .. label .. ":"))
+  out:insert(pandoc.Str("Figure"))
+  out:insert(pandoc.Space())
+  out:insert(pandoc.Str(fig_prefix))
+  out:insert(pandoc.Space())
+  out:insert(pandoc.Str(label .. ":"))
   out:insert(pandoc.Space())
   for _, el in ipairs(inlines) do out:insert(el) end
   return out

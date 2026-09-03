@@ -1,6 +1,6 @@
 ###
 # Project: NESP 4.21 - Australian Marine Parks Natural Values Reporting
-# Task:    Table builders for Table C 1.1 (habitat) and Table C 2.1 (fish)
+# Task:    Table builders for Table C1.1 (habitat) and Table C1.2 (fish)
 # Author:  Annika Leunig
 # Date:    August 2026
 ###

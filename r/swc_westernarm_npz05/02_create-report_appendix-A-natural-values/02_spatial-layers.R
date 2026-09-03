@@ -20,6 +20,7 @@ config <- yaml::read_yaml(
 
 name <- config$name
 park <- config$park
+years <- unlist(config$years)   # read_yaml returns a list
 
 # Load libraries
 library(sf)
@@ -74,13 +75,22 @@ metadata_bruv_all <- readRDS(paste0("data/", park, "/raw/bruv_metadata.RDS")) %>
   dplyr::select(campaignid, sample, longitude_dd, latitude_dd)
 
 metadata_all <- readRDS(paste0("data/", park, "/raw/metadata.RDS")) %>%
-  dplyr::select(campaignid, sample, longitude_dd, latitude_dd, status, year)
+  dplyr::select(campaignid, sample, longitude_dd, latitude_dd, status, year) %>%
+  # Campaigns outside the config years are dropped here, not just in 03/05.
+  # The buffers below define the prediction surface, so leaving a dropped
+  # campaign in would predict into area no retained year sampled.
+  dplyr::filter(as.character(year) %in% years)
 
 metadata_bruv <- in_npz(metadata_bruv_all) %>%
   glimpse()
 
 metadata <- in_npz(metadata_all) %>%
   glimpse()
+
+# TODO Check the years that survived the config filter - this is what defines
+# the extent of the prediction surface
+message("Years retained: ",
+        paste(sort(unique(as.character(metadata_all$year))), collapse = ", "))
 
 # TODO Check how many samples survived the NPZ filter
 message("Samples inside the NPZ: ", nrow(metadata), " of ", nrow(metadata_all),
@@ -99,6 +109,9 @@ message("Status levels retained: ",
 
 # Samples with habitat data ----
 habitat_samples <- readRDS(paste0("data/", park, "/raw/", name, "_benthos.RDS")) %>%
+  # bruv_metadata.RDS has no year column, so metadata_bruv_habitat is
+  # restricted to the config years through this semi-join key instead
+  dplyr::filter(as.character(year) %in% years) %>%
   dplyr::distinct(campaignid, sample)
 
 metadata_habitat      <- dplyr::semi_join(metadata,      habitat_samples,
@@ -267,4 +280,3 @@ metadata.bathy.derivatives <- metadata.bathy.derivatives.all %>%
 
 # Save the metadata bathymetry derivatives
 saveRDS(metadata.bathy.derivatives, paste0("data/", park, "/tidy/", name, "_metadata-bathymetry-derivatives.rds"))
-

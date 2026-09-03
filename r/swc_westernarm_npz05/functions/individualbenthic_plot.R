@@ -55,9 +55,10 @@ individualbenthic_plot <- function(habitat_name,
   )
 
   # ---- Base map builder ----
-  build_base <- function(i, show_x = TRUE) {
+  # `col` is the grid column: 1 = prediction (keeps the y axis), 2 = SE.
+  build_base <- function(col, show_x = TRUE) {
 
-    y_theme <- if (i == 1) theme_left else theme_inner
+    y_theme <- if (col == 1) theme_left else theme_inner
     x_theme <- if (show_x) theme() else theme_top
 
     list(
@@ -87,12 +88,8 @@ individualbenthic_plot <- function(habitat_name,
       ),
       geom_sf(data = cwatr, colour = "firebrick", linewidth = 0.6),
       scale_colour_manual(values = with(marine_parks_amp, setNames(colour, zone))),
-      scale_x_continuous(
-        breaks = seq(floor(prediction_limits[1] * 2.5) / 2.5,
-                     ceiling(prediction_limits[2] * 2.5) / 2.5,
-                     by = 0.4)
-      ),
-      scale_y_continuous(breaks = scales::breaks_width(0.2)),
+      scale_x_continuous(breaks = scales::breaks_width(0.3)),
+      scale_y_continuous(breaks = scales::breaks_width(0.04)),
       coord_sf(
         xlim = c(prediction_limits[1], prediction_limits[2]),
         ylim = c(prediction_limits[3], prediction_limits[4]),
@@ -109,8 +106,8 @@ individualbenthic_plot <- function(habitat_name,
     )
   }
 
-  # One column per year, prediction row above standard error row. When there is
-  # only one year, prediction and SE are placed side by side and titled instead.
+  # One row per year, prediction and standard error as the two columns. When
+  # there is only one year, prediction and SE are placed side by side instead.
   single_panel <- n_years == 1
 
   # ---- Prediction panels (top row) ----
@@ -124,8 +121,8 @@ individualbenthic_plot <- function(habitat_name,
         limits = pred_limits,
         oob = scales::squish
       ) +
-      ggtitle(if (single_panel) "Prediction" else yrs[i]) +
-      build_base(i, show_x = single_panel)
+      ggtitle(if (single_panel || i == 1) "Prediction" else NULL) +
+      build_base(1, show_x = single_panel || i == n_years)
   })
 
   # ---- SE panels (bottom row) ----
@@ -139,8 +136,8 @@ individualbenthic_plot <- function(habitat_name,
         limits = se_limits,
         oob = scales::squish
       ) +
-      ggtitle(if (single_panel) "Standard Error" else NULL) +
-      build_base(if (single_panel) 2 else i, show_x = TRUE)  # keep x axis
+      ggtitle(if (single_panel || i == 1) "Standard Error" else NULL) +
+      build_base(2, show_x = single_panel || i == n_years)
   })
 
   # ---- Row labels ----
@@ -158,17 +155,15 @@ individualbenthic_plot <- function(habitat_name,
 
   } else {
 
-    pred_label <- row_label_plot("Prediction")
-    se_label   <- row_label_plot("Standard Error")
+    # The mapped area is a wide, shallow strip, so years run down the page as
+    # rows and prediction/SE sit side by side as the two columns. The reverse
+    # (a year per column) makes each panel far too short to read.
+    year_rows <- lapply(seq_along(yrs), function(i) {
+      row_label_plot(yrs[i]) + p_pred[[i]] + p_se[[i]] +
+        plot_layout(widths = c(0.06, 1, 1))
+    })
 
-    pred_row <- pred_label + wrap_plots(p_pred, nrow = 1, guides = "collect") +
-      plot_layout(widths = c(0.06, 1))
-
-    se_row <- se_label + wrap_plots(p_se, nrow = 1, guides = "collect") +
-      plot_layout(widths = c(0.06, 1))
-
-    p_out <- (pred_row / se_row) +
-      plot_layout(heights = c(1, 1))
+    p_out <- wrap_plots(year_rows, ncol = 1)
   }
 
   p_out <- p_out +
