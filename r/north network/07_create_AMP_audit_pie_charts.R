@@ -131,7 +131,7 @@ capad_commonwealth <- capad_raw %>%
 # ── North regional layer - zone polygons for the network-level plot ─────────
 # Same file, same park filter list, and same crop extent as your North
 # zones script (Section 1).
-e_mpa <- ext(126, 142.5, -18, -9)
+e_mpa <- st_bbox(c(xmin = 125, xmax = 142.5, ymin = -18, ymax = -9), crs = st_crs(4326))
 
 north_park_names <- c(
   # Commonwealth AMPs (North Network)
@@ -413,9 +413,9 @@ add_pies <- function(pie_data, palette, min_r = 0.1, max_r = 1, overlap_margin =
 # (126-142.5 E, -18 to -9 S) - TUNE if pies get cut off or the extent
 # looks wrong for a given method group.
 make_north_pie_map <- function(group_name, save_name = NULL,
-                               xlim = c(126, 142.5), ylim = c(-18, -9),
-                               min_r = 0.12, max_r = 1,  # TUNE - max_r is a ceiling; auto-shrinks to avoid overlap
-                               width = 11, height = 6) {
+                               xlim = c(125.5, 142.5), ylim = c(-18, -8.5),
+                               min_r = 0.06, max_r = 0.4,  # TUNE - max_r is a ceiling; auto-shrinks to avoid overlap
+                               width = 11, height = 5) {
 
   grp <- method_groups[[group_name]]
 
