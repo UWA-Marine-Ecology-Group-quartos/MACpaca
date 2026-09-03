@@ -338,21 +338,23 @@ if (any(is.na(amp_group_centres$X))) {
 # worst-case pair clears `overlap_margin`. `min_r`/`max_r` are therefore
 # upper-bound TARGETS - actual sizes may come out smaller if pies are
 # tightly clustered. Identical logic to the SW script's `add_pies()`.
+#
+# CHANGED: now guards against zero-row `pie_data` (e.g. a method group with
+# no surveys logged yet for this network, such as `drop_camera` here) - see
+# adaptation note 8 at the top of the script. Returns an empty layer list
+# instead of letting `geom_scatterpie` error on empty data.
 add_pies <- function(pie_data, palette, min_r = 0.1, max_r = 1, overlap_margin = 0.92) {
 
   pie_data <- pie_data %>% filter(total > 0)
   n <- nrow(pie_data)
 
-  if (n > 0) {
-    max_total <- max(pie_data$total, na.rm = TRUE)
-    pie_data$r <- if (max_total > 0) {
-      scales::rescale(sqrt(pie_data$total), to = c(min_r, max_r), from = c(0, sqrt(max_total)))
-    } else {
-      min_r
-    }
-  } else {
-    pie_data$r <- numeric(0)
+  if (n == 0) {
+    message("  -> No survey data for this method group in this network - skipping pie layer.")
+    return(list())
   }
+
+  max_total <- max(pie_data$total, na.rm = TRUE)
+  pie_data$r <- scales::rescale(sqrt(pie_data$total), to = c(min_r, max_r), from = c(0, sqrt(max_total)))
 
   if (n >= 2) {
     d <- as.matrix(dist(pie_data[, c("X", "Y")]))
@@ -371,8 +373,9 @@ add_pies <- function(pie_data, palette, min_r = 0.1, max_r = 1, overlap_margin =
       data      = pie_data,
       aes(x = X, y = Y, r = r),
       cols      = names(palette),
-      colour    = "white",
-      linewidth = 0.15
+      colour    = "black",
+      linewidth = 0.15,
+      alpha = 0.65
     ),
     scale_fill_manual(
       name   = "Survey design",
@@ -389,9 +392,9 @@ add_pies <- function(pie_data, palette, min_r = 0.1, max_r = 1, overlap_margin =
 # -26.5 to -12.5 S) - TUNE if pies get cut off or the extent looks wrong for
 # a given method group.
 make_nw_pie_map <- function(group_name, save_name = NULL,
-                            xlim = c(109, 130), ylim = c(-26.5, -12.5),
-                            min_r = 0.25, max_r = 2,  # TUNE - max_r is a ceiling; auto-shrinks to avoid overlap
-                            width = 10, height = 6) {
+                            xlim = c(109, 130), ylim = c(-26.5, -11.9),
+                            min_r = 0.12, max_r = 1,  # TUNE - max_r is a ceiling; auto-shrinks to avoid overlap
+                            width = 11, height = 6) {
 
   grp <- method_groups[[group_name]]
 
@@ -435,16 +438,16 @@ make_nw_pie_map <- function(group_name, save_name = NULL,
 # ==============================================================================
 # 8. GENERATE THE SET
 # ==============================================================================
+# CHANGED: added a per-group message so it's visible at a glance in the
+# console which method groups had data vs. were skipped (no functional
+# effect on the plots themselves - the actual skip logic lives in
+# `add_pies()` in Section 6).
 for (g in names(method_groups)) {
+  message("Building pie map for: ", g)
   make_nw_pie_map(g, save_name = paste0("nw-", g, "-pies"))
 }
 
 # ==============================================================================
 # End of script
 # ==============================================================================
-
-
-
-
-
 
