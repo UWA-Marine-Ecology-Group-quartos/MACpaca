@@ -129,6 +129,8 @@ library(ggnewscale)
 library(ggpattern)
 library(scales)
 library(janitor)
+library(ggforce)
+library(patchwork)
 
 sf_use_s2(TRUE)
 
@@ -310,31 +312,21 @@ survey <- survey_raw %>%
          platform = Platform, design = `Survey design standards*`,
          sites = Sites) %>%
   filter(!is.na(network), network != "", platform != "", design != "") %>%
-  # "Sites" is sometimes a comma-separated list e.g. "100, 200" (multiple
-  # deployments/years) - sum to a single site count per row
   mutate(sites_n = purrr::map_dbl(
     sites, ~ sum(as.numeric(str_split(.x, ",\\s*")[[1]]), na.rm = TRUE)
   )) %>%
   select(network, amp, platform, design, sites_n)
 
 # Strip AMP suffixes so names can be matched to shapefile polygons.
+# UPDATE 5: added "(on shelf)" - Tim's comment mentions
+# offshore/western/eastern/on-shelf as the four split types in the
+# table; the original regex only handled the first three.
 clean_amp_name <- function(x) {
   x %>%
-    str_remove(" \\(eastern arm\\)| \\(western arm\\)| \\(offshore\\)") %>%
+    str_remove(" \\(eastern arm\\)| \\(western arm\\)| \\(offshore\\)| \\(on shelf\\)") %>%
     str_remove(" Marine Park$")
 }
 
-# Known spelling mismatches between the CSV and the shapefiles - add more
-# here if the match-diagnostics message below flags any.
-# The four entries below were added after the match-diagnostics run flagged
-# them as unmatched against `capad_commonwealth$park_name_raw`:
-#   "Gulf of Carpenteria" -> "Gulf of Carpentaria" (transposed letters)
-#   "Canarvon Canyon"     -> "Carnarvon Canyon"     (missing "r")
-#   "Carter Island"       -> "Cartier Island"       (transposed letters)
-#   "Solitary"            -> "Solitary Islands"     (CSV value appears
-#                             truncated relative to CAPAD's full name -
-#                             confirm the raw CSV cell actually reads
-#                             "Solitary" before trusting this one)
 name_fixes <- c(
   "Western Erye"        = "Western Eyre",
   "Gulf of Carpenteria" = "Gulf of Carpentaria",
@@ -345,20 +337,16 @@ name_fixes <- c(
 
 survey <- survey %>%
   mutate(amp_group = amp,                    # raw value - keeps the
-         # (eastern/western arm/offshore) split Tim asked for
+         # (eastern/western arm/offshore/on shelf) split
          amp_clean = clean_amp_name(amp),
          amp_clean = dplyr::recode(amp_clean, !!!name_fixes))
 
-# Apply the same cleaning to both spatial layers' name fields
 capad_commonwealth <- capad_commonwealth %>%
   dplyr::mutate(amp_clean = clean_amp_name(park_name_raw))
 
 marine_parks_amp <- marine_parks_amp %>%
   dplyr::mutate(amp_clean = clean_amp_name(name))
 
-# amp_clean added to fed_mps_national (national CAPAD, all networks) too,
-# so it can be filtered per-network in make_network_pie_map_national()
-# (Section 8b) for the 5 networks outside South-west.
 fed_mps_national <- fed_mps_national %>%
   dplyr::mutate(amp_clean = clean_amp_name(park_name_raw))
 
@@ -457,18 +445,38 @@ build_pie_data <- function(group_name, level = c("network", "amp")) {
 # ==============================================================================
 # 5. SPATIAL CENTRES FOR THE PIES
 # ==============================================================================
-# 5a. Network centres (national plot) - dissolve every NATIONAL CAPAD polygon
-#     that belongs to each network (via the CSV's network<->park mapping)
-#     and take the centroid of the union.
+# 5a. Network centres (national plot)
 network_lookup <- survey %>% distinct(network, amp_clean)
 
 match_diag <- network_lookup %>%
   mutate(matched = amp_clean %in% capad_commonwealth$amp_clean)
+
+# UPDATE 5: this used to be an easy-to-miss `message()`. Now it also
+# writes the unmatched rows to a CSV, and raises a `warning()` (shows up
+# in the RStudio warnings panel / a red flag on a scripted run, not just
+# scroll-back) specifically calling out Indian Ocean Territories, since
+# that's the network Tim said he'd just added new rows for. If nothing
+# from IOT is in this CSV, the "missing from the national view" issue was
+# something else (check the render itself, e.g. pies too small to see) -
+# but this is the first thing to rule out.
 if (any(!match_diag$matched)) {
+  unmatched <- match_diag %>% filter(!matched)
   message("--- National match check: these CSV parks had NO matching CAPAD polygon ---")
-  print(match_diag %>% filter(!matched))
-  message("Check spelling against `park_name_raw` in `capad_commonwealth`, and add",
-          " any fixes to `name_fixes` in Section 2.")
+  print(unmatched)
+  dir.create(national_out_dir, recursive = TRUE, showWarnings = FALSE)
+  write_csv(unmatched, file.path(national_out_dir, "unmatched_amp_names.csv"))
+
+  iot_unmatched <- unmatched %>% filter(str_detect(network, regex("Indian Ocean", ignore_case = TRUE)))
+  if (nrow(iot_unmatched) > 0) {
+    warning(
+      "Indian Ocean Territories rows failed to match a CAPAD polygon and will ",
+      "NOT appear on the national plot: ",
+      paste(iot_unmatched$amp_clean, collapse = "; "),
+      ". Check spelling against `park_name_raw` in `capad_commonwealth` and add ",
+      "a fix to `name_fixes` in Section 2.",
+      call. = FALSE
+    )
+  }
 }
 
 network_centres <- purrr::map_dfr(unique(network_lookup$network), function(net) {
@@ -480,14 +488,7 @@ network_centres <- purrr::map_dfr(unique(network_lookup$network), function(net) 
 }) %>%
   filter(!is.na(X))
 
-
-# 5b. AMP / group centres - sourced from the NATIONAL capad_commonwealth
-# layer (previously this used the regional marine_parks_amp layer, which
-# only has polygons for South-west/WA parks - so every other network's
-# amp_group_centres came out NA and couldn't be pie-mapped at all). Using
-# the national layer here should give identical centroids to before for
-# South-west parks (same underlying geometry, same amp_clean matching),
-# while also resolving centroids for the other 5 networks.
+# 5b. AMP / group centres
 amp_centres <- capad_commonwealth %>%
   st_drop_geometry() %>%
   distinct(amp_clean) %>%
@@ -498,15 +499,19 @@ amp_centres <- capad_commonwealth %>%
     by = "amp_clean"
   )
 
-swc_manual_centres <- tribble(
+# UPDATE 5: renamed from `swc_manual_centres` - this is now a general
+# table anyone can add a row to for ANY park's offshore/western/eastern/
+# on-shelf split, not just South-west Corner. Add a row here whenever a
+# new split needs a specific, deliberate location (rather than relying on
+# the auto-jitter safety net below, which only exists to stop splits
+# rendering invisibly on top of each other - it doesn't know anything
+# about real geography).
+manual_centre_overrides <- tribble(
   ~amp_group,                                    ~X,     ~Y,
-  # Western arm shifted from 114.9 to 112.5 (further west) - the pie here
-  # was one of the tightest-clustered against the Murat/Western Eyre pies
-  # sitting near 114-115 deg E, which was capping every pie's size down
-  # via the no-overlap check in add_pies(). Giving it more clear space
-  # lets the whole map's pies render bigger. Y left unchanged. Move it
-  # back or elsewhere if this drifts it into a spot you don't like.
-  "South-west Corner Marine Park (western arm)", 112.5, -34.0,
+  # Moved from (112.5, -34.0) closer to shore per Tim's note that the
+  # western arm pie should sit "much closer to the shore". TUNE VALUE -
+  # check against the actual coastline on render and adjust further.
+  "South-west Corner Marine Park (western arm)", 113.6, -33.6,
   "South-west Corner Marine Park (eastern arm)", 120.6, -35.2,
   "South-west Corner Marine Park (offshore)",    117.5, -37.5
 )
@@ -514,36 +519,57 @@ swc_manual_centres <- tribble(
 amp_group_centres <- survey %>%
   distinct(amp_group, amp_clean) %>%
   left_join(amp_centres, by = "amp_clean") %>%
-  rows_update(swc_manual_centres, by = "amp_group")
+  rows_update(manual_centre_overrides, by = "amp_group")
+
+# UPDATE 5: safety-net jitter. Any amp_group rows that still share an
+# identical (X, Y) - i.e. a split that has NO row in
+# `manual_centre_overrides` above, so it defaulted to the same centroid
+# as its sibling split(s) - get spread apart in a small circle around
+# that shared point. Purely so they render as distinct, visible pies
+# instead of collapsing to radius ~0 via the no-overlap shrink in
+# `scale_pie_radii()` (identical centroids => distance 0 => infinite
+# overlap ratio => radius forced to 0). This is a visibility fallback,
+# not real placement - if a split shows up jittered, that's the signal to
+# add a proper row above instead.
+amp_group_centres <- amp_group_centres %>%
+  group_by(X, Y) %>%
+  mutate(.dupe_n = n(), .dupe_i = row_number()) %>%
+  ungroup() %>%
+  mutate(
+    .jitter_deg = 0.15,   # TUNE - degrees; small nudge, not a real position
+    X = if_else(.dupe_n > 1, X + .jitter_deg * cos(2 * pi * (.dupe_i - 1) / .dupe_n), X),
+    Y = if_else(.dupe_n > 1, Y + .jitter_deg * sin(2 * pi * (.dupe_i - 1) / .dupe_n), Y)
+  ) %>%
+  select(-.dupe_n, -.dupe_i, -.jitter_deg)
 
 # ==============================================================================
-# 6. PIE LAYER (shared by both plot levels)
+# 6. PIE LAYER + SIZE LEGEND (shared by all plot levels)
 # ==============================================================================
-# Pie radius encodes total survey effort again: rescaled from
-# sqrt(total sites) onto [min_r, max_r] (bigger effort = bigger pie), same
-# approach as the original script. On top of that, a no-overlap guarantee
-# (added in UPDATE 3, kept here): if the rescaled radii would make any two
-# pies on this map touch or overlap, ALL radii are shrunk by the same
-# proportional factor - preserving relative size differences - until the
-# worst-case pair clears `overlap_margin`. So `min_r`/`max_r` below are
-# upper-bound TARGETS: actual sizes may come out smaller if pies are
-# tightly clustered.
-add_pies <- function(pie_data, palette, min_r = 0.1, max_r = 1, overlap_margin = 0.92) {
+# UPDATE 5: `add_pies()` is split in two so the radius scaling can be
+# reused for a size legend:
+#   - `scale_pie_radii()` does the sqrt-rescale + no-overlap shrink (same
+#     maths as before) and RETURNS the actual final min_r/max_r/shrink
+#     factor used - not just the scaled data - so a legend can match
+#     exactly what got rendered.
+#   - `pie_layer()` just draws geom_scatterpie from already-scaled data
+#     (unchanged visually from the old add_pies()).
+#   - `radius_for_totals()` converts arbitrary "N sites" reference values
+#     into the radius they'd draw at on THIS map, using that same scale.
+#   - `pie_size_legend()` builds a small standalone key from 2-3 "nice"
+#     reference totals, composited onto the map via patchwork.
+scale_pie_radii <- function(pie_data, min_r = 0.1, max_r = 1, overlap_margin = 0.92) {
 
   pie_data <- pie_data %>% filter(total > 0)
   n <- nrow(pie_data)
+  max_total <- if (n > 0) max(pie_data$total, na.rm = TRUE) else 0
 
-  if (n > 0) {
-    max_total <- max(pie_data$total, na.rm = TRUE)
-    pie_data$r <- if (max_total > 0) {
-      scales::rescale(sqrt(pie_data$total), to = c(min_r, max_r), from = c(0, sqrt(max_total)))
-    } else {
-      min_r
-    }
+  pie_data$r <- if (n > 0 && max_total > 0) {
+    scales::rescale(sqrt(pie_data$total), to = c(min_r, max_r), from = c(0, sqrt(max_total)))
   } else {
-    pie_data$r <- numeric(0)
+    rep(min_r, n)
   }
 
+  shrink_factor <- 1
   if (n >= 2) {
     d <- as.matrix(dist(pie_data[, c("X", "Y")]))
     diag(d) <- NA
@@ -551,14 +577,23 @@ add_pies <- function(pie_data, palette, min_r = 0.1, max_r = 1, overlap_margin =
     overlap_ratio <- r_sum / (d * overlap_margin)
     max_ratio <- suppressWarnings(max(overlap_ratio, na.rm = TRUE))
     if (is.finite(max_ratio) && max_ratio > 1) {
-      pie_data$r <- pie_data$r / max_ratio
+      shrink_factor <- max_ratio
+      pie_data$r <- pie_data$r / shrink_factor
     }
   }
 
-  # Legend: always shows every platform.design combination in `palette` by
-  # its full name (e.g. "stereo-BOSS.Preferential"), same for every group -
-  # no collapsing to a generic "Preferential"/"Representative" pair, even
-  # for boss/drop_camera which only have 2 distinct colours.
+  list(data = pie_data, min_r = min_r, max_r = max_r,
+       max_total = max_total, shrink_factor = shrink_factor)
+}
+
+radius_for_totals <- function(totals, scale_info) {
+  if (scale_info$max_total <= 0) return(rep(scale_info$min_r, length(totals)))
+  r <- scales::rescale(sqrt(totals), to = c(scale_info$min_r, scale_info$max_r),
+                       from = c(0, sqrt(scale_info$max_total)))
+  r / scale_info$shrink_factor
+}
+
+pie_layer <- function(pie_data, palette) {
   list(
     ggnewscale::new_scale_fill(),
     scatterpie::geom_scatterpie(
@@ -577,17 +612,54 @@ add_pies <- function(pie_data, palette, min_r = 0.1, max_r = 1, overlap_margin =
   )
 }
 
+# Small "pie size ~ N sites" key. ref_totals defaults to ~3 nice round
+# numbers spanning the data range; pass your own e.g.
+# pie_size_legend(scale_info, ref_totals = c(10, 50, 100)) to override.
+pie_size_legend <- function(scale_info, ref_totals = NULL, unit_label = "sites") {
+
+  if (scale_info$max_total <= 0) return(patchwork::plot_spacer())
+
+  if (is.null(ref_totals)) {
+    brks <- scales::breaks_extended(n = 3)(c(0, scale_info$max_total))
+    ref_totals <- sort(unique(round(brks[brks > 0 & brks <= scale_info$max_total])))
+    if (length(ref_totals) == 0) ref_totals <- round(scale_info$max_total)
+  }
+
+  ref_r <- radius_for_totals(ref_totals, scale_info)
+  gap   <- max(ref_r) * 2.4
+  key <- tibble::tibble(
+    total = ref_totals,
+    r     = ref_r,
+    x     = seq(0, by = gap, length.out = length(ref_totals)),
+    y     = 0
+  )
+
+  ggplot(key) +
+    ggforce::geom_circle(aes(x0 = x, y0 = y, r = r),
+                         fill = "grey70", colour = "black", linewidth = 0.2) +
+    geom_text(aes(x = x, y = -max(ref_r) * 1.3, label = total), size = 3) +
+    coord_equal(clip = "off") +
+    labs(title = paste0("Pie size \u2248 ", unit_label)) +
+    theme_void() +
+    theme(plot.title      = element_text(size = 8, hjust = 0),
+          plot.margin     = margin(4, 4, 4, 4),
+          plot.background = element_rect(fill = "white", colour = "grey70", linewidth = 0.3))
+}
+
 # ==============================================================================
-# 7. NATIONAL PLOT (Image 1 + 2) - now built on the national CAPAD layer
+# 7. NATIONAL PLOT (Image 1 + 2)
 # ==============================================================================
 make_national_pie_map <- function(group_name, save_name = NULL,
-                                  min_r = 0.5, max_r = 3,  # TUNE - max_r is a ceiling; auto-shrinks to avoid overlap
+                                  min_r = 0.5, max_r = 3,
+                                  legend_pos = c(left = 0.01, bottom = 0.01, right = 0.20, top = 0.20),
                                   width = 11, height = 6) {
 
   grp <- method_groups[[group_name]]
   pie_data <- build_pie_data(group_name, level = "network") %>%
     left_join(network_centres, by = "network") %>%
     filter(!is.na(X))
+
+  scaled <- scale_pie_radii(pie_data, min_r = min_r, max_r = max_r)
 
   p <- ggplot() +
     geom_sf(data = aus, fill = "seashell2", colour = "grey80", linewidth = 0.1) +
@@ -599,7 +671,7 @@ make_national_pie_map <- function(group_name, save_name = NULL,
     geom_sf(data = fed_mps_national, aes(fill = zone_type), colour = NA, alpha = 0.8) +
     scale_fill_manual(values = amp_zone_colours_national, name = "Australian Marine Parks",
                       guide = guide_legend(order = 1)) +
-    add_pies(pie_data, grp$palette, min_r = min_r, max_r = max_r) +
+    pie_layer(scaled$data, grp$palette) +
     coord_sf(xlim = c(90, 175), ylim = c(-60, -5), expand = FALSE) +
     labs(x = NULL, y = NULL) +
     theme_minimal() +
@@ -608,6 +680,13 @@ make_national_pie_map <- function(group_name, save_name = NULL,
           legend.position = "left",
           legend.box = "vertical",
           plot.background = element_rect(fill = "white", colour = NA))
+
+  p <- p + patchwork::inset_element(
+    pie_size_legend(scaled),
+    left = legend_pos[["left"]], bottom = legend_pos[["bottom"]],
+    right = legend_pos[["right"]], top = legend_pos[["top"]],
+    align_to = "panel"
+  )
 
   if (!is.null(save_name)) {
     dir.create(national_out_dir, recursive = TRUE, showWarnings = FALSE)
@@ -618,10 +697,11 @@ make_national_pie_map <- function(group_name, save_name = NULL,
 }
 
 # ==============================================================================
-# 8. NETWORK-LEVEL PLOT (Image 3) - one pie per marine park / SWC arm
+# 8. NETWORK-LEVEL PLOT (Image 3) - one pie per marine park / arm / split
 # ==============================================================================
 make_network_pie_map <- function(group_name, network_name, save_name = NULL,
-                                 xlim, ylim, min_r = 0.25, max_r = 2,  # TUNE - max_r is a ceiling; auto-shrinks to avoid overlap
+                                 xlim, ylim, min_r = 0.25, max_r = 2,
+                                 legend_pos = c(left = 0.01, bottom = 0.01, right = 0.18, top = 0.18),
                                  width = 10, height = 5) {
 
   grp <- method_groups[[group_name]]
@@ -630,6 +710,8 @@ make_network_pie_map <- function(group_name, network_name, save_name = NULL,
   pie_data <- build_pie_data(group_name, level = "amp") %>%
     inner_join(amp_group_centres, by = "amp_group") %>%
     filter(amp_clean %in% amps_in_network, !is.na(X))
+
+  scaled <- scale_pie_radii(pie_data, min_r = min_r, max_r = max_r)
 
   net_amp   <- marine_parks_amp   %>% filter(name %in% amps_in_network)
   net_state <- marine_parks_state %>% filter(name %in% amps_in_network)
@@ -653,7 +735,7 @@ make_network_pie_map <- function(group_name, network_name, save_name = NULL,
     geom_sf(data = net_state, aes(fill = zone), colour = NA, alpha = 0.5) +
     scale_fill_manual(name = "State Marine Parks",
                       values = with(net_state, setNames(colour, zone))) +
-    add_pies(pie_data, grp$palette, min_r = min_r, max_r = max_r) +
+    pie_layer(scaled$data, grp$palette) +
     coord_sf(xlim = xlim, ylim = ylim, expand = FALSE) +
     labs(x = NULL, y = NULL) +
     theme_minimal() +
@@ -661,6 +743,13 @@ make_network_pie_map <- function(group_name, network_name, save_name = NULL,
           axis.title = element_blank(),
           legend.position = "left",
           plot.background = element_rect(fill = "white", colour = NA))
+
+  p <- p + patchwork::inset_element(
+    pie_size_legend(scaled),
+    left = legend_pos[["left"]], bottom = legend_pos[["bottom"]],
+    right = legend_pos[["right"]], top = legend_pos[["top"]],
+    align_to = "panel"
+  )
 
   if (!is.null(save_name)) {
     dir.create(network_out_dir, recursive = TRUE, showWarnings = FALSE)
@@ -671,23 +760,11 @@ make_network_pie_map <- function(group_name, network_name, save_name = NULL,
 }
 
 # ==============================================================================
-# 8b. NETWORK-LEVEL PLOT, NATIONAL VERSION - for every network OTHER than
-#     South-west (North, North-west, Temperate East, Coral Sea, Indian Ocean
-#     Territories). Built on the national CAPAD layer (fed_mps_national)
-#     instead of the SW-only regional shapefile, since no equivalent
-#     regional file exists for these networks in this script.
-#
-#     TRADE-OFF vs make_network_pie_map(): no state-park overlay, no
-#     mining-exclusion stripe pattern - just AMP zone colour (same 6-colour
-#     national vocabulary as the national plot) + pies. Map extent is
-#     computed automatically from the network's own polygon bounding box
-#     (padded by `pad` degrees) rather than hand-picked - check each one
-#     visually, especially Indian Ocean Territories (Christmas Island +
-#     Cocos Islands are ~900km apart, so its auto extent will likely be
-#     very wide and mostly empty).
+# 8b. NETWORK-LEVEL PLOT, NATIONAL VERSION - other 5 networks
 # ==============================================================================
 make_network_pie_map_national <- function(group_name, network_name, save_name = NULL,
-                                          pad = 3, min_r = 0.25, max_r = 2,  # TUNE - max_r auto-shrinks to avoid overlap
+                                          pad = 3, min_r = 0.25, max_r = 2,
+                                          legend_pos = c(left = 0.01, bottom = 0.01, right = 0.18, top = 0.18),
                                           width = 11, height = 5) {
 
   grp <- method_groups[[group_name]]
@@ -706,6 +783,8 @@ make_network_pie_map_national <- function(group_name, network_name, save_name = 
     inner_join(amp_group_centres, by = "amp_group") %>%
     filter(amp_clean %in% amps_in_network, !is.na(X))
 
+  scaled <- scale_pie_radii(pie_data, min_r = min_r, max_r = max_r)
+
   bbox <- sf::st_bbox(net_amp)
   xlim <- c(bbox[["xmin"]] - pad, bbox[["xmax"]] + pad)
   ylim <- c(bbox[["ymin"]] - pad, bbox[["ymax"]] + pad)
@@ -714,7 +793,7 @@ make_network_pie_map_national <- function(group_name, network_name, save_name = 
     geom_sf(data = aus, fill = "seashell2", colour = "grey80", linewidth = 0.1) +
     geom_sf(data = net_amp, aes(fill = zone_type), colour = NA, alpha = 0.8) +
     scale_fill_manual(values = amp_zone_colours_national, name = "Australian Marine Parks") +
-    add_pies(pie_data, grp$palette, min_r = min_r, max_r = max_r) +
+    pie_layer(scaled$data, grp$palette) +
     coord_sf(xlim = xlim, ylim = ylim, expand = FALSE) +
     labs(x = NULL, y = NULL) +
     theme_minimal() +
@@ -722,6 +801,13 @@ make_network_pie_map_national <- function(group_name, network_name, save_name = 
           axis.title = element_blank(),
           legend.position = "left",
           plot.background = element_rect(fill = "white", colour = NA))
+
+  p <- p + patchwork::inset_element(
+    pie_size_legend(scaled),
+    left = legend_pos[["left"]], bottom = legend_pos[["bottom"]],
+    right = legend_pos[["right"]], top = legend_pos[["top"]],
+    align_to = "panel"
+  )
 
   if (!is.null(save_name)) {
     dir.create(network_out_dir, recursive = TRUE, showWarnings = FALSE)
@@ -738,11 +824,6 @@ for (g in names(method_groups)) {
   make_national_pie_map(g, save_name = paste0("national-", g, "-pies"))
 }
 
-# Per-group size override: if a method_groups entry has a `network_size`
-# list (currently just uvc/rov - see Section 3), use its min_r/max_r for
-# the network-level maps instead of make_network_pie_map()'s defaults.
-# Groups without `network_size` (bruv, drop_camera, boss) are unaffected
-# and keep rendering at the function's default size.
 for (g in names(method_groups)) {
   grp <- method_groups[[g]]
   size_args <- if (!is.null(grp$network_size)) grp$network_size else list()
@@ -757,8 +838,14 @@ for (g in names(method_groups)) {
     size_args
   ))
 }
+
+for (g in names(method_groups)) {
+  other_networks <- setdiff(unique(network_lookup$network), "South-west Marine Parks Network")
+  for (net in other_networks) {
+    make_network_pie_map_national(g, network_name = net,
+                                  save_name = paste0(janitor::make_clean_names(net), "-", g, "-pies"))
+  }
+}
 # ==============================================================================
 # End of script
 # ==============================================================================
-
-
