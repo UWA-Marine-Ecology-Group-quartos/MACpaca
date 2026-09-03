@@ -38,6 +38,9 @@ pressure_plot <- function(maxyear) {
                 alpha = 0.2, show.legend = F) +
     theme_classic() +
     labs(x = "Year", y = "DHW (°C/weeks)")
-  acd_mean_plot / sla_mean_plot / sst_mean_plot / dhw_mean_plot
+  (acd_mean_plot / sla_mean_plot / sst_mean_plot / dhw_mean_plot)+
+    plot_layout(guides = "collect") &
+    theme(legend.position = "right")
+
 
 }

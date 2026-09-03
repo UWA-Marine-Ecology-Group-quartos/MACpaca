@@ -32,8 +32,9 @@ ausc <- st_crop(aus, e)
 marine_parks <- st_read("data/amp_shapefile/Australian_Marine_Parks_v2.shp") %>%
   dplyr::filter(name %in% c("Hunter")|
                   NETNAME == "Port Stephens - Great Lakes") # TODO select relevant parks
-marine_parks <- st_crop(marine_parks, e)
-
+marine_parks <- marine_parks %>%
+  sf::st_make_valid() %>%
+  st_crop(e)
 # Spatial plots
 ## SST
 sst <- rast(paste0("data/", park, "/spatial/oceanography/", name, "_SST_raster.rds")) %>%
