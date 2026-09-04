@@ -61,6 +61,7 @@ resp.vars
 
 # Run the full subset model selection----
 savedir <- paste0("output/model-output/", park, "/fish/maxn/")
+# TODO Consider forcing year and status into every model via null.terms in generate.model.set() below, instead of leaving them as optional factor.vars, if appropriate for your data.
 factor.vars <- c("status", "year") # TODO set factors, drop year if only one year of data
 out.all     <- list()
 var.imp     <- list()
@@ -149,6 +150,7 @@ savedir <- paste0("output/model-output/", park, "/fish/length/")
 name_b20 <- paste(name,"b20", sep = "_")
 out.all <- list()
 var.imp <- list()
+# TODO Consider forcing year and status into every model via null.terms in generate.model.set() below, instead of leaving them as optional factor.vars, if appropriate for your data.
 factor.vars <- c("status", "year") # TODO check, drop year if only one year of data
 
 # Loop through the FSS function for each Taxa----

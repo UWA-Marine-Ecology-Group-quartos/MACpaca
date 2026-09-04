@@ -3,20 +3,16 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
   marine_parks <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
     CheckEM::clean_names() %>%
     dplyr::mutate(zone_new = case_when(
-      str_detect(zone, "Other State Marine Park Zone")  ~ paste(state_abbrv, "other zones"),
-      str_detect(zone, "Habitat Protection Zone") & str_detect(epbc, "State")        ~ paste(state_abbrv, "HPZ"),
+      # State marine park zones are not broken out separately for control
+      # plots - anything that is not a Commonwealth SWCMP zone is "Coastal
+      # waters", including state Sanctuary/Habitat Protection/other zones.
       str_detect(zone, "Habitat Protection Zone") & str_detect(epbc, "Commonwealth") ~ paste(amp_abbrv,  "HPZ"),
-      str_detect(zone, "Sanctuary Zone")       ~ paste(state_abbrv, "SZ (IUCN II)"),
       str_detect(zone, "National Park Zone")   ~ paste(amp_abbrv,  "NPZ (IUCN II)"),
-      str_detect(zone, "Special Purpose Zone") & str_detect(epbc, "State")        ~ paste(state_abbrv, "other zones"),
       str_detect(zone, "Special Purpose Zone") & str_detect(epbc, "Commonwealth") ~ paste(amp_abbrv,  "other zones"),
-      str_detect(zone, "Multiple Use Zone")    & str_detect(epbc, "State")        ~ paste(state_abbrv, "other zones"),
       str_detect(zone, "Multiple Use Zone")    & str_detect(epbc, "Commonwealth") ~ paste(amp_abbrv,  "other zones"),
-      str_detect(zone, "Recreational Use Zone")& str_detect(epbc, "State")        ~ paste(state_abbrv, "other zones"),
       str_detect(zone, "Recreational Use Zone")& str_detect(epbc, "Commonwealth") ~ paste(amp_abbrv,  "other zones"),
-      str_detect(zone, "General Use Zone")     ~ paste(state_abbrv, "other zones"),
-      str_detect(zone, "Reef Observation Area")~ paste(state_abbrv, "other zones"),
-      TRUE ~ NA_character_
+      str_detect(epbc, "Commonwealth")         ~ paste(amp_abbrv,  "other zones"),
+      TRUE ~ "Coastal waters"
     ))
 
   preds <- readRDS(paste0("data/", park, "/spatial/rasters/",

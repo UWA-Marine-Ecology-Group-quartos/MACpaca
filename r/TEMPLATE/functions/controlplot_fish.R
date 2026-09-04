@@ -23,21 +23,22 @@ controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
          paste(setdiff(req_cols, names(data)), collapse = ", "))
   }
 
+  # State marine park zones are folded into "Coastal waters" upstream in
+  # controldata_fish(), so only the Commonwealth SWCMP zones plus that
+  # catch-all are ever present here.
+  zone_levels <- c(
+    paste(amp_abbrv, "HPZ"),
+    paste(amp_abbrv, "NPZ (IUCN II)"),
+    paste(amp_abbrv, "other zones"),
+    "Coastal waters"
+  )
+
   plot_dat <- data %>%
     dplyr::filter(!is.na(.data[[mean_col]])) %>%
     dplyr::mutate(
       year = as.numeric(year),
       depth_class = factor(depth_class, levels = depth_levels),
-      zone_new = factor(
-        zone_new,
-        levels = c(
-          paste(amp_abbrv, "HPZ"),
-          paste(amp_abbrv, "NPZ (IUCN II)"),
-          paste(amp_abbrv, "other zones"),
-          paste(state_abbrv, "SZ (IUCN II)"),
-          paste(state_abbrv, "other zones")
-        )
-      )
+      zone_new = droplevels(factor(zone_new, levels = zone_levels))
     )
 
   if (nrow(plot_dat) == 0) {
@@ -45,27 +46,18 @@ controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
     return(NULL)
   }
 
+  # Zones present in the data
+  zones_used <- levels(plot_dat$zone_new)
+
   fill_vals <- setNames(
-    c("#fff8a3", "#7bbc63", "#b9e6fb", "#bfd054", "#bddde1"),
-    c(
-      paste(amp_abbrv, "HPZ"),
-      paste(amp_abbrv, "NPZ (IUCN II)"),
-      paste(amp_abbrv, "other zones"),
-      paste(state_abbrv, "SZ (IUCN II)"),
-      paste(state_abbrv, "other zones")
-    )
-  )
+    c("#fff8a3", "#7bbc63", "#b9e6fb", "#e8e8e8"),
+    zone_levels
+  )[zones_used]
 
   shape_vals <- setNames(
-    c(21, 21, 21, 25, 25),
-    c(
-      paste(amp_abbrv, "HPZ"),
-      paste(amp_abbrv, "NPZ (IUCN II)"),
-      paste(amp_abbrv, "other zones"),
-      paste(state_abbrv, "SZ (IUCN II)"),
-      paste(state_abbrv, "other zones")
-    )
-  )
+    c(21, 21, 21, 22),
+    zone_levels
+  )[zones_used]
 
   if (metric == "cti") {
 
@@ -129,8 +121,8 @@ controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
       theme_classic() +
       scale_x_continuous(breaks = c(2014, 2024)) + # TODO set to your survey years
       coord_cartesian(xlim = c(2013, 2025)) + # TODO set to your survey years
-      scale_fill_manual(values = fill_vals, name = "Marine Parks", drop = FALSE) +
-      scale_shape_manual(values = shape_vals, name = "Marine Parks", drop = FALSE) +
+      scale_fill_manual(values = fill_vals, name = "Marine Parks", drop = TRUE) +
+      scale_shape_manual(values = shape_vals, name = "Marine Parks", drop = TRUE) +
       labs(
         x = "Year",
         y = metric_label,
@@ -174,8 +166,8 @@ controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
       theme_classic() +
       scale_x_continuous(breaks = c(2014, 2024)) + # TODO set to your survey years
       coord_cartesian(xlim = c(2013, 2025), ylim = c(0, NA)) + # TODO set to your survey years
-      scale_fill_manual(values = fill_vals, name = "Marine Parks", drop = FALSE) +
-      scale_shape_manual(values = shape_vals, name = "Marine Parks", drop = FALSE) +
+      scale_fill_manual(values = fill_vals, name = "Marine Parks", drop = TRUE) +
+      scale_shape_manual(values = shape_vals, name = "Marine Parks", drop = TRUE) +
       labs(
         x = "Year",
         y = metric_label,

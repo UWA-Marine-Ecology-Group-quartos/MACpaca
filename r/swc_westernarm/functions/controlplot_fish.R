@@ -24,12 +24,13 @@ controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
          paste(setdiff(req_cols, names(data)), collapse = ", "))
   }
 
+  # State marine park zones are folded into "Coastal waters" upstream in
+  # controldata_fish(), so only the Commonwealth SWCMP zones plus that
+  # catch-all are ever present here.
   zone_levels <- c(
     paste(amp_abbrv, "HPZ"),
     paste(amp_abbrv, "NPZ (IUCN II)"),
     paste(amp_abbrv, "other zones"),
-    paste(state_abbrv, "SZ (IUCN II)"),
-    paste(state_abbrv, "other zones"),
     "Coastal waters"
   )
 
@@ -50,12 +51,12 @@ controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
   zones_used <- levels(plot_dat$zone_new)
 
   fill_vals <- setNames(
-    c("#fff8a3", "#7bbc63", "#b9e6fb", "#bfd054", "#bddde1", "#e8e8e8"),
+    c("#fff8a3", "#7bbc63", "#b9e6fb", "#e8e8e8"),
     zone_levels
   )[zones_used]
 
   shape_vals <- setNames(
-    c(21, 21, 21, 25, 25, 22),
+    c(21, 21, 21, 22),
     zone_levels
   )[zones_used]
 

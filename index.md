@@ -49,3 +49,17 @@
 - [Appendix A - Natural Values Report](quartos/abrolhos_clio-bank/Project%204.21-Abrolhos-Clio-Bank-Appendix%20A-q-Natural%20values.html)
 - [Appendix B - Pressures Report (to add)](quartos/geographe/Project%204.21-Geographe-2-Appendix%20A-q-Natural%20values.html)
 - [Appendix C - Data Analysis Report (to add)](quartos/geographe/Project%204.21-Geographe-2-Appendix%20A-q-Natural%20values.html)
+
+#### Beagle Marine Park
+- Data syntheses - [BRUV](https://dev.globalarchive.org/ui/main/syntheses/71)
+- Methods - [Data analysis](https://github.com/UWA-Marine-Ecology-Group-quartos/australian-marine-parks/tree/e6640eaf458e06f89f77bdbee34a0608b85418bb/r/abrolhos_clio-bank)
+- [Appendix A - Natural Values Report](quartos/beagle/Project%204.21-Beagle-2-Appendix%20A-q-Natural%20values.html)
+- Appendix B - Pressures Report (TO ADD)
+- Appendix C - Data Analysis Report (TO ADD)
+
+#### Hunter Marine Park 
+- Data syntheses - [BRUV](https://dev.globalarchive.org/ui/main/syntheses/71)
+- Methods - [Data analysis](https://github.com/UWA-Marine-Ecology-Group-quartos/australian-marine-parks/tree/e6640eaf458e06f89f77bdbee34a0608b85418bb/r/abrolhos_clio-bank)
+- [Appendix A - Natural Values Report](quartos/hunter/Project%204.21-Hunter-2-Appendix%20A-q-Natural%20values.html)
+- [Appendix B - Pressures Report](quartos/hunter/Project%204.21-Hunter-2-Appendix%20B-q-Pressures.pdf)
+- [Appendix C - Data Analysis Report](quartos/hunter/Project%204.21-Hunter-3-Appendix%20C-q-Data%20analysis.pdf)

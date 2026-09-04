@@ -18,7 +18,7 @@ park <- config$park
 # TODO Change pdf_name/html_name to your quarto output names
 pdf_name <- "Project 4.21-Geographe-2-Appendix A-q-Natural values.pdf"
 html_name <- "Project 4.21-Geographe-2-Appendix A-q-Natural values.html"
-html_files_dir <- "09_quarto_files" # supporting folder Quarto generates alongside the HTML
+html_files_dir <- "10_quarto_files" # supporting folder Quarto generates alongside the HTML
 
 source_dir <- paste0(
   "D:/GIT/australian-marine-parks/r/", park,

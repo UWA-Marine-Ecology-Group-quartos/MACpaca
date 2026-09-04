@@ -1,0 +1,8 @@
+name:            "TEMPLATE"
+park:            "TEMPLATE"
+years:           [2023, 2024]      # EVERY survey year, must match Appendix A config
+combine_benthos: false             # must match the Appendix A config
+
+# Appendix C output name. Must match the `output-file:` in 04_quarto.qmd,
+# minus the extension.
+report_name:     "Project 4.21-TEMPLATE-3-Appendix C-q-Data analysis" # TODO
