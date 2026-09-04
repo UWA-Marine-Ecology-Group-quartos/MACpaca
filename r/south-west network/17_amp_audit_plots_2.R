@@ -545,18 +545,14 @@ amp_group_centres <- amp_group_centres %>%
 # ==============================================================================
 # 6. PIE LAYER + SIZE LEGEND (shared by all plot levels)
 # ==============================================================================
-# UPDATE 5: `add_pies()` is split in two so the radius scaling can be
-# reused for a size legend:
-#   - `scale_pie_radii()` does the sqrt-rescale + no-overlap shrink (same
-#     maths as before) and RETURNS the actual final min_r/max_r/shrink
-#     factor used - not just the scaled data - so a legend can match
-#     exactly what got rendered.
-#   - `pie_layer()` just draws geom_scatterpie from already-scaled data
-#     (unchanged visually from the old add_pies()).
-#   - `radius_for_totals()` converts arbitrary "N sites" reference values
-#     into the radius they'd draw at on THIS map, using that same scale.
-#   - `pie_size_legend()` builds a small standalone key from 2-3 "nice"
-#     reference totals, composited onto the map via patchwork.
+# `scale_pie_radii()` does the sqrt-rescale + no-overlap shrink and RETURNS
+# the actual final min_r/max_r/shrink factor used - not just the scaled
+# data - so a legend can match exactly what got rendered.
+# `pie_layer()` draws geom_scatterpie from already-scaled data.
+# `radius_for_totals()` converts arbitrary "N sites" reference values into
+# the radius they'd draw at on THIS map, using that same scale.
+# `pie_size_legend()` builds a small standalone key from 2-3 "nice"
+# reference totals, composited onto the map via patchwork.
 scale_pie_radii <- function(pie_data, min_r = 0.1, max_r = 1, overlap_margin = 0.92) {
 
   pie_data <- pie_data %>% filter(total > 0)
@@ -607,7 +603,9 @@ pie_layer <- function(pie_data, palette) {
     scale_fill_manual(
       name   = "Survey design",
       values = palette,
-      labels = names(palette)
+      # UPDATE 5: dots -> spaces, e.g. "stereo-BRUV Preferential" instead
+      # of "stereo-BRUV.Preferential" - matches the North/North-west scripts.
+      labels = gsub("\\.", " ", names(palette))
     )
   )
 }
@@ -649,6 +647,11 @@ pie_size_legend <- function(scale_info, ref_totals = NULL, unit_label = "sites")
 # ==============================================================================
 # 7. NATIONAL PLOT (Image 1 + 2)
 # ==============================================================================
+# UPDATE 5: this function previously overwrote its correctly-built
+# network-level `pie_data` with a second, broken block copy-pasted from
+# `make_network_pie_map()` (referencing undefined `amps_in_network` /
+# `network_name`), which errored out on every call. That block has been
+# removed - this now only builds and plots at network level, as intended.
 make_national_pie_map <- function(group_name, save_name = NULL,
                                   min_r = 0.5, max_r = 3,
                                   legend_pos = c(left = 0.01, bottom = 0.01, right = 0.20, top = 0.20),
@@ -659,13 +662,9 @@ make_national_pie_map <- function(group_name, save_name = NULL,
     left_join(network_centres, by = "network") %>%
     filter(!is.na(X))
 
-  pie_data <- build_pie_data(group_name, level = "amp") %>%
-    inner_join(amp_group_centres, by = "amp_group") %>%
-    filter(amp_clean %in% amps_in_network, !is.na(X))
-
-  # NEW - skip cleanly if this network has no data for this platform group
+  # Skip cleanly if this platform group has no national data at all.
   if (nrow(pie_data) == 0 || sum(pie_data$total, na.rm = TRUE) == 0) {
-    message("Skipping '", network_name, "' (", group_name, "): no survey data for this platform group in this network.")
+    message("Skipping national plot (", group_name, "): no survey data for this platform group.")
     return(invisible(NULL))
   }
 
