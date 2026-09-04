@@ -133,7 +133,7 @@ capad_commonwealth <- capad_raw %>%
 # ── North regional layer - zone polygons for the network-level plot ─────────
 # Same file, same park filter list, and same crop extent as your North
 # zones script (Section 1).
-e_mpa <- st_bbox(c(xmin = 125, xmax = 142.5, ymin = -18, ymax = -9), crs = st_crs(4326))
+e_mpa <- st_bbox(c(xmin = 125, xmax = 142.5, ymin = -18, ymax = -8), crs = st_crs(4326))
 
 north_park_names <- c(
   # Commonwealth AMPs (North Network)
@@ -448,7 +448,7 @@ pie_size_legend <- function(scale_info, ref_totals = NULL, unit_label = "sites")
 # 7. NETWORK-LEVEL PLOT - one pie per marine park
 # ==============================================================================
 make_north_pie_map <- function(group_name, save_name = NULL,
-                               xlim = c(125.5, 142.5), ylim = c(-18, -8.5),
+                               xlim = c(125.5, 142.5), ylim = c(-18, -8),
                                min_r = 0.06, max_r = 0.4,
                                legend_pos = c(left = 0.01, bottom = 0.02, right = 0.20, top = 0.20),
                                width = 11, height = 5) {
