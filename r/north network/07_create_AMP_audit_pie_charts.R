@@ -87,6 +87,8 @@ library(scatterpie)
 library(ggnewscale)
 library(scales)
 library(janitor)
+library(ggforce)
+library(patchwork)
 
 sf_use_s2(TRUE)
 
@@ -350,33 +352,24 @@ if (any(is.na(amp_group_centres$X))) {
 # ==============================================================================
 # 6. PIE LAYER
 # ==============================================================================
-# Pie radius encodes total survey effort (rescaled from sqrt(total sites)
-# onto [min_r, max_r]), with a no-overlap guarantee: if the rescaled radii
-# would make any two pies touch or overlap, ALL radii are shrunk by the same
-# proportional factor (preserving relative size differences) until the
-# worst-case pair clears `overlap_margin`. `min_r`/`max_r` are therefore
-# upper-bound TARGETS - actual sizes may come out smaller if pies are
-# tightly clustered. Identical logic to the SW/NW scripts' `add_pies()`.
-#
-# Guards against zero-row `pie_data` (e.g. a method group with no surveys
-# logged yet for this network) - returns an empty layer list instead of
-# letting `geom_scatterpie` error on empty data.
-#
-# Pies drawn with a black border and 65% opacity fill (see adaptation
-# note 9 above) - matches the styling applied in the NW script.
-add_pies <- function(pie_data, palette, min_r = 0.1, max_r = 1, overlap_margin = 0.92) {
+# ==============================================================================
+# 6. PIE LAYER + SIZE LEGEND
+# ==============================================================================
+scale_pie_radii <- function(pie_data, min_r = 0.06, max_r = 0.4, overlap_margin = 0.92) {
 
   pie_data <- pie_data %>% filter(total > 0)
   n <- nrow(pie_data)
 
   if (n == 0) {
     message("  -> No survey data for this method group in this network - skipping pie layer.")
-    return(list())
+    return(list(data = pie_data, min_r = min_r, max_r = max_r,
+                max_total = 0, shrink_factor = 1))
   }
 
   max_total <- max(pie_data$total, na.rm = TRUE)
   pie_data$r <- scales::rescale(sqrt(pie_data$total), to = c(min_r, max_r), from = c(0, sqrt(max_total)))
 
+  shrink_factor <- 1
   if (n >= 2) {
     d <- as.matrix(dist(pie_data[, c("X", "Y")]))
     diag(d) <- NA
@@ -384,14 +377,29 @@ add_pies <- function(pie_data, palette, min_r = 0.1, max_r = 1, overlap_margin =
     overlap_ratio <- r_sum / (d * overlap_margin)
     max_ratio <- suppressWarnings(max(overlap_ratio, na.rm = TRUE))
     if (is.finite(max_ratio) && max_ratio > 1) {
-      pie_data$r <- pie_data$r / max_ratio
+      shrink_factor <- max_ratio
+      pie_data$r <- pie_data$r / shrink_factor
     }
   }
+
+  list(data = pie_data, min_r = min_r, max_r = max_r,
+       max_total = max_total, shrink_factor = shrink_factor)
+}
+
+radius_for_totals <- function(totals, scale_info) {
+  if (scale_info$max_total <= 0) return(rep(scale_info$min_r, length(totals)))
+  r <- scales::rescale(sqrt(totals), to = c(scale_info$min_r, scale_info$max_r),
+                       from = c(0, sqrt(scale_info$max_total)))
+  r / scale_info$shrink_factor
+}
+
+pie_layer <- function(scale_info, palette) {
+  if (scale_info$max_total <= 0 || nrow(scale_info$data) == 0) return(list())
 
   list(
     ggnewscale::new_scale_fill(),
     scatterpie::geom_scatterpie(
-      data      = pie_data,
+      data      = scale_info$data,
       aes(x = X, y = Y, r = r),
       cols      = names(palette),
       colour    = "black",
@@ -401,20 +409,48 @@ add_pies <- function(pie_data, palette, min_r = 0.1, max_r = 1, overlap_margin =
     scale_fill_manual(
       name   = "Survey design",
       values = palette,
-      labels = names(palette)
+      labels = gsub("\\.", " ", names(palette))   # <- this is your legend-label fix
     )
   )
 }
 
+pie_size_legend <- function(scale_info, ref_totals = NULL, unit_label = "sites") {
+
+  if (scale_info$max_total <= 0) return(patchwork::plot_spacer())
+
+  if (is.null(ref_totals)) {
+    brks <- scales::breaks_extended(n = 3)(c(0, scale_info$max_total))
+    ref_totals <- sort(unique(round(brks[brks > 0 & brks <= scale_info$max_total])))
+    if (length(ref_totals) == 0) ref_totals <- round(scale_info$max_total)
+  }
+
+  ref_r <- radius_for_totals(ref_totals, scale_info)
+  gap   <- max(ref_r) * 2.4
+  key <- tibble::tibble(
+    total = ref_totals,
+    r     = ref_r,
+    x     = seq(0, by = gap, length.out = length(ref_totals)),
+    y     = 0
+  )
+
+  ggplot(key) +
+    ggforce::geom_circle(aes(x0 = x, y0 = y, r = r),
+                         fill = "grey70", colour = "black", linewidth = 0.2) +
+    geom_text(aes(x = x, y = -max(ref_r) * 1.3, label = total), size = 3) +
+    coord_equal(clip = "off") +
+    labs(title = paste0("Pie size \u2248 ", unit_label)) +
+    theme_void() +
+    theme(plot.title      = element_text(size = 8, hjust = 0),
+          plot.margin     = margin(4, 4, 4, 4),
+          plot.background = element_rect(fill = "white", colour = NA, linewidth = 0.3))
+}
 # ==============================================================================
 # 7. NETWORK-LEVEL PLOT - one pie per marine park
 # ==============================================================================
-# `xlim`/`ylim` default to the North zones script's `plot_limits`
-# (126-142.5 E, -18 to -9 S) - TUNE if pies get cut off or the extent
-# looks wrong for a given method group.
 make_north_pie_map <- function(group_name, save_name = NULL,
                                xlim = c(125.5, 142.5), ylim = c(-18, -8.5),
-                               min_r = 0.06, max_r = 0.4,  # TUNE - max_r is a ceiling; auto-shrinks to avoid overlap
+                               min_r = 0.06, max_r = 0.4,
+                               legend_pos = c(left = 0.01, bottom = 0.02, right = 0.20, top = 0.20),
                                width = 11, height = 5) {
 
   grp <- method_groups[[group_name]]
@@ -422,6 +458,8 @@ make_north_pie_map <- function(group_name, save_name = NULL,
   pie_data <- build_pie_data(group_name) %>%
     inner_join(amp_group_centres, by = "amp_group") %>%
     filter(!is.na(X))
+
+  scaled <- scale_pie_radii(pie_data, min_r = min_r, max_r = max_r)
 
   p <- ggplot() +
     geom_sf(data = aus, fill = "seashell2", colour = "grey80", linewidth = 0.1) +
@@ -439,14 +477,23 @@ make_north_pie_map <- function(group_name, save_name = NULL,
                       breaks = c("Sanctuary Zone", "General Use Zone", "Recreational Use Zone",
                                  "Special Purpose Zone", "Indigenous Protected Area",
                                  "Other State Marine Park Zone")) +
-    add_pies(pie_data, grp$palette, min_r = min_r, max_r = max_r) +
+    pie_layer(scaled, grp$palette) +
     coord_sf(xlim = xlim, ylim = ylim, expand = FALSE) +
     labs(x = NULL, y = NULL) +
     theme_minimal() +
     theme(panel.grid = element_blank(),
           axis.title = element_blank(),
           legend.position = "left",
+          legend.justification = "top",
+          legend.box = "vertical",
           plot.background = element_rect(fill = "white", colour = NA))
+
+  p <- p + patchwork::inset_element(
+    pie_size_legend(scaled),
+    left = legend_pos[["left"]], bottom = legend_pos[["bottom"]],
+    right = legend_pos[["right"]], top = legend_pos[["top"]],
+    align_to = "full"
+  )
 
   if (!is.null(save_name)) {
     dir.create(network_out_dir, recursive = TRUE, showWarnings = FALSE)
@@ -455,7 +502,6 @@ make_north_pie_map <- function(group_name, save_name = NULL,
   }
   p
 }
-
 # ==============================================================================
 # 8. GENERATE THE SET
 # ==============================================================================
