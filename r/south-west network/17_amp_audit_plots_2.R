@@ -659,6 +659,16 @@ make_national_pie_map <- function(group_name, save_name = NULL,
     left_join(network_centres, by = "network") %>%
     filter(!is.na(X))
 
+  pie_data <- build_pie_data(group_name, level = "amp") %>%
+    inner_join(amp_group_centres, by = "amp_group") %>%
+    filter(amp_clean %in% amps_in_network, !is.na(X))
+
+  # NEW - skip cleanly if this network has no data for this platform group
+  if (nrow(pie_data) == 0 || sum(pie_data$total, na.rm = TRUE) == 0) {
+    message("Skipping '", network_name, "' (", group_name, "): no survey data for this platform group in this network.")
+    return(invisible(NULL))
+  }
+
   scaled <- scale_pie_radii(pie_data, min_r = min_r, max_r = max_r)
 
   p <- ggplot() +
