@@ -354,7 +354,7 @@ p_control
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Demersal fish - Total abundance: top 10 most abundant species (pooled across deployments) from stereo-BRUV groundtruthing."
+#| fig-cap: "Demersal fish - Total abundance: top 10 most abundant species (pooled across deployments) from stereo-BRUV groundtruthing. **Bold** species are unique within the 10 greatest biomass species by year."
 p_bar <- readRDS(here("plots/beagle/fish/BeagleAMP_top_maxn_bar_plot.rds"))
 p_bar
 ```
@@ -394,7 +394,7 @@ p_control
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Demersal fish - Large Reef Fish Index\\*: top 10 greatest biomass species (pooled across deployments) from stereo-BRUV groundtruthing."
+#| fig-cap: "Demersal fish - Large Reef Fish Index\\*: top 10 greatest biomass species (pooled across deployments) from stereo-BRUV groundtruthing. **Bold** species are unique within the 10 greatest biomass species by year."
 p_bar <- readRDS(here("plots/beagle/fish/BeagleAMP_top_b20_bar_plot_mixed.rds"))
 p_bar
 ```
@@ -434,7 +434,7 @@ p_control
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Demersal fish - Reef Fish Thermal Index: species thermal niche of top 10 most abundant species (pooled across deployments) from stereo-BRUV groundtruthing."
+#| fig-cap: "Demersal fish - Reef Fish Thermal Index: species thermal niche of top 10 most abundant species (pooled across deployments) from stereo-BRUV groundtruthing. **Bold** species are unique within the 10 greatest biomass species by year."
 p_bar <- readRDS(here("plots/beagle/fish/BeagleAMP_top_maxn_cti_bar_plot.rds"))
 p_bar
 ```

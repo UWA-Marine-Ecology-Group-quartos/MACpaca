@@ -487,6 +487,6 @@ b20_tidy <- biomass %>% # TODO this needs tweaking, not working 100% because som
   glimpse()
 
 # Check number of samples that are > 0
-nrow(filter(b20_tidy, count > 0))/nrow(b20_tidy)
+nrow(filter(b20_tidy, count > 0))/nrow(b20_tidy) #0.45...
 
 saveRDS(b20_tidy, file = paste0("data/", park, "/tidy/", name, "_tidy-b20.rds"))

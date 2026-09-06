@@ -76,3 +76,4 @@ if (dir.exists(file.path(source_dir, html_files_dir))) {
 } else {
   message("No supporting files folder found at: ", file.path(source_dir, html_files_dir))
 }
+
