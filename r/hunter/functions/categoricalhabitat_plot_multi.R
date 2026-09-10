@@ -12,7 +12,7 @@ categoricalhabitat_plot_multi <- function(dat_list, prediction_limits, habitat_l
     "Sessile invertebrates" = "plum",
     "Macroalgae"            = "darkgoldenrod4",
     "Seagrass"              = "forestgreen",
-    "Sand"                  = "wheat"
+    "Sediment"                  = "wheat"
   )
 
   # Filter to modelled taxa only, preserving canonical order
@@ -31,7 +31,7 @@ categoricalhabitat_plot_multi <- function(dat_list, prediction_limits, habitat_l
       year    = factor(year, levels = yrs),
       dom_tag = as.character(dom_tag),
       dom_tag = dplyr::case_when(
-        dom_tag %in% c("sand", "Sand")                                                        ~ "Sand",
+        dom_tag %in% c("sand", "Sand")                                                        ~ "Sediment",
         dom_tag %in% c("macro", "macroalgae", "Macroalgae")                                   ~ "Macroalgae",
         dom_tag %in% c("seagrass", "seagrasses", "Seagrass", "Seagrasses")                    ~ "Seagrass",
         dom_tag %in% c("rock", "Rock")                                                        ~ "Rock",
@@ -41,13 +41,13 @@ categoricalhabitat_plot_multi <- function(dat_list, prediction_limits, habitat_l
       dom_tag = factor(dom_tag, levels = hab_levels)
     )
 
-  ngari_colours <- wasanc %>%
+  ngari_colours <- marine_parks_state %>%
     st_drop_geometry() %>%
     distinct(zone, colour) %>%
     arrange(zone) %>%
     pull(colour)
 
-  ggplot() +
+  p_out <- ggplot() +
     geom_tile(data = pred_cat, aes(x = x, y = y, fill = dom_tag)) +
     scale_fill_manual(
       name     = "Habitat",
@@ -59,6 +59,7 @@ categoricalhabitat_plot_multi <- function(dat_list, prediction_limits, habitat_l
     guides(
       fill = guide_legend(
         order         = 1,
+        ncol         = 2,
         override.aes  = list(
           colour    = NA,
           fill      = unname(habitat_colours),
@@ -77,16 +78,16 @@ categoricalhabitat_plot_multi <- function(dat_list, prediction_limits, habitat_l
     geom_sf(data = ausc, fill = "seashell2", colour = "grey80", linewidth = 0.5) +
     new_scale_color() +
     geom_sf(
-      data        = wasanc,
+      data        = marine_parks_state,
       aes(colour  = zone),
       fill        = NA,
       linewidth   = 0.8,
-      show.legend = TRUE
+      show.legend = FALSE
     ) +
     scale_colour_manual(
       name  = "State Marine Park",
       guide = "legend",
-      values = with(wasanc, setNames(colour, zone))
+      values = with(marine_parks_state, setNames(colour, zone))
     ) +
     guides(
       colour = guide_legend(
@@ -104,7 +105,7 @@ categoricalhabitat_plot_multi <- function(dat_list, prediction_limits, habitat_l
       aes(colour  = zone),
       fill        = NA,
       linewidth   = 0.8,
-      show.legend = TRUE
+      show.legend = FALSE
     ) +
     scale_colour_manual(
       name  = "Australian Marine Park",
@@ -117,11 +118,8 @@ categoricalhabitat_plot_multi <- function(dat_list, prediction_limits, habitat_l
         override.aes = list(fill = NA, linewidth = 1)
       )
     ) +
-    geom_sf(
-      data      = st_buffer(cwatr_offset, dist = 0.005),
-      colour    = "red",
-      linewidth = 0.5
-    ) +
+    new_scale_color() +
+    geom_sf(data = cwatr, colour = "red", linewidth = 0.9) +
     coord_sf(
       xlim   = c(prediction_limits[1], prediction_limits[2]),
       ylim   = c(prediction_limits[3], prediction_limits[4]),
@@ -141,4 +139,5 @@ categoricalhabitat_plot_multi <- function(dat_list, prediction_limits, habitat_l
       legend.title     = element_text(size = 10, face = "bold"),
       strip.text       = element_text(size = 12, face = "bold")
     )
+  cowplot::plot_grid(p_out, marine_park_legend(), ncol = 1, rel_heights = c(1, 0.175))
 }

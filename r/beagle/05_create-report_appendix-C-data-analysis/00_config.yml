@@ -1,0 +1,8 @@
+name:            "BeagleAMP"
+park:            "beagle"
+years:           [2018, 2025]      # EVERY survey year, must match Appendix A config
+combine_benthos: false             # must match the Appendix A config
+
+# Appendix C output name. Must match the `output-file:` in 04_quarto.qmd,
+# minus the extension.
+report_name:     "Project 4.21- Beagle-3-Appendix C-q-Data analysis" # TODO

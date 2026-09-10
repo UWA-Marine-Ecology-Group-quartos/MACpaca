@@ -57,6 +57,8 @@ dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
 # =============================================================================
 # 1. HABITAT - mirrors 05_model-data_benthos.R
 # =============================================================================
+# TODO If combine_benthos is TRUE for this park, drop the `year` filter below
+# and follow the pooled-data pattern in 05_model-data_benthos.R instead.
 
 metadata_bathy_derivatives <- readRDS(
   here("data", park, "tidy", paste0(name, "_metadata-bathymetry-derivatives.rds"))
@@ -66,46 +68,23 @@ metadata_bathy_derivatives <- readRDS(
 habi <- readRDS(here("data", park, "tidy", paste0(name, "_benthos-count.RDS"))) %>%
   left_join(metadata_bathy_derivatives) %>%
   dplyr::filter(!is.na(geoscience_roughness)) %>%
-  dplyr::filter(geoscience_roughness < 10) %>%   # matches the outlier filter in 05
+  dplyr::filter(geoscience_roughness < 4) %>%   # TODO matches the outlier filter in 05 - comment out here too if it is commented out there
   dplyr::mutate(year = factor(as.character(year), levels = year_levels)) %>%
   glimpse()
 
 stopifnot(!any(is.na(habi$year)))
 
 # ---- FINAL MODELS (verbatim from 05_model-data_benthos.R) -------------------
+# TODO Paste the final hand-picked habitat GAM for each response below,
+# copied verbatim from the bottom of 05_model-data_benthos.R. [TEMPLATE]
 
-# Sand
-m_sand <- gam(cbind(sand, total_pts - sand) ~
-                s(geoscience_aspect, k = 3, bs = "cc") +
-                s(geoscience_depth, k = 3, bs = "cr") +
-                s(geoscience_detrended, k = 3, bs = "cr") +
-                s(geoscience_roughness, k = 3, bs = "cr"),
-              data = habi, method = "REML", family = binomial("logit"))
-
-# Inverts
-m_inverts <- gam(cbind(sessile_invertebrates, total_pts - sessile_invertebrates) ~
-                   s(geoscience_aspect, k = 3, bs = "cc") +
-                   s(geoscience_depth, k = 3, bs = "cr") +
-                   s(geoscience_roughness, k = 3, bs = "cr"),
-                 data = habi, method = "REML", family = binomial("logit"))
-
-# Reef
-m_reef <- gam(cbind(reef, total_pts - reef) ~
-                s(geoscience_aspect, k = 3, bs = "cc") +
-                s(geoscience_depth, k = 3, bs = "cr") +
-                s(geoscience_roughness, k = 3, bs = "cr"),
-              data = habi, method = "REML", family = binomial("logit"))
-
-# Names are the RESPONSE strings used by the FSS loop and the CSVs, not the
-# object names - the loader keys off these. Note `seagrasses` is plural, as it
-# is in 03_create-metrics_benthos.R.
 final_models_habitat <- list(
-  sand                  = m_sand,
-  #macroalgae            = m_macro,
-  #seagrasses            = m_seagrass,
-  #rock                  = m_rock,
-  sessile_invertebrates = m_inverts,
-  reef                  = m_reef
+  sand                  = NULL, # [TEMPLATE]
+  macroalgae            = NULL, # [TEMPLATE]
+  seagrasses            = NULL, # [TEMPLATE]
+  rock                  = NULL, # [TEMPLATE]
+  sessile_invertebrates = NULL, # [TEMPLATE]
+  reef                  = NULL  # [TEMPLATE]
 )
 
 saveRDS(final_models_habitat, file.path(outdir, paste0(name, "_final-models_habitat.rds")))
@@ -116,12 +95,12 @@ saveRDS(habi,                 file.path(outdir, paste0(name, "_habitat-data.rds"
 # =============================================================================
 
 tidy_maxn <- readRDS(here("data", park, "tidy", paste0(name, "_tidy-count.rds"))) %>%
-  dplyr::filter(geoscience_roughness < 7) %>%   # matches the outlier filter in 06
+  dplyr::filter(geoscience_roughness < 4) %>%   # TODO matches the outlier filter in 06 - comment out here too if it is commented out there
   dplyr::mutate(year = factor(as.character(year), levels = year_levels)) %>%
   glimpse()
 
 tidy_b20 <- readRDS(here("data", park, "tidy", paste0(name, "_tidy-b20.rds"))) %>%
-  dplyr::filter(geoscience_roughness < 7) %>%   # matches the outlier filter in 06
+  dplyr::filter(geoscience_roughness < 4) %>%   # TODO matches the outlier filter in 06 - comment out here too if it is commented out there
   dplyr::mutate(year = factor(as.character(year), levels = year_levels)) %>%
   glimpse()
 
@@ -133,49 +112,21 @@ fabund <- bind_rows(tidy_maxn, tidy_b20) %>%
 stopifnot(!any(is.na(fabund$year)))
 stopifnot(!any(is.na(fabund$status)))
 
-# `reef` is a covariate in three of the four final models, so it has to be
-# present in BOTH tidy syntheses before they are stacked - a missing column in
-# tidy-b20 would silently become NA rows and drop the whole b20 fit.
+# `reef` is a covariate in most final fish models, so it has to be present in
+# BOTH tidy syntheses before they are stacked - a missing column in tidy-b20
+# would silently become NA rows and drop the whole b20 fit.
 stopifnot(all(c("reef") %in% names(tidy_maxn)))
 stopifnot(all(c("reef") %in% names(tidy_b20)))
 
 # ---- FINAL MODELS (verbatim from 06_model-data_fish.R) ----------------------
-
-#Total abundance
-m_abundance <- gam(count ~
-                     s(geoscience_aspect, k = 3, bs = "cc") +
-                     s(geoscience_depth, k = 3, bs = "cr"),
-                   data = fabund %>% dplyr::filter(response %in% "total_abundance"),
-                   family = poisson)
-
-
-# Species richness
-m_richness <- gam(count ~
-                    s(geoscience_aspect, k = 3, bs = "cc") +
-                    s(geoscience_depth, k = 3, bs = "cr"),
-                  data = fabund %>% dplyr::filter(response %in% "species_richness"),
-                  family = nb)
-
-
-# CTI
-m_cti <- gam(count ~
-               s(geoscience_roughness, k = 3, bs = "cr"),
-             data = fabund %>% dplyr::filter(response %in% "cti"),
-             family = gaussian(link = "identity"))
-
-
-# B20
-m_b20 <- gam(count ~
-               s(geoscience_aspect, k = 3, bs = "cc") +
-               s(geoscience_roughness, k = 3, bs = "cr"),
-             data = fabund %>% dplyr::filter(response %in% "b20"),
-             family = tw())
+# TODO Paste the final hand-picked fish GAM for each metric below, copied
+# verbatim from the bottom of 06_model-data_fish.R. [TEMPLATE]
 
 final_models_fish <- list(
-  species_richness = m_richness,
-  total_abundance  = m_abundance,
-  b20              = m_b20,
-  cti              = m_cti
+  species_richness = NULL, # [TEMPLATE]
+  total_abundance  = NULL, # [TEMPLATE]
+  b20              = NULL, # [TEMPLATE]
+  cti              = NULL  # [TEMPLATE]
 )
 
 saveRDS(final_models_fish, file.path(outdir, paste0(name, "_final-models_fish.rds")))

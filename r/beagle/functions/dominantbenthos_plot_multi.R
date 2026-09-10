@@ -83,7 +83,7 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
     arrange(zone) %>%
     pull(colour)
 
-  build_base <- function(i, show_x = TRUE, show_park_legend = TRUE) {
+  build_base <- function(i, show_x = TRUE) {
 
     y_theme <- if (i == 1) theme_left else theme_inner
     x_theme <- if (show_x) theme() else theme_top
@@ -104,7 +104,6 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
         show.legend = show_park_legend,
         linewidth   = 0.6
       ),
-      geom_sf(data = cwatr, colour = "firebrick", linewidth = 0.6),
       scale_colour_manual(
         name   = "Australian Marine Parks",
         guide  = "legend",
@@ -117,6 +116,7 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
         override.aes = list(fill = NA, linewidth = 1),
         title.theme  = element_text(size = 9, face = "bold")
       )),
+      geom_sf(data = cwatr, colour = "firebrick", linewidth = 0.6),
       ggnewscale::new_scale_color(),
       geom_sf(
         data        = marine_parks_state,
@@ -195,7 +195,7 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
       p <- p + ggtitle("Predicted Habitat Probability")
     }
 
-    p + build_base(i, show_x = !multi_year, show_park_legend = FALSE)
+    p + build_base(i, show_x = !multi_year)
   })
 
   # ------------------------------------------------------------
@@ -215,7 +215,7 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
 
       ) +
       ggtitle(if (multi_year) NULL else "Standard Error") +
-      build_base(if (multi_year) i else 2, show_x = TRUE, show_park_legend = FALSE)
+      build_base(if (multi_year) i else 2, show_x = TRUE)
   })
   # ------------------------------------------------------------
   # Row labels

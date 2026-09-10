@@ -101,7 +101,7 @@ categoricalhabitat_plot_multi <- function(dat_list, prediction_limits, habitat_l
       )
     ) +
     geom_sf(
-      data      = st_buffer(cwatr_offset, dist = 0.005),
+      data      = cwatr,
       colour    = "red",
       linewidth = 0.5
     ) +
@@ -148,3 +148,4 @@ categoricalhabitat_plot_multi <- function(dat_list, prediction_limits, habitat_l
       strip.text       = element_text(size = 12, face = "bold")
     )
 }
+

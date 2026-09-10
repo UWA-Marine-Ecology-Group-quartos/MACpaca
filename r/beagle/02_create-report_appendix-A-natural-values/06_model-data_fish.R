@@ -275,6 +275,7 @@ marine_parks <- st_read("data/amp_shapefile/Australian_Marine_Parks_v2.shp") %>%
 # Points for extraction
 predv <- vect(preddf, geom = c("x", "y"), crs = "epsg:4326")
 
+ext_result <- terra::extract(marine_parks, predv)
 ext_result_dedup <- ext_result %>%
   dplyr::group_by(id.y) %>%
   dplyr::arrange(dplyr::desc(epbc == "Commonwealth")) %>%  # Commonwealth rows sorted first
