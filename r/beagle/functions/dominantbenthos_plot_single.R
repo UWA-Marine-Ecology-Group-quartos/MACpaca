@@ -48,6 +48,7 @@ dominantbenthos_plot_single <- function(pred_plot, prediction_limits, habitat_lo
       )
   }
 
+
 p_out <- p +
   geom_contour(
     data = bathy,

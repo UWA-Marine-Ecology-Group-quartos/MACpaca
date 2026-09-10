@@ -83,10 +83,30 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
     arrange(zone) %>%
     pull(colour)
 
-  build_base <- function(i, show_x = TRUE) {
+  muz_colour <- marine_parks_amp %>%
+    sf::st_drop_geometry() %>%
+    dplyr::filter(zone == "Multiple Use Zone") %>%
+    dplyr::pull(colour)
+
+  amp_2018 <- marine_parks_amp %>%
+    sf::st_union() %>%
+    sf::st_sf(geometry = ., zone = "Multiple Use Zone", colour = muz_colour, year = "2018")
+
+  amp_2025 <- marine_parks_amp %>%
+    dplyr::filter(zone %in% c("National Park Zone", "Multiple Use Zone")) %>%
+    dplyr::mutate(year = "2025")
+
+  amp_by_year <- dplyr::bind_rows(amp_2018, amp_2025) %>%
+    dplyr::filter(year %in% yrs) %>%
+    dplyr::mutate(year = factor(year, levels = yrs))
+
+  build_base <- function(i, show_x = TRUE, show_park_legend = FALSE) {
 
     y_theme <- if (i == 1) theme_left else theme_inner
     x_theme <- if (show_x) theme() else theme_top
+
+    amp_this_year <- amp_by_year %>%
+      dplyr::filter(year == yrs[i])
 
     list(
       geom_contour(
@@ -98,7 +118,7 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
       ),
       geom_sf(data = ausc, fill = "seashell2", colour = "black", linewidth = 0.2),
       geom_sf(
-        data        = marine_parks_amp,
+        data        = amp_this_year,
         aes(colour  = zone),
         fill        = NA,
         show.legend = show_park_legend,
@@ -107,7 +127,7 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
       scale_colour_manual(
         name   = "Australian Marine Parks",
         guide  = "legend",
-        values = with(marine_parks_amp, setNames(colour, zone))
+        values = with(amp_this_year, setNames(colour, zone))
       ),
       guides(colour = guide_legend(
         order        = 1,
@@ -195,7 +215,7 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
       p <- p + ggtitle("Predicted Habitat Probability")
     }
 
-    p + build_base(i, show_x = !multi_year)
+    p + build_base(i, show_x = !multi_year, show_park_legend = FALSE)
   })
 
   # ------------------------------------------------------------
@@ -215,7 +235,7 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
 
       ) +
       ggtitle(if (multi_year) NULL else "Standard Error") +
-      build_base(if (multi_year) i else 2, show_x = TRUE)
+      build_base(if (multi_year) i else 2, show_x = TRUE, show_park_legend = FALSE)
   })
   # ------------------------------------------------------------
   # Row labels

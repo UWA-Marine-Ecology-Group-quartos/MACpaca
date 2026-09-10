@@ -29,6 +29,13 @@ categoricalhabitat_plot_single <- function(pred_plot, prediction_limits, habitat
       dom_tag = factor(dom_tag, levels = hab_levels)
     )
 
+
+  amp_colours <- marine_parks_amp %>%
+    st_drop_geometry() %>%
+    distinct(zone, colour) %>%
+    arrange(zone) %>%
+    pull(colour)
+
   p_out <- ggplot() +
     geom_tile(data = pred_cat, aes(x = x, y = y, fill = dom_tag)) +
     scale_fill_manual(

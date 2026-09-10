@@ -11,6 +11,39 @@ scatterpie_plot_multi <- function(benthos, years, site_limits, pie_radius = 0.00
     ) %>%
     dplyr::arrange(year, desc(Sediment))
 
+  muz_colour <- marine_parks_amp %>%
+    sf::st_drop_geometry() %>%
+    dplyr::filter(zone == "Multiple Use Zone") %>%
+    dplyr::pull(colour)
+
+  amp_2018 <- marine_parks_amp %>%
+    sf::st_union(is_coverage = TRUE) %>%
+    sf::st_sf(geometry = ., zone = "Multiple Use Zone", colour = muz_colour, year = "2018")
+
+  amp_2025 <- marine_parks_amp %>%
+    dplyr::filter(zone %in% c("National Park Zone", "Multiple Use Zone")) %>%
+    dplyr::mutate(year = "2025")
+
+  amp_by_year <- dplyr::bind_rows(amp_2018, amp_2025) %>%
+    dplyr::filter(year %in% as.character(years)) %>%
+    dplyr::mutate(year = factor(year, levels = as.character(years)))
+
+  # AMP (Commonwealth) National Park Zone - green fill, 2025 only
+  amp_npz_2025 <- marine_parks_amp %>%
+    dplyr::filter(zone %in% "National Park Zone") %>%
+    dplyr::mutate(year = "2025") %>%
+    dplyr::filter(year %in% as.character(years)) %>%
+    dplyr::mutate(year = factor(year, levels = as.character(years)))
+
+  # State National Park Zone - green fill, all years
+  npz <- marine_parks %>%
+    dplyr::filter(zone %in% "National Park Zone", epbc %in% "State")
+
+  npz_all_years <- purrr::map_dfr(as.character(years), function(yr) {
+    npz %>% dplyr::mutate(year = yr)
+  }) %>%
+    dplyr::mutate(year = factor(year, levels = as.character(years)))
+
   ggplot() +
     geom_contour_filled(
       data = bathy,
@@ -23,9 +56,10 @@ scatterpie_plot_multi <- function(benthos, years, site_limits, pie_radius = 0.00
     new_scale_fill() +
     geom_sf(data = ausc, fill = "seashell2", colour = "black", linewidth = 0.1) +
     geom_sf(data = marine_parks_state, fill = NA, colour = "grey20") +
-    geom_sf(data = marine_parks_amp, fill = NA, colour = "grey50") +
+    geom_sf(data = amp_by_year, fill = NA, colour = "grey50") +
     new_scale_fill() +
-    geom_sf(data = npz, fill = "#7BBC63", alpha = 2/5, colour = NA) +
+    geom_sf(data = npz_all_years, fill = "#7BBC63", alpha = 2/5, colour = NA) +
+    geom_sf(data = amp_npz_2025, fill = "#7BBC63", alpha = 2/5, colour = NA) +
     geom_sf(data = cwatr, colour = "firebrick", alpha = 4/5, linewidth = 0.3) +
     new_scale_fill() +
     geom_scatterpie(
@@ -34,9 +68,7 @@ scatterpie_plot_multi <- function(benthos, years, site_limits, pie_radius = 0.00
       cols = c(
         "Sediment",
         "Sessile invertebrates",
-        #"Bare Rock",
         "Macroalgae"
-        #"Seagrass"
       ),
       colour = NA
     ) +

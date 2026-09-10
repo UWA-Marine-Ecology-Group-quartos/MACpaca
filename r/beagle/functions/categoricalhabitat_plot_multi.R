@@ -47,11 +47,30 @@ categoricalhabitat_plot_multi <- function(dat_list, prediction_limits, habitat_l
     arrange(zone) %>%
     pull(colour)
 
-  amp_colours <- marine_parks_amp %>%
+
+  muz_colour <- marine_parks_amp %>%
+    sf::st_drop_geometry() %>%
+    dplyr::filter(zone == "Multiple Use Zone") %>%
+    dplyr::pull(colour)
+
+  amp_2018 <- marine_parks_amp %>%
+    sf::st_union() %>%
+    sf::st_sf(geometry = ., zone = "Multiple Use Zone", colour = muz_colour, year = "2018")
+
+  amp_2025 <- marine_parks_amp %>%
+    dplyr::filter(zone %in% c("National Park Zone", "Multiple Use Zone")) %>%
+    dplyr::mutate(year = "2025")
+
+  amp_by_year <- dplyr::bind_rows(amp_2018, amp_2025) %>%
+    dplyr::filter(year %in% yrs) %>%
+    dplyr::mutate(year = factor(year, levels = yrs))
+
+  amp_colours <- amp_by_year %>%
     st_drop_geometry() %>%
     distinct(zone, colour) %>%
     arrange(zone) %>%
     pull(colour)
+
 
   ggplot() +
     geom_tile(data = pred_cat, aes(x = x, y = y, fill = dom_tag)) +
@@ -83,7 +102,7 @@ categoricalhabitat_plot_multi <- function(dat_list, prediction_limits, habitat_l
     geom_sf(data = ausc, fill = "seashell2", colour = "grey80", linewidth = 0.5) +
     ggnewscale::new_scale_color() +
     geom_sf(
-      data        = marine_parks_amp,
+      data        = amp_by_year,
       aes(colour  = zone),
       fill        = NA,
       linewidth   = 0.8,
@@ -92,7 +111,7 @@ categoricalhabitat_plot_multi <- function(dat_list, prediction_limits, habitat_l
     scale_colour_manual(
       name  = "Australian Marine Park",
       guide = "legend",
-      values = with(marine_parks_amp, setNames(colour, zone))
+      values = with(amp_by_year, setNames(colour, zone))
     ) +
     guides(
       colour_ggnewscale_2 = guide_legend(

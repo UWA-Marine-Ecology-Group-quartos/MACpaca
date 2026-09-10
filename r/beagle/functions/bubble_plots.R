@@ -1,4 +1,3 @@
-# Combined bubble plot: species richness (top row) and total abundance
 bubble_plots <- function(dat,
                          ausc,
                          cwatr,
@@ -8,7 +7,36 @@ bubble_plots <- function(dat,
                          size_range   = c(1, 6),
                          park_linewidth = 0.8) {
 
-  ngari_colours <- marine_parks %>%
+  yrs <- dat %>%
+    dplyr::pull(year) %>%
+    unique() %>%
+    sort() %>%
+    as.character()
+
+  ngari_colours <- marine_parks_state %>%
+    st_drop_geometry() %>%
+    distinct(zone, colour) %>%
+    arrange(zone) %>%
+    pull(colour)
+
+  muz_colour <- marine_parks_amp %>%
+    sf::st_drop_geometry() %>%
+    dplyr::filter(zone == "Multiple Use Zone") %>%
+    dplyr::pull(colour)
+
+  amp_2018 <- marine_parks_amp %>%
+    sf::st_union(is_coverage = TRUE) %>%
+    sf::st_sf(geometry = ., zone = "Multiple Use Zone", colour = muz_colour, year = "2018")
+
+  amp_2025 <- marine_parks_amp %>%
+    dplyr::filter(zone %in% c("National Park Zone", "Multiple Use Zone")) %>%
+    dplyr::mutate(year = "2025")
+
+  amp_by_year <- dplyr::bind_rows(amp_2018, amp_2025) %>%
+    dplyr::filter(year %in% yrs) %>%
+    dplyr::mutate(year = factor(year, levels = yrs))
+
+  amp_colours <- amp_by_year %>%
     st_drop_geometry() %>%
     distinct(zone, colour) %>%
     arrange(zone) %>%
@@ -24,22 +52,28 @@ bubble_plots <- function(dat,
   # ---- park boundary layer + zone-coloured legends (drawn last, on top) ----
   build_parks <- function(show_park_legend = FALSE) {
     list(
-      guides(colour = guide_legend(
-        order          = 2,
-        ncol           = 1,
-        title.position = "top",
-        override.aes   = list(colour = marine_parks, fill = NA, linewidth = 1),
-        title.theme    = element_text(size = 9, face = "bold")
-      )),
       ggnewscale::new_scale_color(),
       geom_sf(
-        data        = marine_parks_amp,
+        data        = amp_by_year,
         aes(colour  = zone),
         fill        = NA,
         show.legend = show_park_legend,
         linewidth   = park_linewidth
       ),
+      scale_colour_manual(
+        name   = "Australian Marine Parks",
+        guide  = "legend",
+        values = with(amp_by_year, setNames(colour, zone))
+      ),
+      guides(colour = guide_legend(
+        order          = 1,
+        ncol           = 2,
+        title.position = "top",
+        override.aes   = list(fill = NA, linewidth = 1),
+        title.theme    = element_text(size = 9, face = "bold")
+      )),
       geom_sf(data = cwatr, colour = "firebrick", linewidth = park_linewidth),
+      ggnewscale::new_scale_color(),
       geom_sf(
         data        = marine_parks_state,
         aes(colour  = zone),
@@ -48,20 +82,15 @@ bubble_plots <- function(dat,
         show.legend = show_park_legend
       ),
       scale_colour_manual(
-        name   = "Australian Marine Parks",
-        guide  = "legend",
-        values = with(marine_parks_amp, setNames(colour, zone))
-      ),
-      scale_colour_manual(
         name   = "State Marine Park",
         guide  = "legend",
         values = with(marine_parks_state, setNames(colour, zone))
       ),
       guides(colour = guide_legend(
-        order          = 1,
-        ncol           = 2,
+        order          = 2,
+        ncol           = 1,
         title.position = "top",
-        override.aes   = list(fill = NA, linewidth = 1),
+        override.aes   = list(colour = ngari_colours, fill = NA, linewidth = 1),
         title.theme    = element_text(size = 9, face = "bold")
       )),
       ggnewscale::new_scale_color()
@@ -95,7 +124,6 @@ bubble_plots <- function(dat,
         name  = legend_title,
         range = size_range
       ) +
-      ggnewscale::new_scale_color() +
       coord_sf(
         xlim   = c(prediction_limits[1], prediction_limits[2]),
         ylim   = c(prediction_limits[3], prediction_limits[4]),
@@ -116,7 +144,6 @@ bubble_plots <- function(dat,
   p_richness  <- build_panel("species_richness", "Species\nrichness")
   p_abundance <- build_panel("total_abundance",  "Total\nabundance\n(MaxN)")
 
-  # ---- stack richness + abundance rows into the 2x2 grid ----
   combined_panels <- cowplot::plot_grid(
     p_richness, p_abundance,
     ncol   = 1,
@@ -125,7 +152,6 @@ bubble_plots <- function(dat,
     labels = c("a)", "b)")
   )
 
-  # ---- attach the shared AMP/state park legend at the bottom ----
   cowplot::plot_grid(
     combined_panels,
     marine_park_legend(),
