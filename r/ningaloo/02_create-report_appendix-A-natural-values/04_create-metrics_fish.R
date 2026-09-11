@@ -20,6 +20,7 @@ config <- yaml::read_yaml(
 
 name <- config$name
 park <- config$park
+fish_years <- unlist(config$fish_years)   # read_yaml returns a list
 
 # Load necessary libraries
 library(CheckEM)
@@ -36,6 +37,26 @@ metadata_bathy_derivatives <- readRDS(paste0("data/", park, "/tidy/", name, "_me
 
 metadata <- readRDS(paste0("data/", park, "/raw/metadata.RDS"))
 
+# Fish metrics come from the BRUVs only - the BOSS synthesis is drop-camera
+# habitat with no fish records. Every join in this script therefore uses
+# metadata_fish, not metadata. Two things go wrong otherwise:
+#   * the BOSS drops get carried into the complete sample lists and come out as
+#     genuine zero-abundance / zero-biomass BRUVs, deflating every fish metric
+#   * several joins below key on year + sample without campaignid, so a BOSS
+#     drop sharing a sample name with a BRUV duplicates rows
+if (!"method" %in% names(metadata)) {
+  stop("metadata.RDS has no `method` column - re-run 01_call-API.R, which adds ",
+       "it when the BRUV and BOSS syntheses are combined.")
+}
+
+metadata_fish <- metadata %>%
+  dplyr::filter(method %in% "BRUV") %>%
+  dplyr::filter(as.character(year) %in% fish_years) %>%
+  dplyr::select(-method)
+
+message("Metadata samples: ", nrow(metadata),
+        " total | ", nrow(metadata_fish), " BRUV used for fish")
+
 # This is formatted habitat from 03_create-metrics_habitat
 benthos <- readRDS(paste0("data/", park, "/tidy/", name, "_benthos-count.RDS")) %>%
   CheckEM::clean_names() %>%
@@ -44,6 +65,7 @@ benthos <- readRDS(paste0("data/", park, "/tidy/", name, "_benthos-count.RDS")) 
   glimpse()
 
 count <- readRDS(paste0("data/", park, "/raw/_count-with-zeros.RDS")) %>%
+  dplyr::semi_join(metadata_fish, by = c("campaignid", "sample")) %>%
   dplyr::select(campaignid, sample, family, genus, species, count) %>%
   dplyr::mutate(scientific_name = paste(family, genus, species, sep = " ")) %>%
   glimpse()
@@ -82,19 +104,16 @@ count.wide <- count %>%
     values_from = count,
     values_fill = 0
   ) %>%
-  mutate(
-    Year = case_when(
-      grepl("^2014", campaignid) ~ "2014", # TODO adjust to years in data
-      grepl("^2024", campaignid) ~ "2024",
-      TRUE ~ campaignid
-    )
-  ) %>%
+  # Year comes from the metadata rather than a campaignid pattern, since sample
+  # names and campaign prefixes can repeat across campaigns. The join also
+  # carries status, and is keyed on campaignid AND sample for the same reason.
   left_join(
-    metadata %>% dplyr::select(sample, status),
-    by = "sample"
+    metadata_fish %>%
+      dplyr::select(campaignid, sample, Year = year, status) %>%
+      dplyr::mutate(Year = as.character(Year)),
+    by = c("campaignid", "sample")
   ) %>%
-  dplyr::filter(!is.na(status))
-
+  dplyr::filter(!is.na(status), !is.na(Year))
 # -----------------------------
 # Function to generate SAC data
 # -----------------------------
@@ -161,7 +180,7 @@ cti <- CheckEM::create_cti(data = count) %>%
 
 tidy_maxn <- bind_rows(ta.sr, cti) %>% # TODO check which samples are removed in this chunk
   dplyr::select(-c(log_count, w_sti)) %>%
-  dplyr::left_join(metadata) %>% # To join samples without valid bathymetry derivatives
+  dplyr::left_join(metadata_fish) %>% # To join samples without valid bathymetry derivatives
   dplyr::left_join(benthos) %>%
   dplyr::left_join(metadata_bathy_derivatives) %>%
   dplyr::filter(!is.na(reef),
@@ -172,6 +191,7 @@ saveRDS(tidy_maxn, file = paste0("data/", park, "/tidy/", name, "_tidy-count.rds
 
 # Create df for calculating B20
 b20_length <- readRDS(paste0("data/", park, "/raw/_length-with-zeros.RDS")) %>%
+  dplyr::semi_join(metadata_fish, by = c("campaignid", "sample")) %>%
   dplyr::select(campaignid, sample, family, genus, species, length_mm, count) %>%
   mutate(length_cm = length_mm / 10) %>%
   left_join(CheckEM::australia_life_history) %>%
@@ -194,7 +214,7 @@ biomass <- b20_length %>%
       TRUE ~ NA_real_  # present but cannot compute biomass -> NA
     )
   ) %>%
-  left_join(metadata, by = c("campaignid","sample")) %>%
+  left_join(metadata_fish, by = c("campaignid","sample")) %>%
   left_join(metadata_bathy_derivatives,
             by = c("campaignid","sample","longitude_dd","latitude_dd","status","year"))
 
@@ -236,14 +256,14 @@ b20_by_sample <- b20_mass %>%
 
 
 # 4) Ensure every BRUV × species exists (zeros for absences)
-all_samples <- metadata %>%
+all_samples <- metadata_fish %>%
   distinct(year, sample)
 
 b20_by_sample_complete <- b20_by_sample %>%
   right_join(all_samples, by = c("year","sample")) %>%
   tidyr::complete(nesting(year, sample), scientific_name,
                   fill = list(b20_sample = 0, present_n = 0)) %>%
-  left_join(metadata %>% select(year, sample, status), by = c("year", "sample"))
+  left_join(metadata_fish %>% select(year, sample, status), by = c("year", "sample"))
 
 # 5) Species summaries per year
 b20_species_by_status <- b20_by_sample_complete %>%
@@ -277,12 +297,13 @@ saveRDS(b20_species, file = paste0("data/", park, "/tidy/", name, "_b20-species.
 # Commonwealth-only copy of metadata
 # -------------------------------------------------------------------------
 
-marine_parks_amp <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
-  dplyr::filter(name %in% c("Ngari Capes", "Geographe", "South-west Corner")) %>%
+# st_within below already restricts this to samples that fall inside a
+# Commonwealth park, so no hardcoded park name list is needed here.
+marine_parks_amp <- st_read("data/north-west network/spatial/shapefiles/north-west-network-australia_marine-parks-all.shp") %>%
   dplyr::filter(epbc %in% "Commonwealth") %>%
   st_transform(4326)
 
-metadata_amp <- metadata %>%
+metadata_amp <- metadata_fish %>%
   distinct(campaignid, sample, .keep_all = TRUE) %>%
   st_as_sf(coords = c("longitude_dd", "latitude_dd"), crs = 4326, remove = FALSE) %>%
   st_join(
@@ -291,6 +312,12 @@ metadata_amp <- metadata %>%
     left = FALSE
   ) %>%
   st_drop_geometry()
+
+# TODO Check which parks the BRUVs landed in - ningaloo should be almost
+# entirely the Ningaloo Commonwealth marine park
+metadata_amp %>%
+  dplyr::count(name, year) %>%
+  print(n = Inf)
 
 # optional quick check
 metadata_amp %>%
@@ -478,7 +505,7 @@ b20_tidy <- biomass %>% # TODO this needs tweaking, not working 100% because som
     count = ifelse(is.na(count), 0, count),
     response = "b20"
   ) %>%
-  left_join(metadata, by = c("year","sample")) %>%
+  left_join(metadata_fish, by = c("year","sample")) %>%
   left_join(metadata_bathy_derivatives,
             by = c("campaignid","sample","longitude_dd","latitude_dd","status","year")) %>%
   left_join(benthos, by = c("campaignid","sample","status","year")) %>%

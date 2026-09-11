@@ -1,5 +1,19 @@
 scatterpie_plot_single <- function(benthos_year, site_limits, pie_radius = 0.004) {
 
+  hab_cols_all <- c(
+    "Sand" = "wheat",
+    "Sessile invertebrates" = "plum",
+    "Rock" = "grey40",
+    "Macroalgae" = "darkgoldenrod4",
+    "Seagrass" = "forestgreen"
+  )
+
+  # Only draw pie slices (and legend entries) for habitats with some cover in
+  # this data - an all-zero class would otherwise still show an empty slice
+  present_habs <- names(hab_cols_all)[
+    colSums(benthos_year[names(hab_cols_all)], na.rm = TRUE) > 0
+  ]
+
   ggplot() +
     geom_contour_filled(
       data = bathy,
@@ -21,17 +35,11 @@ scatterpie_plot_single <- function(benthos_year, site_limits, pie_radius = 0.004
     geom_scatterpie(
       data = benthos_year,
       aes(x = longitude_dd, y = latitude_dd, r = pie_radius),
-      cols = c(
-        "Sand",
-        "Sessile invertebrates",
-        "Rock",
-        "Macroalgae",
-        "Seagrass"
-      ),
+      cols = present_habs,
       colour = NA
     ) +
-    labs(x = "Longitude", y = "Latitude", fill = "Habitat") +
-    hab_fills +
+    labs(x = "Longitude", y = "Latitude", fill = NULL) +
+    scale_fill_manual(values = hab_cols_all[present_habs]) +
     coord_sf(
       xlim = c(site_limits[1], site_limits[2]),
       ylim = c(site_limits[3], site_limits[4]),

@@ -19,6 +19,20 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
       TRUE ~ NA_character_
     ))
 
+  # Anything modelled but outside every marine park zone is genuinely
+  # outside the network - label it Coastal Waters instead of dropping it
+  s2_was_on <- sf::sf_use_s2()
+  sf::sf_use_s2(FALSE)
+  study_extent <- terra::as.polygons(terra::ext(dat), crs = "epsg:4326") %>%
+    st_as_sf()
+  outside_parks <- suppressWarnings(
+    st_difference(study_extent, st_union(st_make_valid(marine_parks)))
+  ) %>%
+    dplyr::mutate(zone = "Coastal Waters", zone_new = "Coastal Waters", epbc = NA_character_)
+  sf::sf_use_s2(s2_was_on)
+
+  marine_parks <- dplyr::bind_rows(marine_parks, outside_parks)
+
   preds <- readRDS(paste0("data/", park, "/spatial/rasters/",
                           name, "_bathymetry-derivatives.rds")) %>%
     crop(dat)
@@ -56,6 +70,7 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
   replacement_se <- c(
     "seagrass_se"   = "p_seagrass.se.fit",
     "macroalgae_se" = "p_macro.se.fit",
+    "kelp_se"       = "p_kelp.se.fit",
     "rock_se"       = "p_rock.se.fit",
     "sand_se"       = "p_sand.se.fit",
     "inverts_se"    = "p_inverts.se.fit"
@@ -64,6 +79,7 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
   replacement_mean <- c(
     "seagrass"   = "p_seagrass.fit",
     "macroalgae" = "p_macro.fit",
+    "kelp"       = "p_kelp.fit",
     "rock"       = "p_rock.fit",
     "sand"       = "p_sand.fit",
     "inverts"    = "p_inverts.fit"
@@ -85,7 +101,7 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
       ) %>%
       dplyr::mutate(ID = as.character(ID), year = year) %>%
       dplyr::rename(dplyr::any_of(replacement_se)) %>%
-      dplyr::select(ID, year, dplyr::any_of(c("seagrass_se", "macroalgae_se", "rock_se", "sand_se", "inverts_se")))
+      dplyr::select(ID, year, dplyr::any_of(c("seagrass_se", "macroalgae_se", "kelp_se", "rock_se", "sand_se", "inverts_se")))
 
     means.shallow <- terra::extract(dat.shallow, marine_parks) %>%
       dplyr::group_by(ID) %>%
@@ -95,7 +111,7 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
       ) %>%
       dplyr::mutate(ID = as.character(ID), year = year) %>%
       dplyr::rename(dplyr::any_of(replacement_mean)) %>%
-      dplyr::select(ID, year, dplyr::any_of(c("seagrass", "macroalgae", "rock", "sand", "inverts")))
+      dplyr::select(ID, year, dplyr::any_of(c("seagrass", "macroalgae", "kelp", "rock", "sand", "inverts")))
 
     park_dat.shallow <- as.data.frame(marine_parks) %>%
       tibble::rownames_to_column() %>%
@@ -107,6 +123,7 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
       dplyr::select(zone_new, year, dplyr::any_of(c(
         "seagrass", "seagrass_se",
         "macroalgae", "macroalgae_se",
+        "kelp", "kelp_se",
         "rock", "rock_se",
         "sand", "sand_se",
         "inverts", "inverts_se"
@@ -134,7 +151,7 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
       ) %>%
       dplyr::mutate(ID = as.character(ID), year = year) %>%
       dplyr::rename(dplyr::any_of(replacement_se)) %>%
-      dplyr::select(ID, year, dplyr::any_of(c("seagrass_se", "macroalgae_se", "rock_se", "sand_se", "inverts_se")))
+      dplyr::select(ID, year, dplyr::any_of(c("seagrass_se", "macroalgae_se", "kelp_se", "rock_se", "sand_se", "inverts_se")))
 
     means.meso <- terra::extract(dat.meso, marine_parks) %>%
       dplyr::group_by(ID) %>%
@@ -144,7 +161,7 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
       ) %>%
       dplyr::mutate(ID = as.character(ID), year = year) %>%
       dplyr::rename(dplyr::any_of(replacement_mean)) %>%
-      dplyr::select(ID, year, dplyr::any_of(c("seagrass", "macroalgae", "rock", "sand", "inverts")))
+      dplyr::select(ID, year, dplyr::any_of(c("seagrass", "macroalgae", "kelp", "rock", "sand", "inverts")))
 
     park_dat.meso <- as.data.frame(marine_parks) %>%
       tibble::rownames_to_column() %>%
@@ -156,6 +173,7 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
       dplyr::select(zone_new, year, dplyr::any_of(c(
         "seagrass", "seagrass_se",
         "macroalgae", "macroalgae_se",
+        "kelp", "kelp_se",
         "rock", "rock_se",
         "sand", "sand_se",
         "inverts", "inverts_se"
@@ -183,7 +201,7 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
       ) %>%
       dplyr::mutate(ID = as.character(ID), year = year) %>%
       dplyr::rename(dplyr::any_of(replacement_se)) %>%
-      dplyr::select(ID, year, dplyr::any_of(c("seagrass_se", "macroalgae_se", "rock_se", "sand_se", "inverts_se")))
+      dplyr::select(ID, year, dplyr::any_of(c("seagrass_se", "macroalgae_se", "kelp_se", "rock_se", "sand_se", "inverts_se")))
 
     means.rari <- terra::extract(dat.rari, marine_parks) %>%
       dplyr::group_by(ID) %>%
@@ -193,7 +211,7 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
       ) %>%
       dplyr::mutate(ID = as.character(ID), year = year) %>%
       dplyr::rename(dplyr::any_of(replacement_mean)) %>%
-      dplyr::select(ID, year, dplyr::any_of(c("seagrass", "macroalgae", "rock", "sand", "inverts")))
+      dplyr::select(ID, year, dplyr::any_of(c("seagrass", "macroalgae", "kelp", "rock", "sand", "inverts")))
 
     park_dat.rari <- as.data.frame(marine_parks) %>%
       tibble::rownames_to_column() %>%
@@ -205,6 +223,7 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
       dplyr::select(zone_new, year, dplyr::any_of(c(
         "seagrass", "seagrass_se",
         "macroalgae", "macroalgae_se",
+        "kelp", "kelp_se",
         "rock", "rock_se",
         "sand", "sand_se",
         "inverts", "inverts_se"

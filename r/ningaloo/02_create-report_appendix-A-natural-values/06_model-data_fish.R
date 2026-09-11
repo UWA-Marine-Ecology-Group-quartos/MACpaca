@@ -4,6 +4,11 @@
 # Task:    Model fish data using the full subsets approach from @beckyfisher/FSSgam
 # Author:  Claude Spencer & Henry Evans
 # Date:    July 2026
+#
+# Ningaloo (whole extent): fish years are POOLED into a single combined output,
+# same as the benthos. Only `status` is forced into every model - there is no
+# `year` term anywhere in this script. If you need fish split out by year
+# instead, use the per-year version of this script (see swc_westernarm_npz05).
 ###
 
 rm(list = ls())
@@ -19,11 +24,14 @@ config <- yaml::read_yaml(
 
 name <- config$name
 park <- config$park
-years <- config$years
+years <- unlist(config$years)           # benthos years
+fish_years <- unlist(config$fish_years) # years pooled into the combined fish output
 
 combine_benthos <- config$combine_benthos
 benthos_label <- if (combine_benthos) paste(years, collapse = "_") else NA
 
+# Label used to save/read the pooled fish outputs (single combined file)
+fish_label <- paste(fish_years, collapse = "_")
 
 library(mgcv)
 library(tidyverse)
@@ -35,8 +43,15 @@ library(FSSgam)
 library(CheckEM)
 
 tidy_maxn <- readRDS(paste0("data/", park, "/tidy/", name, "_tidy-count.rds")) %>% # TODO check outlier removal
-  dplyr::filter(geoscience_roughness < 4) %>% # Remove outliers in roughness
+  #  dplyr::filter(geoscience_roughness < 4) %>% # Remove outliers in roughness
+  # Drop stale factor levels carried in from the RDS. Year is kept as a column
+  # (useful for checks/plots) but is never a model term below.
+  dplyr::mutate(year   = droplevels(factor(as.character(year), levels = fish_years)),
+                status = droplevels(factor(as.character(status)))) %>%
   glimpse()
+
+# TODO status needs both levels or the GAMs below will fail on the contrast
+print(table(tidy_maxn$year, tidy_maxn$status))
 
 # Re-set the predictors for modeling----
 names(tidy_maxn)
@@ -61,7 +76,10 @@ resp.vars
 
 # Run the full subset model selection----
 savedir <- paste0("output/model-output/", park, "/fish/maxn/")
-factor.vars <- c("status", "year") # TODO set factors, drop year if only one year of data
+# status is forced into every model via null.terms, so it is no longer offered
+# as a candidate factor - listing it in both places duplicates the term. Years
+# are pooled, so there is no year factor at all.
+factor.vars <- NA
 out.all     <- list()
 var.imp     <- list()
 
@@ -69,7 +87,7 @@ var.imp     <- list()
 for(i in 1:length(resp.vars)){
   print(resp.vars[i])
   use.dat <- as.data.frame(tidy_maxn[which(tidy_maxn$response == resp.vars[i]), ])
-  Model1  <- gam(count ~ s(geoscience_depth, k = 3, bs = 'cr'),
+  Model1  <- gam(count ~ status + s(geoscience_depth, k = 3, bs = 'cr'),
                  family = tw(),  data = use.dat) # TODO check family
 
   model.set <- generate.model.set(use.dat = use.dat,
@@ -77,6 +95,7 @@ for(i in 1:length(resp.vars)){
                                   pred.vars.cont = pred.vars,
                                   pred.vars.fact = factor.vars,
                                   cyclic.vars = "geoscience_aspect",
+                                  null.terms = "status", # force status
                                   k = 3, # TODO check this, maybe add cov.cutoff
                                   factor.smooth.interactions = F, # TODO check this
                                   max.predictors = 5 # TODO check this
@@ -119,7 +138,9 @@ write.csv(all.var.imp, file = paste(savedir, paste(name, "all.var.imp.csv", sep 
 
 # Do FSS for B20
 tidy_b20 <- readRDS(paste0("data/", park, "/tidy/", name, "_tidy-b20.rds")) %>%
-  dplyr::filter(geoscience_roughness < 4) %>% # TODO check, make same as above
+  #  dplyr::filter(geoscience_roughness < 4) %>% # TODO check, make same as above
+  dplyr::mutate(year   = droplevels(factor(as.character(year), levels = fish_years)),
+                status = droplevels(factor(as.character(status)))) %>%
   glimpse()
 
 # # Re-set the predictors for modeling----
@@ -148,13 +169,14 @@ savedir <- paste0("output/model-output/", park, "/fish/length/")
 name_b20 <- paste(name,"b20", sep = "_")
 out.all <- list()
 var.imp <- list()
-factor.vars <- c("status", "year") # TODO check, drop year if only one year of data
+# status forced below, so not offered as a candidate factor. No year factor.
+factor.vars <- NA
 
 # Loop through the FSS function for each Taxa----
 for(i in 1:length(resp.vars)){
   print(resp.vars[i])
   use.dat = as.data.frame(tidy_b20[which(tidy_b20$response==resp.vars[i]),])
-  Model1  <- gam(count ~ s(geoscience_depth, k = 3, bs = 'cr'),
+  Model1  <- gam(count ~ status + s(geoscience_depth, k = 3, bs = 'cr'),
                  tw(),  data = use.dat) # TODO check family
 
   model.set <- generate.model.set(use.dat = use.dat,
@@ -162,6 +184,7 @@ for(i in 1:length(resp.vars)){
                                   pred.vars.cont = pred.vars,
                                   pred.vars.fact = factor.vars,
                                   cyclic.vars = "geoscience_aspect",
+                                  null.terms = "status", # force status
                                   k = 3, # TODO check this, maybe add cov.cutoff
                                   factor.smooth.interactions = F, # TODO check this
                                   max.predictors = 5 # TODO check this
@@ -204,51 +227,70 @@ write.csv(all.var.imp, file = paste(savedir, paste(name_b20, "all.var.imp.csv", 
 
 # read in
 fabund <- bind_rows(tidy_maxn, tidy_b20) %>%
+  dplyr::mutate(year   = droplevels(factor(as.character(year), levels = fish_years)),
+                status = droplevels(factor(as.character(status)))) %>%
   glimpse()
 
 ## TODO Select best models from above then write them below (check all.mod.fits and all.var.imp)
 # For each response, carefully write the selected model choosing model type (family),
 # predictor variables, factor variables, k and bs
+# status is kept in every model regardless of what selection returns - there is
+# no year term anywhere, fish years are pooled
 
-#Total abundance
-m_abundance <- gam(count ~ year + status +
-                    s(reef, by = year, k = 3, bs = "cr"),
-                  data = fabund %>% dplyr::filter(response %in% "total_abundance"),
-                  family = poisson)
+# Best models from all.mod.fits / all.var.imp (ningaloo_all.mod.fits.csv,
+# ningaloo_b20_all.mod.fits.csv) - simplest model within delta AICc <= 2 for
+# each response:
+#   total_abundance: geoscience_depth + reef        (delta 0,     wi 0.563)
+#   species_richness: geoscience_aspect + geoscience_depth + reef (only candidate, wi 0.991)
+#   cti: geoscience_depth alone                      (delta 0.612, wi 0.202)
+#   b20: geoscience_aspect + geoscience_depth         (delta 1.682, wi 0.278)
+
+# Total abundance
+m_abundance <- gam(count ~ status +
+                     s(geoscience_depth, k = 3, bs = "cr") +
+                     s(reef, k = 3, bs = "cr"),
+                   data = fabund %>% dplyr::filter(response %in% "total_abundance"),
+                   family = poisson)
 summary(m_abundance)
 # plot(m_abundance)
 
 # Species richness
-m_richness <- gam(count ~ year + status +
-                    s(geoscience_aspect, by = year, k = 3, bs = "cc") +
-                    s(geoscience_detrended, by = year, k = 3, bs = "cr") +
-                    s(reef, by = year, k = 3, bs = "cr"),
+m_richness <- gam(count ~ status +
+                    s(geoscience_aspect, k = 3, bs = "cc") +
+                    s(geoscience_depth, k = 3, bs = "cr") +
+                    s(reef, k = 3, bs = "cr"),
                   data = fabund %>% dplyr::filter(response %in% "species_richness"),
                   family = gaussian(link = "identity"))
 summary(m_richness)
 # plot(m_richness)
 
 # CTI
-m_cti <- gam(count ~ year + status +
-                    s(geoscience_depth, by = year, k = 3, bs = "cr") +
-                    s(geoscience_detrended, by = year, k = 3, bs = "cr") +
-                    s(reef, by = year, k = 3, bs = "cr"),
+m_cti <- gam(count ~ status +
+               s(geoscience_depth, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "cti"),
              family = gaussian(link = "identity"))
 summary(m_cti)
 # plot(m_cti)
 
 # B20
-m_b20 <- gam(count ~ year + status +
-               s(geoscience_depth, by = year, k = 3, bs = "cr") +
-               s(geoscience_detrended, by = year, k = 3, bs = "cr"),
+m_b20 <- gam(count ~ status +
+               s(geoscience_aspect, k = 3, bs = "cc") +
+               s(geoscience_depth, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "b20"),
              family = tw())
 summary(m_b20)
 # plot(m_b20, all.terms = TRUE)
 
+# TODO If fish years stop being pooled, add `year +` back into every model
+# above and mirror it in the Appendix C data-analysis scripts
+if (any(vapply(list(m_abundance, m_richness, m_cti, m_b20),
+               function(m) "year" %in% all.vars(formula(m)), logical(1)))) {
+  stop("A final fish model still contains a year term - fish years are pooled here.")
+}
+
 # Read predictor rasters to predict onto (bathymetry derivatives etc.)
-preds <- readRDS(paste0("data/", park, "/spatial/rasters/", name, "_bathymetry-derivatives.rds"))
+# BRUV-only surface from 02 - fish must not be predicted where only BOSS sampled
+preds <- readRDS(paste0("data/", park, "/spatial/rasters/", name, "_bathymetry-derivatives-fish.rds"))
 plot(preds)
 
 # Predictors as a dataframe for modelling
@@ -257,10 +299,13 @@ preddf <- preds %>%
   glimpse()
 
 # Extract status to predict onto (same as habitat script)
-marine_parks <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
-  dplyr::filter(name %in% c("Ngari Capes", "Geographe", "South-west Corner")) %>% # TODO select marine parks in your area
-  dplyr::filter(zone_type %in% c("Sanctuary Zone (IUCN VI)",
-                                 "National Park Zone (IUCN II)")) %>%
+# TODO Ningaloo's Commonwealth waters only carry a National Park Zone (no
+# Commonwealth Sanctuary Zone here) - check this still holds if the shapefile
+# is updated
+marine_parks <- st_read("data/north-west network/spatial/shapefiles/north-west-network-australia_marine-parks-all.shp") %>%
+  dplyr::filter(name %in% "Ningaloo") %>%
+  dplyr::filter(epbc %in% "Commonwealth") %>%
+  dplyr::filter(zone_type %in% "National Park Zone (IUCN II)") %>%
   dplyr::mutate(status = "No-Take") %>%
   vect()
 
@@ -273,35 +318,27 @@ preddf_s <- cbind(preddf, terra::extract(marine_parks, predv)) %>%
   glimpse()
 
 ## ------------------------------------------------------------
-## ADD YEAR-SPECIFIC REEF FOR FISH MODELLING
+## ADD REEF FOR FISH MODELLING (single pooled surface, no year loop)
 ## ------------------------------------------------------------
-# One reef surface per fish year. If benthos was pooled there is a single
-# combined-years habitat file, so every fish year reuses that same reef surface.
-if (combine_benthos) {
-  reef_r <- readRDS(paste0("output/model-output/", park, "/habitat/",
-                           name, "_predicted-habitat_", benthos_label, ".rds")) %>%
-    terra::subset("p_reef.fit")
-  names(reef_r) <- "reef"
-  reef_by_year <- setNames(rep(list(reef_r), length(years)), years)
-} else {
-  reef_by_year <- setNames(lapply(years, function(y) {
-    r <- readRDS(paste0("output/model-output/", park, "/habitat/",
-                        name, "_predicted-habitat_", y, ".rds")) %>%
-      terra::subset("p_reef.fit")
-    names(r) <- "reef"; r
-  }), years)
+# Benthos is pooled (combine_benthos), so there is a single combined-years
+# habitat file. Fish years are also pooled here, so only one reef surface is
+# needed for the whole prediction.
+if (!combine_benthos) {
+  stop("This script assumes combine_benthos is TRUE - benthos and fish are ",
+       "both pooled for the ningaloo whole-extent appendix.")
 }
 
-# Build one prediction frame per fish year, each with its reef surface
-preddf_sy <- purrr::map_dfr(years, function(y) {
-  cbind(preddf_s,
-        terra::extract(reef_by_year[[as.character(y)]], predv)[, "reef", drop = FALSE]) %>%
-    dplyr::mutate(year = y)
-}) %>%
-  dplyr::mutate(year = factor(year, levels = levels(fabund$year)))
+reef_r <- readRDS(paste0("output/model-output/", park, "/habitat/",
+                         name, "_predicted-habitat_", benthos_label, ".rds")) %>%
+  terra::subset("p_reef.fit")
+names(reef_r) <- "reef"
+
+preddf_sy <- cbind(preddf_s,
+                   terra::extract(reef_r, predv)[, "reef", drop = FALSE]) %>%
+  glimpse()
 
 ## ------------------------------------------------------------
-## PREDICT FISH METRICS FOR BOTH YEARS
+## PREDICT FISH METRICS (single combined surface)
 ## ------------------------------------------------------------
 
 predicted_fish <- cbind(
@@ -313,119 +350,92 @@ predicted_fish <- cbind(
 ) %>%
   glimpse()
 
-## ------------------------------------------------------------
-## RASTERISE FISH PREDICTIONS BY YEAR (same format as habitat)
-## ------------------------------------------------------------
-# TODO edit the years below to match data
-# 2014 rasters
-prasts_2014 <- rast(
+prasts <- rast(
   predicted_fish %>%
-    dplyr::filter(as.character(year) %in% "2014") %>%
     dplyr::select(x, y, starts_with("p_")),
   crs = "epsg:4326"
 )
 
-plot(prasts_2014)
-summary(prasts_2014)
+plot(prasts)
+summary(prasts)
 
-# 2024 rasters
-prasts_2024 <- rast(
-  predicted_fish %>%
-    dplyr::filter(as.character(year) %in% "2024") %>%
-    dplyr::select(x, y, starts_with("p_")),
-  crs = "epsg:4326"
-)
-
-plot(prasts_2024)
-summary(prasts_2024)
-
-# Calculate MESS and mask predictions
+## ------------------------------------------------------------
+## CALCULATE MESS AND MASK PREDICTIONS (single combined surface)
+## ------------------------------------------------------------
 
 resp.vars <- c("p_abundance", "p_richness", "p_cti", "p_b20")
-pred.years <- years
 
-for (y in seq_along(pred.years)) {
+xy <- fabund %>%
+  dplyr::transmute(x = longitude_dd, y = latitude_dd)
 
-  this_year <- pred.years[y]
-  print(this_year)
+preddf_m <- NULL
 
-  xy <- fabund %>%
-    dplyr::filter(as.character(year) == this_year) %>%
-    dplyr::transmute(x = longitude_dd, y = latitude_dd)
+for (i in seq_along(resp.vars)) {
 
-  for (i in seq_along(resp.vars)) {
+  print(resp.vars[i])
+  mod <- get(str_replace_all(resp.vars[i], "p_", "m_"))
 
-    print(resp.vars[i])
-    mod <- get(str_replace_all(resp.vars[i], "p_", "m_"))
+  temppred <- predicted_fish %>%
+    dplyr::select(x, y,
+                  paste0(resp.vars[i], ".fit"),
+                  paste0(resp.vars[i], ".se.fit")) %>%
+    rast(crs = "epsg:4326")
 
-    temppred <- predicted_fish %>%
-      dplyr::filter(as.character(year) == this_year) %>%
-      dplyr::select(x, y,
-                    paste0(resp.vars[i], ".fit"),
-                    paste0(resp.vars[i], ".se.fit")) %>%
-      rast(crs = "epsg:4326")
+  geo.vars <- names(mod$model)[startsWith(names(mod$model), "geoscience")]
 
-    geo.vars <- names(mod$model)[startsWith(names(mod$model), "geoscience")]
+  if (length(geo.vars) > 0) {
 
-    if (length(geo.vars) > 0) {
+    xr  <- subset(preds, geo.vars)
 
-      xr  <- subset(preds, geo.vars)
+    dat <- terra::extract(xr, xy) %>%
+      dplyr::select(-ID) %>%
+      as.data.frame()
 
-      dat <- terra::extract(xr, xy) %>%
-        dplyr::select(-ID) %>%
-        as.data.frame()
+    # drop rows with NA covariates
+    dat <- dat[stats::complete.cases(dat), , drop = FALSE]
 
-      # drop rows with NA covariates
-      dat <- dat[stats::complete.cases(dat), , drop = FALSE]
-
-      if (nrow(dat) == 0) {
-        message("No complete covariate rows for ", resp.vars[i], " (", this_year, "). Skipping mask.")
-        temppred_m <- temppred
-
-      } else if (length(geo.vars) == 1) {
-
-        # --- univariate mask: keep only cells within observed range ---
-        vmin <- min(dat[[1]], na.rm = TRUE)
-        vmax <- max(dat[[1]], na.rm = TRUE)
-
-        maskrast <- xr[[1]]
-        maskrast <- terra::ifel(maskrast >= vmin & maskrast <= vmax, 1, NA)
-
-        maskrast <- terra::crop(maskrast, temppred)
-        temppred_m <- terra::mask(temppred, maskrast)
-
-      } else {
-
-        # --- multivariate MESS (works fine for >=2 predictors) ---
-        messrast <- predicts::mess(xr, dat) %>%
-          terra::clamp(lower = -0.01, values = FALSE) %>%
-          terra::crop(temppred)
-
-        temppred_m <- terra::mask(temppred, messrast)
-      }
-
-    } else {
-      message("No geoscience predictors in model for ", resp.vars[i],
-              " (", this_year, "). Skipping MESS mask.")
+    if (nrow(dat) == 0) {
+      message("No complete covariate rows for ", resp.vars[i], ". Skipping mask.")
       temppred_m <- temppred
-    }
 
-    if (i == 1) {
-      preddf_m <- temppred_m
+    } else if (length(geo.vars) == 1) {
+
+      # --- univariate mask: keep only cells within observed range ---
+      vmin <- min(dat[[1]], na.rm = TRUE)
+      vmax <- max(dat[[1]], na.rm = TRUE)
+
+      maskrast <- xr[[1]]
+      maskrast <- terra::ifel(maskrast >= vmin & maskrast <= vmax, 1, NA)
+
+      maskrast <- terra::crop(maskrast, temppred)
+      temppred_m <- terra::mask(temppred, maskrast)
+
     } else {
-      preddf_m <- c(preddf_m, temppred_m)   # <- combine layers
+
+      # --- multivariate MESS (works fine for >=2 predictors) ---
+      messrast <- predicts::mess(xr, dat) %>%
+        terra::clamp(lower = -0.01, values = FALSE) %>%
+        terra::crop(temppred)
+
+      temppred_m <- terra::mask(temppred, messrast)
     }
 
+  } else {
+    message("No geoscience predictors in model for ", resp.vars[i],
+            ". Skipping MESS mask.")
+    temppred_m <- temppred
   }
 
-  plot(preddf_m)
-
-  saveRDS(preddf_m,
-          paste0("output/model-output/", park, "/fish/",
-                 name, "_predicted-fish_", this_year, ".rds"))
-
-  writeRaster(preddf_m,
-              paste0("output/model-output/", park, "/fish/",
-                     names(preddf_m), "_predicted_", this_year, ".tif"),
-              overwrite = TRUE)
+  preddf_m <- if (is.null(preddf_m)) temppred_m else c(preddf_m, temppred_m)
 }
+
+plot(preddf_m)
+
+saveRDS(preddf_m,
+        paste0("output/model-output/", park, "/fish/",
+               name, "_predicted-fish_", fish_label, ".rds"))
+
+writeRaster(preddf_m,
+            paste0("output/model-output/", park, "/fish/",
+                   names(preddf_m), "_predicted_", fish_label, ".tif"),
+            overwrite = TRUE)

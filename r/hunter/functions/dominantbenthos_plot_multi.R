@@ -8,24 +8,24 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
 
   # Gradient high colours for each habitat
   grad_high <- c(
-    "Sand"                  = "wheat",
+    "Sediment"                  = "wheat",
     "Macroalgae"            = "darkorange4",
     "Seagrass"              = "forestgreen",
-    "Rock"                  = "grey40",
+    "Bare Rock"                  = "grey40",
     "Sessile invertebrates" = "deeppink3"
   )
 
   # Legend label (line break for long names)
   legend_names <- c(
-    "Sand"                  = "Sand",
+    "Sediment"                  = "Sediment",
     "Macroalgae"            = "Macroalgae",
     "Seagrass"              = "Seagrass",
-    "Rock"                  = "Rock",
+    "Bare Rock"                  = "Bare Rock",
     "Sessile invertebrates" = "Sessile\ninvertebrates"
   )
 
   # Canonical rendering order — filter to modelled taxa only
-  hab_order <- c("Sand", "Rock", "Macroalgae", "Seagrass", "Sessile invertebrates")
+  hab_order <- c("Sediment", "Bare Rock", "Macroalgae", "Seagrass", "Sessile invertebrates")
   modelled  <- hab_order[hab_order %in% names(habitat_lookup)]
 
   multi_year <- length(dat_list) > 1
@@ -77,7 +77,7 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
     axis.ticks.x = element_blank()
   )
 
-  ngari_colours <- wasanc %>%
+  ngari_colours <- marine_parks_state %>%
     st_drop_geometry() %>%
     distinct(zone, colour) %>%
     arrange(zone) %>%
@@ -98,26 +98,6 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
       ),
       geom_sf(data = ausc, fill = "seashell2", colour = "black", linewidth = 0.2),
       geom_sf(
-        data        = wasanc,
-        aes(colour  = zone),
-        fill        = NA,
-        linewidth   = 0.8,
-        show.legend = show_park_legend
-      ),
-      scale_colour_manual(
-        name   = "State Marine Park",
-        guide  = "legend",
-        values = with(wasanc, setNames(colour, zone))
-      ),
-      guides(colour = guide_legend(
-        order        = 2,
-        ncol         = 1,
-        title.position = "top",
-        override.aes = list(colour = ngari_colours, fill = NA, linewidth = 1),
-        title.theme  = element_text(size = 9, face = "bold")
-      )),
-      ggnewscale::new_scale_color(),
-      geom_sf(
         data        = marine_parks_amp,
         aes(colour  = zone),
         fill        = NA,
@@ -135,6 +115,26 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
         ncol         = 2,
         title.position = "top",
         override.aes = list(fill = NA, linewidth = 1),
+        title.theme  = element_text(size = 9, face = "bold")
+      )),
+      ggnewscale::new_scale_color(),
+      geom_sf(
+        data        = marine_parks_state,
+        aes(colour  = zone),
+        fill        = NA,
+        linewidth   = 0.8,
+        show.legend = show_park_legend
+      ),
+      scale_colour_manual(
+        name   = "State Marine Park",
+        guide  = "legend",
+        values = with(marine_parks_state, setNames(colour, zone))
+      ),
+      guides(colour = guide_legend(
+        order        = 2,
+        ncol         = 1,
+        title.position = "top",
+        override.aes = list(colour = ngari_colours, fill = NA, linewidth = 1),
         title.theme  = element_text(size = 9, face = "bold")
       )),
       coord_sf(
@@ -189,9 +189,13 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
     }
 
     # Only add year title when there are multiple years
-    if (multi_year) p <- p + ggtitle(yrs[i])
+    if (multi_year) {
+      p <- p + ggtitle(yrs[i])
+    } else {
+      p <- p + ggtitle("Predicted Habitat Probability")
+    }
 
-    p + build_base(i, show_x = FALSE, show_park_legend = FALSE)
+    p + build_base(i, show_x = !multi_year, show_park_legend = FALSE)
   })
 
   # ------------------------------------------------------------
@@ -205,10 +209,13 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
         na.value = "transparent",
         name     = "Normalised\ncombined SE",
         limits   = se_limits,
-        oob      = scales::squish
+        oob      = scales::squish,
+        guide    = guide_colorbar(barwidth = unit(3, "cm"), barheight = unit(0.3, "cm"))
+
 
       ) +
-      build_base(i, show_x = TRUE, show_park_legend = FALSE)
+      ggtitle(if (multi_year) NULL else "Standard Error") +
+      build_base(if (multi_year) i else 2, show_x = TRUE, show_park_legend = FALSE)
   })
   # ------------------------------------------------------------
   # Row labels
@@ -223,20 +230,30 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
       )
   }
 
-  dom_label <- row_label_plot("Predicted Habitat Probability")
-  se_label  <- row_label_plot("Standard Error")
-
   # ------------------------------------------------------------
   # Combine
   # ------------------------------------------------------------
-  dom_row <- dom_label + wrap_plots(p_dom, nrow = 1, guides = "collect") +
-    plot_layout(widths = c(0.06, 1))
+  if (!multi_year) {
 
-  se_row <- se_label + wrap_plots(p_se, nrow = 1, guides = "collect") +
-    plot_layout(widths = c(0.06, 1))
+    p_out <- wrap_plots(c(p_dom, p_se), nrow = 1)
 
-  p_out <- (dom_row / se_row) +
-    plot_layout(heights = c(1, 1), guides = "collect") &
+  } else {
+
+    dom_label <- row_label_plot("Predicted Habitat Probability")
+    se_label  <- row_label_plot("Standard Error")
+
+    dom_row <- dom_label + wrap_plots(p_dom, nrow = 1, guides = "collect") +
+      plot_layout(widths = c(0.06, 1))
+
+    se_row <- se_label + wrap_plots(p_se, nrow = 1, guides = "collect") +
+      plot_layout(widths = c(0.06, 1))
+
+    p_out <- (dom_row / se_row) +
+      plot_layout(heights = c(1, 1))
+  }
+
+  p_out <- p_out +
+    plot_layout(guides = "collect") &
     theme(
       legend.position      = "bottom",
       legend.direction     = "horizontal",

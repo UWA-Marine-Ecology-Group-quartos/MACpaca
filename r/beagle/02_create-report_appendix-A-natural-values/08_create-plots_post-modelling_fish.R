@@ -234,8 +234,10 @@ for (metric_name in names(fish_metric_lookup)) {
     layer_stub = layer_stub,
     dat_list = dat_list,
     prediction_limits = prediction_limits,
-    pred_limits = NULL,   # set numeric vector if you want fixed limits
-    se_limits = NULL      # auto-scale within metric across years
+    pred_limits = NULL, #quantile(unlist(lapply(dat_list, function(x) values(x[[paste0("p_", layer_stub, ".fit")]]))),
+                      #     probs = c(0, 0.98), na.rm = TRUE),   # set numeric vector if you want fixed limits
+    se_limits = NULL #quantile(unlist(lapply(dat_list, function(x) values(x[[paste0("p_", layer_stub, ".se.fit")]]))),
+                     #    probs = c(0, 0.98), na.rm = TRUE)      # auto-scale within metric across years
   )
 
   print(p_metric)
@@ -252,7 +254,7 @@ for (metric_name in names(fish_metric_lookup)) {
       paste(years, collapse = "-"), ".png"
     ),
     plot = p_metric,
-    height = 5,
+    height = 6,
     width = 8,
     dpi = 300,
     units = "in",

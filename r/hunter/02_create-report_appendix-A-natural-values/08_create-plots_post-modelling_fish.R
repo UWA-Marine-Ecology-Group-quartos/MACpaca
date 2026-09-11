@@ -252,7 +252,7 @@ for (metric_name in names(fish_metric_lookup)) {
       paste(years, collapse = "-"), ".png"
     ),
     plot = p_metric,
-    height = 5,
+    height = 6,
     width = 8,
     dpi = 300,
     units = "in",

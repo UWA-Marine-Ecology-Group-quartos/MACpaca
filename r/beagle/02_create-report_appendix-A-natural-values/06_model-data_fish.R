@@ -266,7 +266,7 @@ preddf <- preds %>%
 
 # Extract status to predict onto (same as habitat script)
 marine_parks <- st_read("data/amp_shapefile/Australian_Marine_Parks_v2.shp") %>%
-  dplyr::filter(name %in% c("Beagle", "Kent Group NAtional Park")) %>% # TODO select marine parks in your area
+  dplyr::filter(name %in% c("Beagle", "Kent Group National Park")) %>% # TODO select marine parks in your area
   #dplyr::filter(zone_type %in% c("Sanctuary Zone (IUCN VI)",
   #                              "National Park Zone (IUCN II)")) %>%
   #dplyr::mutate(status = "No-Take") %>%
@@ -275,8 +275,16 @@ marine_parks <- st_read("data/amp_shapefile/Australian_Marine_Parks_v2.shp") %>%
 # Points for extraction
 predv <- vect(preddf, geom = c("x", "y"), crs = "epsg:4326")
 
-# Add status (No-Take / Fished) to prediction dataframe
-preddf_s <- cbind(preddf, terra::extract(marine_parks, predv)) %>%
+ext_result <- terra::extract(marine_parks, predv)
+ext_result_dedup <- ext_result %>%
+  dplyr::group_by(id.y) %>%
+  dplyr::arrange(dplyr::desc(epbc == "Commonwealth")) %>%  # Commonwealth rows sorted first
+  dplyr::slice(1) %>%
+  dplyr::ungroup()
+
+nrow(ext_result_dedup)  # should now be 103648
+
+preddf_s <- cbind(preddf, ext_result_dedup) %>%
   dplyr::mutate(status = as.factor(ifelse(is.na(status), "Fished", "No-Take"))) %>%
   glimpse()
 
@@ -437,3 +445,4 @@ for (y in seq_along(pred.years)) {
                      names(preddf_m), "_predicted_", this_year, ".tif"),
               overwrite = TRUE)
 }
+

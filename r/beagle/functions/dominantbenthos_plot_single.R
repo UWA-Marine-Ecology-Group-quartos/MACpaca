@@ -48,53 +48,57 @@ dominantbenthos_plot_single <- function(pred_plot, prediction_limits, habitat_lo
       )
   }
 
-  p_out <- p +
-    geom_contour(
-      data = bathy,
-      aes(x = x, y = y, z = Depth),
-      colour    = "black",
-      breaks    = c(-30, -70, -200),
-      linewidth = 0.1
-    ) +
-    geom_sf(data = ausc, fill = "seashell2", colour = "black", linewidth = 0.2) +
-    geom_sf(
-      data = marine_parks_amp,
-      aes(colour = zone),
-      fill         = NA,
-      show.legend  = FALSE,
-      linewidth    = 0.6
-    ) +
-    scale_colour_manual(
-      values = with(marine_parks_amp, setNames(colour, zone))) +
-    geom_sf(data = cwatr, colour = "firebrick", linewidth = 0.6) +
-    ggnewscale::new_scale_color() +
-    geom_sf(
-      data = marine_parks_state,
-      aes(colour = zone),
-      fill        = NA,
-      show.legend = FALSE,
-      linewidth   = 0.6
-    ) +
-    scale_colour_manual(values = with(marine_parks_state, setNames(colour, zone))) +
-    coord_sf(
-      xlim   = c(prediction_limits[1], prediction_limits[2]),
-      ylim   = c(prediction_limits[3], prediction_limits[4]),
-      crs    = 4326,
-      expand = FALSE
-    ) +
-    labs(x = NULL, y = NULL, colour = NULL) +
-    theme_minimal() +
-    theme(
-      axis.title        = element_blank(),
-      axis.text         = element_text(size = 9),
-      axis.ticks        = element_line(linewidth = 0.2),
-      panel.grid.major  = element_line(linewidth = 0.2, colour = "grey85"),
-      panel.grid.minor  = element_blank(),
-      legend.title      = element_text(size = 9),
-      legend.text       = element_text(size = 8),
-      legend.key.height = unit(0.45, "cm"),
-      legend.key.width  = unit(0.45, "cm"),
-      plot.margin       = margin(2, 2, 2, 2, unit = "mm")
-    )
-  cowplot::plot_grid(p_out, marine_park_legend(), ncol = 1, rel_heights = c(1, 0.175))
+
+p_out <- p +
+  geom_contour(
+    data = bathy,
+    aes(x = x, y = y, z = Depth),
+    colour    = "black",
+    breaks    = c(-30, -70, -200),
+    linewidth = 0.1
+  ) +
+  geom_sf(data = ausc, fill = "seashell2", colour = "black", linewidth = 0.2) +
+  geom_sf(
+    data = marine_parks_state,
+    aes(colour = zone),
+    fill        = NA,
+    show.legend = FALSE,
+    linewidth   = 0.6
+  ) +
+  scale_colour_manual(values = with(marine_parks_state, setNames(colour, zone))) +
+  ggnewscale::new_scale_color() +
+  geom_sf(data = cwatr, colour = "firebrick", linewidth = 0.6) +
+  geom_sf(
+    data = marine_parks_amp,
+    aes(colour = zone),
+    fill         = NA,
+    show.legend  = FALSE,
+    linewidth    = 0.6
+  ) +
+  geom_sf(data = cwatr, colour = "firebrick", linewidth = 0.6) +
+  scale_colour_manual(
+
+    values = with(marine_parks_amp, setNames(colour, zone))
+  ) +
+  coord_sf(
+    xlim   = c(prediction_limits[1], prediction_limits[2]),
+    ylim   = c(prediction_limits[3], prediction_limits[4]),
+    crs    = 4326,
+    expand = FALSE
+  ) +
+  labs(x = NULL, y = NULL, colour = NULL) +
+  theme_minimal() +
+  theme(
+    axis.title        = element_blank(),
+    axis.text         = element_text(size = 9),
+    axis.ticks        = element_line(linewidth = 0.2),
+    panel.grid.major  = element_line(linewidth = 0.2, colour = "grey85"),
+    panel.grid.minor  = element_blank(),
+    legend.title      = element_text(size = 9),
+    legend.text       = element_text(size = 8),
+    legend.key.height = unit(0.45, "cm"),
+    legend.key.width  = unit(0.45, "cm"),
+    plot.margin       = margin(2, 2, 2, 2, unit = "mm")
+  )
+cowplot::plot_grid(p_out, marine_park_legend(), ncol = 1, rel_heights = c(1, 0.175))
 }

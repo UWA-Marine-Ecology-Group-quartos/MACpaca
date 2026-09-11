@@ -53,4 +53,4 @@ dem_cross_section <- function(xstart, xend, ystart, yend, maxdist, cwatr = NULL)
   list(profile = bath_df, cwatr_crossings = cwatr_crossings, line = tran)
 }
 
-this is only showing 8km from coast when i want close to 90km
+

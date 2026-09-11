@@ -45,6 +45,7 @@ benthos <- readRDS(paste0("data/", park, "/tidy/", name, "_benthos-count.RDS")) 
 
 count <- readRDS(paste0("data/", park, "/raw/_count-with-zeros.RDS")) %>%
   dplyr::select(campaignid, sample, family, genus, species, count) %>%
+  dplyr::filter(genus != "Trachurus") %>%
   dplyr::mutate(scientific_name = paste(family, genus, species, sep = " ")) %>%
   glimpse()
 
@@ -173,6 +174,7 @@ saveRDS(tidy_maxn, file = paste0("data/", park, "/tidy/", name, "_tidy-count.rds
 # Create df for calculating B20
 b20_length <- readRDS(paste0("data/", park, "/raw/_length-with-zeros.RDS")) %>%
   dplyr::select(campaignid, sample, family, genus, species, length_mm, count) %>%
+  dplyr::filter(genus != "Trachurus") %>%
   mutate(length_cm = length_mm / 10) %>%
   left_join(CheckEM::australia_life_history) %>%
   dplyr::mutate(scientific_name = paste(genus, species, sep = " ")) %>%
@@ -302,6 +304,7 @@ metadata_amp %>%
 
 b20_length_amp <- readRDS(paste0("data/", park, "/raw/_length-with-zeros.RDS")) %>%
   dplyr::select(campaignid, sample, family, genus, species, length_mm, count) %>%
+  dplyr::filter(genus != "Trachurus") %>%
   mutate(length_cm = length_mm / 10) %>%
   left_join(CheckEM::australia_life_history) %>%
   dplyr::mutate(scientific_name = paste(genus, species, sep = " "))
@@ -487,6 +490,6 @@ b20_tidy <- biomass %>% # TODO this needs tweaking, not working 100% because som
   glimpse()
 
 # Check number of samples that are > 0
-nrow(filter(b20_tidy, count > 0))/nrow(b20_tidy)
+nrow(filter(b20_tidy, count > 0))/nrow(b20_tidy) #0.45...
 
 saveRDS(b20_tidy, file = paste0("data/", park, "/tidy/", name, "_tidy-b20.rds"))

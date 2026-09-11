@@ -61,11 +61,38 @@ fishmetric_plot <- function(metric_name,
     axis.ticks.x = element_blank()
   )
 
+  muz_colour <- marine_parks_amp %>%
+    sf::st_drop_geometry() %>%
+    dplyr::filter(zone == "Multiple Use Zone") %>%
+    dplyr::pull(colour)
+
+  amp_2018 <- marine_parks_amp %>%
+    sf::st_union() %>%
+    sf::st_sf(geometry = ., zone = "Multiple Use Zone", colour = muz_colour, year = "2018")
+
+  amp_2025 <- marine_parks_amp %>%
+    dplyr::filter(zone %in% c("National Park Zone", "Multiple Use Zone")) %>%
+    dplyr::mutate(year = "2025")
+
+  amp_by_year <- dplyr::bind_rows(amp_2018, amp_2025) %>%
+    dplyr::filter(year %in% yrs) %>%
+    dplyr::mutate(year = factor(year, levels = yrs))
+
+  amp_colours <- amp_by_year %>%
+    st_drop_geometry() %>%
+    distinct(zone, colour) %>%
+    arrange(zone) %>%
+    pull(colour)
+
+
   # ---- Base map builder ----
   build_base <- function(i, show_x = TRUE) {
 
     y_theme <- if (i == 1) theme_left else theme_inner
     x_theme <- if (show_x) theme() else theme_top
+
+    amp_this_year <- amp_by_year %>%
+      dplyr::filter(year == yrs[i])
 
     list(
       geom_contour(
@@ -78,13 +105,15 @@ fishmetric_plot <- function(metric_name,
       geom_sf(data = ausc, fill = "seashell2", colour = "black", linewidth = 0.2),
       ggnewscale::new_scale_color(),
       geom_sf(
-        data = marine_parks_amp,
+        data = amp_this_year,
         aes(colour = zone),
         fill = NA,
         show.legend = FALSE,
         linewidth = 0.6
       ),
+      scale_colour_manual(values = with(amp_this_year, setNames(colour, zone))),
       geom_sf(data = cwatr, colour = "firebrick", linewidth = 0.6),
+      ggnewscale::new_scale_color(),
       geom_sf(
         data = marine_parks_state,
         aes(colour = zone),
@@ -92,7 +121,7 @@ fishmetric_plot <- function(metric_name,
         show.legend = FALSE,
         linewidth = 0.6
       ),
-      scale_colour_manual(values = with(marine_parks, setNames(colour, zone))),
+      scale_colour_manual(values = with(marine_parks_state, setNames(colour, zone))),
       coord_sf(
         xlim = c(prediction_limits[1], prediction_limits[2]),
         ylim = c(prediction_limits[3], prediction_limits[4]),

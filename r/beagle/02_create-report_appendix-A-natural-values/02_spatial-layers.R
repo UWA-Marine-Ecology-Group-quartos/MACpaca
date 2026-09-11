@@ -128,3 +128,4 @@ metadata.bathy.derivatives   <- cbind(metadata,
 
 # Save the metadata bathymetry derivatives
 saveRDS(metadata.bathy.derivatives, paste0("data/", park, "/tidy/", name, "_metadata-bathymetry-derivatives.rds"))
+

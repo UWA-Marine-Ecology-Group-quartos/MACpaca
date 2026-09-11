@@ -4,6 +4,7 @@
 # Task:    Create post-modelling fish figures for marine park reporting
 # Author:  Claude Spencer & Henry Evans
 # Date:    July 2026
+#
 ###
 
 # Clear your environment
@@ -20,7 +21,11 @@ config <- yaml::read_yaml(
 
 name <- config$name
 park <- config$park
-years <- config$years
+# 08 is fish-only, so "years" below is the real fish survey years, used only
+# for the descriptive (non-model) plots - SAC and top-species bar plots
+years <- unlist(config$fish_years)
+# Label used to read the single pooled predicted-fish output from 06
+fish_label <- paste(years, collapse = "_")
 
 # Load libraries
 library(tidyverse)
@@ -40,15 +45,16 @@ library(CheckEM)
 file.sources <- list.files(pattern = "*.R", path = paste0("r/", park, "/functions/"), full.names = TRUE)
 sapply(file.sources, source, .GlobalEnv)
 
-# TODO Set cropping extent - larger than most zoomed out plot
-e <- ext(114.2, 115.8, -34.7, -33.1)
+# TODO Set cropping extent - larger than most zoomed out plot. Ballpark for
+# Ningaloo, check against the 02_spatial-layers.R buffer and adjust
+e <- ext(113.2, 114.4, -23.6, -21.4)
 
 # Load necessary spatial files
 sf_use_s2(FALSE)
 
 # Australian outline and state and commonwealth marine parks
-marine_parks <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
-  dplyr::filter(name %in% c("Ngari Capes", "Geographe", "South-west Corner")) # TODO select relevant parks
+marine_parks <- st_read("data/north-west network/spatial/shapefiles/north-west-network-australia_marine-parks-all.shp") %>%
+  dplyr::filter(name %in% "Ningaloo")
 
 marine_parks_amp <- marine_parks %>%
   dplyr::filter(epbc %in% "Commonwealth") %>%
@@ -58,19 +64,24 @@ marine_parks_state <- marine_parks %>%
   dplyr::filter(epbc %in% "State") %>%
   st_transform(4326)
 
-# Australian outline
+# Ningaloo's Commonwealth waters have no Sanctuary Zone (only the State park
+# does) - wasanc will come back empty, which is expected here
+wasanc <- marine_parks[marine_parks$zone %in% "Sanctuary Zone", ]
+
+# Australian outline - no north-west network copy, shared national asset,
+# only exists under south-west network
 aus <- st_read("data/south-west network/spatial/shapefiles/aus-shapefile-w-investigator-stokes.shp")
 ausc <- aus %>%
   st_crop(e) %>%
   st_transform(4326)
 
-cwatr <- st_read("data/south-west network/spatial/shapefiles/amb_coastal_waters_limit.shp") %>%
+cwatr <- st_read("data/north-west network/spatial/shapefiles/amb_coastal_waters_limit.shp") %>%
   st_make_valid() %>%
   st_crop(e) %>%
   st_transform(4326)
 
 # Load the bathymetry data (GA 250m resolution)
-bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
+bathy <- rast("data/north-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
   crop(e) %>%
   clamp(upper = 0, lower = -250, values = FALSE) %>%
   trim() %>%
@@ -78,8 +89,10 @@ bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__
 
 names(bathy)[3] <- "Depth"
 
-# Spatial predictions limits
-prediction_limits <- c(115.035, 115.57, -33.665, -33.34)
+# Spatial predictions limits - TODO fill in from the 02_spatial-layers.R
+# "08 (fish) prediction_limits <- c(...)" message (smaller than the benthos
+# limits in 07, since it's the BRUV-only buffer)
+prediction_limits <- c(113.2, 114.4, -23.6, -21.4)
 
 # Pretty fish metric names mapped to raster layer stubs
 fish_metric_lookup <- c(
@@ -89,123 +102,20 @@ fish_metric_lookup <- c(
   "Total abundance" = "abundance"
 )
 
-# Read all years once
-dat_list <- setNames(vector("list", length(years)), years)
+# Read the single pooled predicted-fish surface
+dat_list <- setNames(
+  list(readRDS(paste0(
+    "output/model-output/", park, "/fish/",
+    name, "_predicted-fish_", fish_label, ".rds"
+  ))),
+  fish_label
+)
 
-for (yr in years) {
-  message("Reading year: ", yr)
-
-  dat <- readRDS(
-    paste0(
-      "output/model-output/", park, "/fish/",
-      name, "_predicted-fish_", yr, ".rds"
-    )
-  )
-
-  if (!inherits(dat, "SpatRaster")) dat <- terra::rast(dat)
-  terra::crs(dat) <- "EPSG:4326"
-
-  dat_list[[as.character(yr)]] <- dat
-}
+if (!inherits(dat_list[[1]], "SpatRaster")) dat_list[[1]] <- terra::rast(dat_list[[1]])
+terra::crs(dat_list[[1]]) <- "EPSG:4326"
 
 # -------------------------------------------------------------------
-# Fish metric plots
-# -------------------------------------------------------------------
-# =============================================================================
-# SST PROCESSING - run once to create the SST time series used by the Reef
-# Fish Thermal Index (CTI) control plot.
-#
-# TODO Download the IMOS 6-day SST product (more recent coverage than the
-# 1-month product used in Appendix B - 03_create-report_appendix-B-pressures/
-# 01_spatial-layers.R): "IMOS - SRS - SST - L3S - Single Sensor - 6 day - day
-# and night time - Australia" from the AODN portal, and save it as:
-#   data/<park>/spatial/oceanography/SST_recent.nc
-# This file is large and can take a while to download, but gives more
-# up-to-date SST coverage than the monthly product (useful if your most
-# recent survey year is close to the current date).
-#
-# TODO point controlplot_fish() at "<name>_SST_time-series-recent.rds" (built
-# below) instead of the monthly "<name>_SST_time-series.rds" from Appendix B -
-# see the inline controlplot_fish() override in
-# r/eastern-recherche/02_create-report_appendix-A-natural-values/08_create-plots_post-modelling_fish.R
-# (defined after the source() loop above, so it overrides the default in
-# functions/controlplot_fish.R).
-# =============================================================================
-
-library(RNetCDF)
-library(lubridate)
-
-nc_sst <- open.nc(paste0("data/", park, "/spatial/oceanography/SST_recent.nc"))
-print.nc(nc_sst)
-
-# Extract raw arrays
-sst_var <- var.get.nc(nc_sst, "sea_surface_temperature")
-lat     <- var.get.nc(nc_sst, "lat")
-lon     <- var.get.nc(nc_sst, "lon")
-time_nc <- var.get.nc(nc_sst, "time")
-
-# Convert time to dates
-dates_sst <- as.Date(utcal.nc("seconds since 1981-01-01 00:00:00", time_nc, type = "c"))
-
-close.nc(nc_sst) # close before raster operations to avoid GDAL errors
-
-# Convert Kelvin to Celsius and fix dimension order [lon, lat, time] -> [lat, lon, time]
-sst_var       <- sst_var - 273.15
-sst_corrected <- aperm(sst_var, c(2, 1, 3))
-
-# Create raster stack
-rast_sst <- terra::rast(sst_corrected,
-                        extent = terra::ext(min(lon), max(lon), min(lat), max(lat)),
-                        crs    = "EPSG:4326")
-
-# Assign dates, crop and trim to study extent
-names(rast_sst) <- as.character(dates_sst)
-time(rast_sst)  <- dates_sst
-rast_sst        <- terra::crop(rast_sst, e) %>% terra::trim()
-
-plot(rast_sst)
-# Check orientation - if upside down run: rast_sst <- terra::flip(rast_sst, "vertical")
-plot(rast_sst[[1]])
-
-# Build monthly climatology
-sst_list <- list()
-for (month in sort(unique(month(time(rast_sst))))) {
-  monthly_rast <- subset(rast_sst, month(time(rast_sst)) == month) %>%
-    mean(na.rm = TRUE) %>%
-    app(fun = function(i) { i - 273.15 })
-  names(monthly_rast) <- month.abb[month]
-  sst_list[[month.abb[month]]] <- monthly_rast
-}
-sst <- rast(sst_list)
-
-saveRDS(sst, paste0("data/", park, "/spatial/oceanography/", name, "_SST_raster-recent.rds"))
-
-# Build monthly time-series summary
-sst_tsdf <- terra::global(rast_sst, fun = "mean", na.rm = TRUE) %>%
-  tibble::rownames_to_column() %>%
-  cbind(terra::global(rast_sst, fun = "sd", na.rm = TRUE)) %>%
-  tidyr::separate(rowname, into = c("year", "month", "day"), sep = "-") %>%
-  dplyr::group_by(year, month) %>%
-  summarise(
-    sst = mean(mean, na.rm = TRUE) - 273.15, # Apply -273.15 offset (controlplot_fish adds it back)
-    sd  = mean(sd,   na.rm = TRUE),
-    .groups = "drop"
-  ) %>%
-  ungroup() %>%
-  dplyr::mutate(season = case_when(
-    month %in% c("04", "05", "06") ~ "Autumn",
-    month %in% c("07", "08", "09") ~ "Winter",
-    month %in% c("10", "11", "12") ~ "Spring",
-    month %in% c("01", "02", "03") ~ "Summer"
-  )) %>%
-  glimpse()
-
-saveRDS(sst_tsdf, paste0("data/", park, "/spatial/oceanography/", name, "_SST_time-series-recent.rds"))
-
-boxplot(sst_tsdf$sst ~ sst_tsdf$month)
-
-# -------------------------------------------------------------------
-# Fish metric plots
+# Fish metric plots (single pooled surface - no per-year loop)
 # -------------------------------------------------------------------
 for (metric_name in names(fish_metric_lookup)) {
 
@@ -213,16 +123,13 @@ for (metric_name in names(fish_metric_lookup)) {
 
   layer_stub <- fish_metric_lookup[[metric_name]]
 
-  # Only build plot if every year has both prediction and SE layers
-  has_all_layers <- all(unlist(lapply(dat_list, function(x) {
-    c(
-      paste0("p_", layer_stub, ".fit") %in% names(x),
-      paste0("p_", layer_stub, ".se.fit") %in% names(x)
-    )
-  })))
+  has_layers <- all(c(
+    paste0("p_", layer_stub, ".fit") %in% names(dat_list[[1]]),
+    paste0("p_", layer_stub, ".se.fit") %in% names(dat_list[[1]])
+  ))
 
-  if (!has_all_layers) {
-    message("Skipping ", metric_name, ": missing .fit or .se.fit layer in one or more years")
+  if (!has_layers) {
+    message("Skipping ", metric_name, ": missing .fit or .se.fit layer")
     next
   }
 
@@ -246,7 +153,7 @@ for (metric_name in names(fish_metric_lookup)) {
     filename = paste0(
       "plots/", park, "/fish/", name,
       "_predicted-individual-fish-metric_", out_name, "_",
-      paste(years, collapse = "-"), ".png"
+      fish_label, ".png"
     ),
     plot = p_metric,
     height = 5,
@@ -259,103 +166,14 @@ for (metric_name in names(fish_metric_lookup)) {
   saveRDS(p_metric,
           paste0( "plots/", park, "/fish/", name,
                   "_predicted-individual-fish-metric_", out_name, "_",
-                  paste(years, collapse = "-"), ".rds")
+                  fish_label, ".rds")
   )
 }
 
 # -------------------------------------------------------------------
-# Control plots by metric, facetted by depth class
+# Stacked plots (descriptive - built from raw per-sample survey data,
+# faceted by the real survey years)
 # -------------------------------------------------------------------
-
-control_all <- purrr::map(years, \(yy) {
-  dat_yy <- readRDS(
-    paste0(
-      "output/model-output/", park, "/fish/",
-      name, "_predicted-fish_", yy, ".rds"
-    )
-  )
-
-  if (!inherits(dat_yy, "SpatRaster")) dat_yy <- terra::rast(dat_yy)
-  terra::crs(dat_yy) <- "EPSG:4326"
-
-  controldata_fish(dat = dat_yy, year = yy, amp_abbrv = "GMP", state_abbrv = "NCMP") # TODO park abbreviations
-})
-
-park_dat.shallow <- purrr::map_dfr(control_all, "shallow") %>%
-  dplyr::mutate(depth_class = "Shallow (0 - 30 m)")
-
-park_dat.meso <- purrr::map_dfr(control_all, "meso") %>%
-  dplyr::mutate(depth_class = "Mesophotic (30 - 70 m)")
-
-park_dat.rari <- purrr::map_dfr(control_all, "rari") %>%
-  dplyr::mutate(depth_class = "Rariphotic (70 - 200 m)")
-
-park_dat.control <- dplyr::bind_rows(
-  park_dat.shallow,
-  park_dat.meso,
-  park_dat.rari
-) %>%
-  dplyr::mutate(
-    depth_class = factor(
-      depth_class,
-      levels = c(
-        "Shallow (0 - 30 m)",
-        "Mesophotic (30 - 70 m)",
-        "Rariphotic (70 - 200 m)"
-      )
-    )
-  )
-
-metric_lookup <- c(
-  "richness"  = "Species richness (per BRUV)",
-  "cti"       = "Community Thermal Index (\u00B0C)",
-  "b20"       = "Large reef fish index* (biomass g per BRUV)",
-  "abundance" = "Total abundance (per BRUV)"
-)
-
-for (metric_code in names(metric_lookup)) {
-
-  message("Building control plot for metric: ", metric_lookup[[metric_code]])
-
-  p_metric <- controlplot_fish(
-    data = park_dat.control,
-    metric = metric_code,
-    amp_abbrv = "GMP", # TODO park abbreviations
-    state_abbrv = "NCMP",
-    metric_label = metric_lookup[[metric_code]]
-  )
-
-  if (!is.null(p_metric)) {
-
-    print(p_metric)
-
-    out_name <- metric_lookup[[metric_code]] %>%
-      stringr::str_to_lower() %>%
-      stringr::str_replace_all("\u00b0", "") %>%
-      stringr::str_replace_all("\\*", "") %>%
-      stringr::str_replace_all("[()]", "") %>%
-      stringr::str_replace_all("[[:space:]]+", "-")
-
-    ggsave(
-      filename = paste0(
-        "plots/", park, "/fish/", name, "_control-plot_", out_name, ".png"
-      ),
-      plot = p_metric,
-      height = 4,
-      width = 6,
-      dpi = 300,
-      units = "in",
-      bg = "white"
-    )
-
-    saveRDS(p_metric,
-            paste0("plots/", park, "/fish/", name, "_control-plot_", out_name, ".rds")
-    )
-  }
-}
-
-
-# Stacked plots
 
 theme_collapse<-theme(
   panel.grid.major=element_line(colour = "white"),
@@ -381,12 +199,16 @@ sti <- CheckEM::australia_life_history %>%
   glimpse()
 
 # Create DF filter for Commonwealth waters only
-marine_parks_amp <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
-  dplyr::filter(name %in% c("Ngari Capes", "Geographe", "South-west Corner")) %>% # TODO select relevant parks
+marine_parks_amp <- st_read("data/north-west network/spatial/shapefiles/north-west-network-australia_marine-parks-all.shp") %>%
+  dplyr::filter(name %in% "Ningaloo") %>%
   dplyr::filter(epbc == "Commonwealth") %>%
   st_transform(4326)
 
 metadata_amp <- readRDS(paste0("data/", park, "/raw/metadata.RDS")) %>%
+  # metadata.RDS is the full BRUV + BOSS record for every survey year. The
+  # bar plots below semi_join their raw count data against this, so without
+  # the year filter they pick up years that are not modelled for fish.
+  dplyr::filter(as.character(year) %in% years) %>%
   distinct(campaignid, sample, .keep_all = TRUE) %>%
   st_as_sf(coords = c("longitude_dd", "latitude_dd"), crs = 4326, remove = FALSE) %>%
   st_join(
@@ -410,9 +232,9 @@ sac_sample <- ggplot(
   aes(
     x = x,
     y = richness,
-    colour = status,
-    fill = status,
-    linetype = Year
+    colour = Year,
+    fill = Year,
+    linetype = status
   )
 ) +
   geom_ribbon(
@@ -425,22 +247,8 @@ sac_sample <- ggplot(
   ) +
   geom_line(linewidth = 1.2) +
   scale_linetype_manual(
-    values = setNames(
-      c("22", "solid"),
-      as.character(years)
-    )
-  ) +
-  scale_colour_manual(name = "Status",
-    values = c(
-      "No-Take" = "#7bbc63",
-      "Fished" = "#b9e6fb"
-    )
-  ) +
-  scale_fill_manual(name = "Status",
-    values = c(
-      "No-Take" = "#7bbc63",
-      "Fished" = "#b9e6fb"
-    )
+    name = "Status",
+    values = c("No-Take" = "solid", "Fished" = "22")
   ) +
   labs(
     x = "Number of BRUV deployments",
@@ -470,9 +278,9 @@ sac_individual <- ggplot(
   aes(
     x = x,
     y = richness,
-    colour = status,
-    fill = status,
-    linetype = Year
+    colour = Year,
+    fill = Year,
+    linetype = status
   )
 ) +
   geom_ribbon(
@@ -485,22 +293,8 @@ sac_individual <- ggplot(
   ) +
   geom_line(linewidth = 1.2) +
   scale_linetype_manual(
-    values = setNames(
-      c("22", "solid"),
-      as.character(years)
-    )
-  ) +
-  scale_colour_manual(name = "Status",
-    values = c(
-      "No-Take" = "#7bbc63",
-      "Fished" = "#b9e6fb"
-    )
-  ) +
-  scale_fill_manual(name = "Status",
-    values = c(
-      "No-Take" = "#7bbc63",
-      "Fished" = "#b9e6fb"
-    )
+    name = "Status",
+    values = c("No-Take" = "solid", "Fished" = "22")
   ) +
   labs(
     x = "Cumulative MaxN individuals",
@@ -590,7 +384,7 @@ bar_maxn <- ggplot(
 bar_maxn
 
 ggsave(paste0("plots/", park, "/fish/", name, "_top_maxn_bar_plot.png"),
-       plot = bar_maxn, height = 4, width = 9, dpi = 300, units = "in", bg = "white")
+       plot = bar_maxn, height = 6, width = 9, dpi = 300, units = "in", bg = "white")
 
 saveRDS(bar_maxn,
         paste0("plots/", park, "/fish/", name, "_top_maxn_bar_plot.rds")
@@ -686,7 +480,7 @@ bar_cti <- ggplot(
 bar_cti
 
 ggsave(paste0("plots/", park, "/fish/", name, "_top_maxn_cti_bar_plot.png"),
-       plot = bar_cti, height = 4, width = 9, dpi = 300, units = "in", bg = "white")
+       plot = bar_cti, height = 6, width = 9, dpi = 300, units = "in", bg = "white")
 
 saveRDS(bar_cti,
         paste0("plots/", park, "/fish/", name, "_top_maxn_cti_bar_plot.rds")
@@ -766,10 +560,7 @@ plot_b20_bars <- function(plot_data, fill_values, fill_breaks) {
     )
 }
 
-# -------------------------------------------------------------------------
-# Plot 1: both years split into Fished / No-Take
-# -------------------------------------------------------------------------
-
+# All years split into Fished / No-Take
 b20_plot_split <- b20 %>%
   filter(status != "Combined") %>%
   semi_join(b20.10, by = c("year", "scientific_name")) %>%
@@ -789,52 +580,15 @@ bar_b20
 ggsave(
   paste0("plots/", park, "/fish/", name, "_top_b20_bar_plot.png"),
   plot   = bar_b20,
-  height = 4,
+  height = 6,
   width  = 9,
   dpi    = 300,
   units  = "in",
   bg     = "white"
 )
 
-# -------------------------------------------------------------------------
-# Plot 2: 2014 Combined, 2024 split into Fished / No-Take
-# TODO check and edit status
-# -------------------------------------------------------------------------
-
-b20_plot_mixed <- b20 %>%
-  semi_join(b20.10, by = c("year", "scientific_name")) %>%
-  filter(
-    (year == years[1] & status == "Combined") |
-      (year == years[2] & status %in% c("Fished", "No-Take"))
-  ) %>%
-  mutate(
-    status = if_else(status %in% c("Combined", "Fished"), "Open", status),
-    status = factor(status, levels = c("Open", "No-Take"))
-  )
-
-bar_b20_v2 <- plot_b20_bars(
-  plot_data   = b20_plot_mixed,
-  fill_values = c(
-    "Open"   = "white",
-    "No-Take"  = "grey40"
-  ),
-  fill_breaks = c("No-Take", "Open")
-)
-
-bar_b20_v2
-
-ggsave(
-  paste0("plots/", park, "/fish/", name, "_top_b20_bar_plot_mixed.png"),
-  plot   = bar_b20_v2,
-  height = 4,
-  width  = 9,
-  dpi    = 300,
-  units  = "in",
-  bg     = "white"
-)
-
-saveRDS(bar_b20_v2,
-        paste0("plots/", park, "/fish/", name, "_top_b20_bar_plot_mixed.rds")
+saveRDS(bar_b20,
+        paste0("plots/", park, "/fish/", name, "_top_b20_bar_plot.rds")
 )
 
 # -------------------------------------------------------------------

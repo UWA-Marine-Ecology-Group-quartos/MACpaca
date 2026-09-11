@@ -21,9 +21,6 @@ name <- config$name
 park <- config$park
 years <- config$years
 
-combine_benthos <- config$combine_benthos
-benthos_label <- if (combine_benthos) paste(years, collapse = "_") else NA
-
 library(mgcv)
 library(tidyverse)
 library(terra)
@@ -208,17 +205,7 @@ fabund <- bind_rows(tidy_maxn, tidy_b20) %>%
 ## TODO Select best models from above then write them below (check all.mod.fits and all.var.imp)
 # For each response, carefully write the selected model choosing model type (family),
 # predictor variables, factor variables, k and bs
-#
-## Models selected using the simplest model within delta AICc 2 of the top model.
-## Family is tw() throughout to match the family the model selection was run
-## under - AICc values are not comparable across families, so switching here
-## would mean the selected model was chosen under different assumptions.
-##
-## Year was offered to the candidate set for all four responses. Only species
-## richness retained it (importance 0.993); year importance was 0 for total
-## abundance and 0.294 for CTI. Predictions are still written per year so that
-## the plotting scripts have one surface per survey - for the three metrics
-## without a year term those surfaces are identical between years.
+
 
 # Total abundance - depth alone (delta 0, wi 0.715). The only other model within
 # 2 adds roughness for +0.006 deviance explained.
@@ -228,8 +215,6 @@ m_abundance <- gam(count ~ s(geoscience_depth, k = 3, bs = "cr"),
 summary(m_abundance)
 
 # Species richness - only one model fell within delta AICc 2, so there is no
-# simpler alternative. 2021 has 24 BRUV deployments against 120 in 2025, and the
-# 2021 samples are confined to NPZ6, so part of the year effect is spatial.
 m_richness <- gam(count ~ s(geoscience_aspect, k = 3, bs = "cc") +
                     s(reef, k = 3, bs = "cr") +
                     year,
@@ -244,17 +229,17 @@ m_cti <- gam(count ~ s(geoscience_depth, k = 3, bs = "cr"),
              family = tw())
 summary(m_cti)
 
-# B20 - reef alone (delta 0, wi 0.308). Deviance explained is 8.6% and the models
-# within delta 2 are near-indistinguishable - treat the surface as indicative.
-# NOTE reef is the only predictor, so no MESS mask is applied to this layer.
-# TODO re-check the b20 table now that year is in the candidate set
-m_b20 <- gam(count ~ s(reef, k = 3, bs = "cr"),
+# B20 - detrended + year (delta 0, wi 0.302). The only other model within 2
+# adds aspect for negligible improvement. Deviance explained is 13.6% -
+# interpret with care.
+m_b20 <- gam(count ~ s(geoscience_detrended, k = 3, bs = "cr") +
+               year,
              data = fabund %>% dplyr::filter(response %in% "b20"),
              family = tw())
 summary(m_b20)
 
 # Read predictor rasters to predict onto (bathymetry derivatives etc.)
-preds <- readRDS(paste0("data/", park, "/spatial/rasters/", name, "_bathymetry-derivatives.rds"))
+preds <- readRDS(paste0("data/", park, "/spatial/rasters/", name, "_bathymetry-derivatives-fish.rds"))
 plot(preds)
 
 # Predictors as a dataframe for modelling
@@ -281,22 +266,13 @@ preddf_s <- cbind(preddf, terra::extract(marine_parks, predv)) %>%
 ## ------------------------------------------------------------
 ## ADD YEAR-SPECIFIC REEF FOR FISH MODELLING
 ## ------------------------------------------------------------
-# One reef surface per fish year. If benthos was pooled there is a single
-# combined-years habitat file, so every fish year reuses that same reef surface.
-if (combine_benthos) {
-  reef_r <- readRDS(paste0("output/model-output/", park, "/habitat/",
-                           name, "_predicted-habitat_", benthos_label, ".rds")) %>%
+# One reef surface per fish year
+reef_by_year <- setNames(lapply(years, function(y) {
+  r <- readRDS(paste0("output/model-output/", park, "/habitat/",
+                      name, "_predicted-habitat_", y, ".rds")) %>%
     terra::subset("p_reef.fit")
-  names(reef_r) <- "reef"
-  reef_by_year <- setNames(rep(list(reef_r), length(years)), years)
-} else {
-  reef_by_year <- setNames(lapply(years, function(y) {
-    r <- readRDS(paste0("output/model-output/", park, "/habitat/",
-                        name, "_predicted-habitat_", y, ".rds")) %>%
-      terra::subset("p_reef.fit")
-    names(r) <- "reef"; r
-  }), years)
-}
+  names(r) <- "reef"; r
+}), years)
 
 # Build one prediction frame per fish year, each with its reef surface
 preddf_sy <- purrr::map_dfr(years, function(yy) {
