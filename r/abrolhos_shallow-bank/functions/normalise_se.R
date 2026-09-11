@@ -17,6 +17,12 @@ normalise_se <- function(data) {
                       (max(p_macro.se.fit, na.rm = TRUE) - min(p_macro.se.fit, na.rm = TRUE)))
   }
 
+  if ("p_kelp.se.fit" %in% colnames(data)) {
+    data <- data %>%
+      dplyr::mutate(p_kelp.alpha = 1 - (p_kelp.se.fit - min(p_kelp.se.fit, na.rm = TRUE)) /
+                      (max(p_kelp.se.fit, na.rm = TRUE) - min(p_kelp.se.fit, na.rm = TRUE)))
+  }
+
   if ("p_seagrass.se.fit" %in% colnames(data)) {
     data <- data %>%
       dplyr::mutate(p_seagrass.alpha = 1 - (p_seagrass.se.fit - min(p_seagrass.se.fit, na.rm = TRUE)) /

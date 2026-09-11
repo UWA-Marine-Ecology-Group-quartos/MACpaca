@@ -6,16 +6,34 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
     stop("dat_list must be a named list")
   }
 
+  multi_year <- length(dat_list) > 1
+
   # ------------------------------------------------------------
   # Extract reef probability + SE rasters by year
   # ------------------------------------------------------------
   pred_list <- lapply(dat_list, function(x) x[["p_reef.fit"]])
   se_list   <- lapply(dat_list, function(x) x[["p_reef.se.fit"]])
 
-  # Shared SE limits across years (probability stays fixed 0-1)
-  if (is.null(se_limits)) {
-    se_vals   <- unlist(lapply(se_list, terra::values))
-    se_limits <- range(se_vals, na.rm = TRUE)
+  # p_reef.se.fit is the RAW standard error, not normalised like mean_se in the
+  # benthos plots, so rescale it here against the pooled range across years.
+  # That keeps both years on one scale and lets the legend use the same
+  # 0 / 0.5 / 1 breaks as the reef probability bar above. Passing se_limits
+  # explicitly skips the rescaling and plots the raw SE on your own limits
+  rescale_se <- is.null(se_limits)
+
+  if (rescale_se) {
+    se_rng <- range(unlist(lapply(se_list, terra::values)), na.rm = TRUE)
+
+    if (!isTRUE(all.equal(se_rng[1], se_rng[2]))) {
+      se_list <- lapply(se_list, function(x) (x - se_rng[1]) / (se_rng[2] - se_rng[1]))
+    }
+
+    se_limits <- c(0, 1)
+    se_breaks <- c(0, 0.5, 1)
+    se_labels <- c("0", "0.5", "1")
+  } else {
+    se_breaks <- ggplot2::waiver()
+    se_labels <- ggplot2::waiver()
   }
 
   # ------------------------------------------------------------
@@ -48,8 +66,7 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
       axis.ticks.y = element_blank()
     )
 
-  # No x axis (kept in case a stacked variant is needed again)
-  theme_nox <- theme(
+  theme_top <- theme(
     axis.text.x  = element_blank(),
     axis.ticks.x = element_blank()
   )
@@ -60,12 +77,10 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
     arrange(zone) %>%
     pull(colour)
 
-  # show_y is now passed explicitly - with the blocks side by side the first
-  # panel of BOTH the prediction and the SE block needs latitude labels
-  build_base <- function(show_y = TRUE, show_x = TRUE, show_park_legend = TRUE) {
+  build_base <- function(i, show_x = TRUE, show_park_legend = TRUE) {
 
-    y_theme <- if (show_y) theme_left else theme_inner
-    x_theme <- if (show_x) theme() else theme_nox
+    y_theme <- if (i == 1) theme_left else theme_inner
+    x_theme <- if (show_x) theme() else theme_top
 
     list(
       geom_contour(
@@ -150,11 +165,11 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
   }
 
   # ------------------------------------------------------------
-  # Reef probability panels
+  # Top row: reef probability panels
   # ------------------------------------------------------------
   p_pred <- lapply(seq_along(yrs), function(i) {
 
-    ggplot() +
+    p <- ggplot() +
       geom_spatraster(data = pred_list[[i]], maxcell = Inf) +
       scale_fill_gradient(
         low      = "white",
@@ -166,12 +181,15 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
         labels   = c("0", "0.5", "1"),
         oob      = scales::squish,
         guide    = guide_colorbar(title.hjust = 0, title.vjust = 0.5, label.hjust = 0)
-      ) +
-      build_base(show_y = (i == 1), show_x = TRUE, show_park_legend = FALSE)
+      )
+
+    if (multi_year) p <- p + ggtitle(yrs[i])
+
+    p + build_base(i, show_x = FALSE, show_park_legend = FALSE)
   })
 
   # ------------------------------------------------------------
-  # Reef SE panels
+  # Bottom row: reef SE panels
   # ------------------------------------------------------------
   p_se <- lapply(seq_along(yrs), function(i) {
     ggplot() +
@@ -181,57 +199,60 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
         na.value = "transparent",
         name     = "Normalised\nSE",
         limits   = se_limits,
-        breaks   = c(0.02, 0.04, 0.06),
-        oob      = scales::squish
+        breaks   = se_breaks,
+        labels   = se_labels,
+        oob      = scales::squish,
+        guide    = guide_colorbar(title.hjust = 0, title.vjust = 0.5, label.hjust = 0)
       ) +
-      build_base(show_y = (i == 1), show_x = TRUE, show_park_legend = FALSE)
+      build_base(i, show_x = TRUE, show_park_legend = FALSE)
   })
 
   # ------------------------------------------------------------
-  # Block headers (horizontal, above each block)
+  # Row labels
   # ------------------------------------------------------------
-  block_label_plot <- function(label) {
+  row_label_plot <- function(label) {
     ggplot() +
       theme_void() +
       annotate(
         "text", x = 0.5, y = 0.5,
-        label = label,
+        label = label, angle = 90,
         fontface = "bold", size = 3.5
       )
   }
 
+  pred_label <- row_label_plot("Predicted Reef Probability")
+  se_label   <- row_label_plot("Standard Error")
+
   # ------------------------------------------------------------
-  # Combine: prediction block and SE block side by side
+  # Combine
   # ------------------------------------------------------------
-  pred_block <- wrap_plots(p_pred, nrow = 1, guides = "collect")
-  se_block   <- wrap_plots(p_se,   nrow = 1, guides = "collect")
+  pred_row <- pred_label + wrap_plots(p_pred, nrow = 1, guides = "collect") +
+    plot_layout(widths = c(0.06, 1))
 
-  pred_col <- (block_label_plot("Predicted Reef Probability") / pred_block) +
-    plot_layout(heights = c(0.06, 1))
+  se_row <- se_label + wrap_plots(p_se, nrow = 1, guides = "collect") +
+    plot_layout(widths = c(0.06, 1))
 
-  se_col <- (block_label_plot("Standard Error") / se_block) +
-    plot_layout(heights = c(0.06, 1))
-
-  p_out <- (pred_col | se_col) +
-    plot_layout(widths = c(1, 1), guides = "collect") &
+  p_out <- (pred_row / se_row) +
+    plot_layout(heights = c(1, 1), guides = "collect") &
     theme(
-      legend.position      = "right",
-      legend.direction     = "vertical",
-      legend.box           = "vertical",
-      legend.box.just      = "left",
+      legend.position      = "bottom",
+      legend.direction     = "horizontal",
+      legend.box           = "horizontal",
+      legend.box.just      = "centre",
       legend.justification = "centre",
-      legend.title         = element_text(size = 9, margin = margin(b = 2)),
+      legend.title         = element_text(size = 9, margin = margin(b = 2, r = 3)),
       legend.text          = element_text(size = 8),
-      legend.key.height    = unit(1.2, "lines"),
-      legend.key.width     = unit(0.45, "cm"),
-      legend.spacing.y     = unit(2, "mm"),
-      legend.box.margin    = margin(l = 4, unit = "mm"),
-      legend.margin        = margin(l = 2, r = 4, unit = "mm"),
+      legend.key.height    = unit(0.3, "cm"),
+      legend.key.width     = unit(0.35, "cm"),
+      legend.spacing.x     = unit(1, "mm"),
+      legend.spacing.y     = unit(0.5, "mm"),
+      legend.spacing       = unit(0.5, "mm"),
+      legend.box.margin    = margin(0, 0, 0, 0),
       panel.spacing        = unit(0.5, "mm"),
-      plot.margin          = margin(2, 8, 2, 2, unit = "mm")
+      plot.margin          = margin(2, 2, 2, 2, unit = "mm")
     )
 
-  p_out <- cowplot::plot_grid(p_out, marine_park_legend(), ncol = 1, rel_heights = c(1, 0.25))
+  p_out <- cowplot::plot_grid(p_out, marine_park_legend(), ncol = 1, rel_heights = c(1, 0.145))
 
   return(p_out)
 }

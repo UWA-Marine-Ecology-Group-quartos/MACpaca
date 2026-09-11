@@ -4,6 +4,7 @@ dominantbenthos_plot_single <- function(pred_plot, prediction_limits, habitat_lo
   grad_high <- c(
     "Sand"                  = "wheat",
     "Macroalgae"            = "darkorange4",
+    "Kelp"                  = "olivedrab",
     "Seagrass"              = "forestgreen",
     "Rock"                  = "grey40",
     "Sessile invertebrates" = "deeppink3"
@@ -13,13 +14,14 @@ dominantbenthos_plot_single <- function(pred_plot, prediction_limits, habitat_lo
   legend_names <- c(
     "Sand"                  = "Sand",
     "Macroalgae"            = "Macroalgae",
+    "Kelp"                  = "Kelp",
     "Seagrass"              = "Seagrass",
     "Rock"                  = "Rock",
     "Sessile invertebrates" = "Sessile\ninvertebrates"
   )
 
   # Canonical rendering order (bottom to top) — filter to modelled taxa only
-  hab_order <- c("Sand", "Rock", "Macroalgae", "Seagrass", "Sessile invertebrates")
+  hab_order <- c("Sand", "Rock", "Macroalgae", "Kelp", "Seagrass", "Sessile invertebrates")
   modelled  <- hab_order[hab_order %in% names(habitat_lookup)]
 
   p <- ggplot()

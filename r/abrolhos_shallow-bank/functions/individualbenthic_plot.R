@@ -54,19 +54,17 @@ individualbenthic_plot <- function(habitat_name,
       axis.ticks.y = element_blank()
     )
 
-  # No x axis (kept in case a stacked variant is needed again)
-  theme_nox <- theme(
+  # Top row (no x axis)
+  theme_top <- theme(
     axis.text.x = element_blank(),
     axis.ticks.x = element_blank()
   )
 
   # ---- Base map builder ----
-  # show_y is now passed explicitly - with the blocks side by side the first
-  # panel of BOTH the prediction and the SE block needs latitude labels
-  build_base <- function(show_y = TRUE, show_x = TRUE) {
+  build_base <- function(i, show_x = TRUE) {
 
-    y_theme <- if (show_y) theme_left else theme_inner
-    x_theme <- if (show_x) theme() else theme_nox
+    y_theme <- if (i == 1) theme_left else theme_inner
+    x_theme <- if (show_x) theme() else theme_top
 
     list(
       geom_contour(
@@ -127,7 +125,7 @@ individualbenthic_plot <- function(habitat_name,
     )
   }
 
-  # ---- Prediction panels ----
+  # ---- Prediction panels (top row) ----
   p_pred <- lapply(seq_along(yrs), function(i) {
     ggplot() +
       geom_spatraster(data = pred_list[[i]]) +
@@ -138,10 +136,11 @@ individualbenthic_plot <- function(habitat_name,
         limits = pred_limits,
         oob = scales::squish
       ) +
-      build_base(show_y = (i == 1), show_x = TRUE)
+      ggtitle(yrs[i]) +
+      build_base(i, show_x = FALSE)
   })
 
-  # ---- SE panels ----
+  # ---- SE panels (bottom row) ----
   p_se <- lapply(seq_along(yrs), function(i) {
     ggplot() +
       geom_spatraster(data = se_list[[i]]) +
@@ -152,29 +151,29 @@ individualbenthic_plot <- function(habitat_name,
         limits = se_limits,
         oob = scales::squish
       ) +
-      build_base(show_y = (i == 1), show_x = TRUE)
+      build_base(i, show_x = TRUE)  # keep x axis
   })
 
-  # ---- Block headers (horizontal, above each block) ----
-  block_label_plot <- function(label) {
+  # ---- Row labels ----
+  row_label_plot <- function(label) {
     ggplot() +
       theme_void() +
       annotate("text", x = 0.5, y = 0.5, label = label,
-               fontface = "bold", size = 4.5)
+               angle = 90, fontface = "bold", size = 4.5)
   }
 
-  # ---- Combine: prediction block and SE block side by side ----
-  pred_block <- wrap_plots(p_pred, nrow = 1, guides = "collect")
-  se_block   <- wrap_plots(p_se,   nrow = 1, guides = "collect")
+  pred_label <- row_label_plot("Prediction")
+  se_label   <- row_label_plot("Standard Error")
 
-  pred_col <- (block_label_plot("Prediction") / pred_block) +
-    plot_layout(heights = c(0.06, 1))
+  # ---- Combine ----
+  pred_row <- pred_label + wrap_plots(p_pred, nrow = 1, guides = "collect") +
+    plot_layout(widths = c(0.06, 1))
 
-  se_col <- (block_label_plot("Standard Error") / se_block) +
-    plot_layout(heights = c(0.06, 1))
+  se_row <- se_label + wrap_plots(p_se, nrow = 1, guides = "collect") +
+    plot_layout(widths = c(0.06, 1))
 
-  p_out <- (pred_col | se_col) +
-    plot_layout(widths = c(1, 1), guides = "collect") &
+  p_out <- (pred_row / se_row) +
+    plot_layout(heights = c(1, 1), guides = "collect") &
     theme(
       legend.position = "right",
       legend.box.margin = margin(l = 4, unit = "mm"),

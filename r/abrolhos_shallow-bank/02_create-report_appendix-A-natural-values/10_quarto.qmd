@@ -29,7 +29,7 @@ execute:
   echo: false
   warning: false
   message: false
-post-render: 10_move-pdf.R
+post-render: 11_move-pdf.R
 ---
 
 ```{r}
@@ -51,12 +51,9 @@ library(gt)
 park <- "abrolhos_shallow-bank"
 name <- "Shallow-bank"
 
-# Survey years, and the two label styles used in output filenames.
-#   pooled_label - benthos outputs, which are POOLED across years
-#   dash_label   - the reef figure and the fish spatial metric figures
-years        <- c("2021", "2025")
-pooled_label <- paste(years, collapse = "_")   # e.g. "2021_2025"
-dash_label   <- paste(years, collapse = "-")   # e.g. "2021-2025"
+# Survey years, used to name output files (all outputs are per-year now)
+years      <- c("2021", "2025")
+dash_label <- paste(years, collapse = "-")   # e.g. "2021-2025"
 
 # Helper paths
 hab  <- function(f) here("plots", park, "habitat", paste0(name, f))
@@ -137,7 +134,7 @@ sampling_summary %>%
 #| fig-width: 9
 #| fig-height: 6
 #| fig-cap: "Habitat classes observed in spatially balanced stereo-BRUV and drop-camera imagery visualised as spatial pie charts, pooled across the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-show_png(hab(paste0("_scatterpie_", pooled_label, ".png")))
+show_png(hab(paste0("_scatterpie_", dash_label, ".png")))
 ```
 
 {{< pagebreak >}}
@@ -148,7 +145,7 @@ show_png(hab(paste0("_scatterpie_", pooled_label, ".png")))
 #| fig-width: 8
 #| fig-height: 5
 #| fig-cap: "Predicted dominant habitat type from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-p_dom <- readRDS(hab(paste0("_predicted-dominant-habitat_", pooled_label, ".rds")))
+p_dom <- readRDS(hab(paste0("_predicted-dominant-benthos-and-combined-se_", dash_label, ".rds")))
 p_dom
 ```
 
@@ -160,7 +157,7 @@ p_dom
 #| fig-width: 8
 #| fig-height: 5
 #| fig-cap: "Predicted habitat class distribution from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-p_cat <- readRDS(hab(paste0("_predicted-habitat-categorical_", pooled_label, ".rds")))
+p_cat <- readRDS(hab(paste0("_predicted-habitat-categorical_", dash_label, ".rds")))
 p_cat
 ```
 
@@ -184,7 +181,7 @@ show_png(hab(paste0("_predicted-reef-and-se_", dash_label, ".png")))
 #| fig-width: 9
 #| fig-height: 5
 #| fig-cap: "Sand: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-show_png(hab(paste0("_predicted-individual-habitat_sand_", pooled_label, ".png")))
+show_png(hab(paste0("_predicted-individual-habitat_sand_", dash_label, ".png")))
 ```
 
 {{< pagebreak >}}
@@ -195,7 +192,18 @@ show_png(hab(paste0("_predicted-individual-habitat_sand_", pooled_label, ".png")
 #| fig-width: 9
 #| fig-height: 5
 #| fig-cap: "Macroalgae: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-show_png(hab(paste0("_predicted-individual-habitat_macroalgae_", pooled_label, ".png")))
+show_png(hab(paste0("_predicted-individual-habitat_macroalgae_", dash_label, ".png")))
+```
+
+{{< pagebreak >}}
+
+### Kelp
+
+```{r}
+#| fig-width: 9
+#| fig-height: 5
+#| fig-cap: "Kelp: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+show_png(hab(paste0("_predicted-individual-habitat_kelp_", dash_label, ".png")))
 ```
 
 {{< pagebreak >}}
@@ -206,7 +214,7 @@ show_png(hab(paste0("_predicted-individual-habitat_macroalgae_", pooled_label, "
 #| fig-width: 9
 #| fig-height: 5
 #| fig-cap: "Rock: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-show_png(hab(paste0("_predicted-individual-habitat_rock_", pooled_label, ".png")))
+show_png(hab(paste0("_predicted-individual-habitat_rock_", dash_label, ".png")))
 ```
 
 {{< pagebreak >}}
@@ -217,7 +225,7 @@ show_png(hab(paste0("_predicted-individual-habitat_rock_", pooled_label, ".png")
 #| fig-width: 9
 #| fig-height: 5
 #| fig-cap: "Sessile invertebrates: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
-show_png(hab(paste0("_predicted-individual-habitat_sessile-invertebrates_", pooled_label, ".png")))
+show_png(hab(paste0("_predicted-individual-habitat_sessile-invertebrates_", dash_label, ".png")))
 ```
 
 {{< pagebreak >}}
@@ -387,4 +395,84 @@ p_bar
 #| fig-height: 4
 #| fig-cap: "Demersal fish - Reef Fish Thermal Index: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing, shown separately for the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 show_png(fish(paste0("_predicted-individual-fish-metric_cti_", dash_label, ".png")))
+```
+
+{{< pagebreak >}}
+
+## Threatened species
+
+```{=latex}
+\stepcounter{metric}
+```
+
+```{r}
+#| label: tbl-threatened-species
+#| tbl-cap: "Threatened species recorded in stereo-BRUV imagery across all survey years, showing IUCN Red List category, the number of samples each species was recorded in, and the total abundance (MaxN) summed across those samples. *This species is also listed as ‘Conservation dependent’ on the EPBC Act List of Threatened Fauna. ^This species is also listed as ‘Vulnerable’ on the EPBC Act List of Threatened Fauna."
+
+threatened_species <- readRDS(here("data", park, "tidy",
+                                   paste0(name, "_threatened-species.RDS")))
+
+threatened_species %>%
+  dplyr::select(species_label, australian_common_name, family, listing,
+                n_samples, total_maxn, years_seen) %>%
+  gt() %>%
+  cols_label(species_label           = "Species",
+             australian_common_name = "Common name",
+             family                 = "Family",
+             listing                = "IUCN category",
+             n_samples              = "Samples",
+             total_maxn             = "Total MaxN",
+             years_seen             = "Years recorded") %>%
+  sub_missing(missing_text = "-") %>%
+  cols_width(species_label           ~ pct(21),
+             australian_common_name ~ pct(19),
+             family                 ~ pct(16),
+             listing                ~ pct(14),
+             n_samples              ~ pct(9),
+             total_maxn             ~ pct(10),
+             years_seen             ~ pct(11)) %>%
+  cols_align(align = "left",
+             columns = c(species_label, australian_common_name, family)) %>%
+  cols_align(align = "center",
+             columns = c(listing, n_samples, total_maxn, years_seen)) %>%
+  tab_style(style = cell_text(style = "italic"),
+            locations = cells_body(columns = species_label)) %>%
+  opt_row_striping() %>%
+  tab_style(style = cell_text(weight = "bold"),
+            locations = cells_column_labels()) %>%
+  tab_options(table.width               = pct(100),
+              table.font.size           = px(11),
+              data_row.padding          = px(4),
+              latex.use_longtable       = TRUE,
+              column_labels.border.top.style = "none",
+              table.border.top.style    = "none",
+              table_body.hlines.style   = "none")
+```
+
+{{< pagebreak >}}
+
+### Threatened shark and ray species
+
+```{r}
+#| fig-width: 12
+#| fig-height: 12
+#| fig-cap: "Occurrence of threatened, IUCN Red List category, sharks and rays in stereo-BRUV imagery, shown across all survey years. Points are scaled by abundance (MaxN) and coloured by survey year; grey points show every stereo-BRUV deployment. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters."
+readRDS(fish(paste0("_threatened-species-occurrence_page1_", dash_label, ".rds")))
+```
+
+{{< pagebreak >}}
+
+### Other shark and ray species
+
+<!-- 09_threatened-species.R paginates this plot at 12 species/page (4 cols x
+3 rows) and prints how many pages it made. This assumes 1 page - add or
+remove a chunk below to match if the actual page count differs. fig-width/
+fig-height are just a starting point - adjust freely, the .rds is a live
+ggplot object so it re-flows to whatever size you give it. -->
+
+```{r}
+#| fig-width: 14
+#| fig-height: 14
+#| fig-cap: "Occurrence of shark and ray species that are not threatened in stereo-BRUV imagery, shown across all survey years. Points are scaled by abundance (MaxN) and coloured by survey year; grey points show every stereo-BRUV deployment, so a panel with no coloured points is a genuine absence rather than an absence of sampling. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters."
+readRDS(fish(paste0("_non-threatened-species-occurrence_page1_", dash_label, ".rds")))
 ```

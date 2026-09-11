@@ -63,7 +63,11 @@ boss_samples <- boss_metadata %>%
 boss_benthos_summarised <- CheckEM::ga_api_habitat(token = token,
                                                    synthesis_id = "84") %>%
   semi_join(boss_metadata, by = "sample_url") %>%
-  dplyr::mutate(habitat = case_when(level_2 %in% "Macroalgae" ~ level_2,
+  # Kelp (Large canopy-forming Macroalgae, i.e. Ecklonia radiata) is split out
+  # of Macroalgae into its own habitat class - this is the northern range
+  # limit for kelp, so it is reported separately rather than folded in
+  dplyr::mutate(habitat = case_when(level_2 %in% "Macroalgae" & level_3 %in% "Large canopy-forming" ~ "Kelp",
+                                    level_2 %in% "Macroalgae" ~ level_2,
                                     level_2 %in% "Seagrasses" ~ level_2,
                                     level_2 %in% "Substrate" & level_3 %in% "Consolidated (hard)" ~ "Consolidated",
                                     level_2 %in% "Substrate" & level_3 %in% "Unconsolidated (soft)" ~ "Unconsolidated",
@@ -89,6 +93,48 @@ boss_benthos_summarised <- CheckEM::ga_api_habitat(token = token,
   glimpse()
 
 saveRDS(boss_benthos_summarised, paste0("data/", park, "/raw/boss_benthos_summarised.RDS"))
+
+# Rebuild the BRUV benthos summary with a Kelp class ----
+# ga_api_all_data() above already wrote its own bruv_benthos_summarised.RDS,
+# but that collapses Kelp under Macroalgae with no way to split it back out.
+# It also writes bruv_benthos_raw.RDS (the point-level classifications, still
+# carrying level_2/level_3), so that raw file is re-summarised here with the
+# same habitat mapping used for BOSS above, and overwrites the package's
+# version.
+bruv_metadata_raw <- readRDS(paste0("data/", park, "/raw/bruv_metadata.RDS"))
+
+bruv_samples <- bruv_metadata_raw %>%
+  dplyr::select(sample_url, campaignid, sample)
+
+bruv_benthos_summarised <- readRDS(paste0("data/", park, "/raw/bruv_benthos_raw.RDS")) %>%
+  semi_join(bruv_metadata_raw, by = "sample_url") %>%
+  dplyr::mutate(habitat = case_when(level_2 %in% "Macroalgae" & level_3 %in% "Large canopy-forming" ~ "Kelp",
+                                    level_2 %in% "Macroalgae" ~ level_2,
+                                    level_2 %in% "Seagrasses" ~ level_2,
+                                    level_2 %in% "Substrate" & level_3 %in% "Consolidated (hard)" ~ "Consolidated",
+                                    level_2 %in% "Substrate" & level_3 %in% "Unconsolidated (soft)" ~ "Unconsolidated",
+                                    level_2 %in% "Sponges" ~ "Sessile invertebrates",
+                                    level_2 %in% "Sessile invertebrates" ~ level_2,
+                                    level_2 %in% "Bryozoa" ~ "Sessile invertebrates",
+                                    level_2 %in% "Cnidaria" ~ "Sessile invertebrates",
+                                    level_2 %in% "Echinoderms" ~ "Sessile invertebrates",
+                                    level_2 %in% "Ascidians" ~ "Sessile invertebrates",
+                                    .default = level_2)) %>%
+  left_join(bruv_samples, by = "sample_url") %>%
+  dplyr::select(sample_url, campaignid, sample, habitat, count) %>%
+  dplyr::group_by(sample_url, campaignid, sample, habitat) %>%
+  dplyr::tally(count, name = "count") %>%
+  dplyr::mutate(total_points_annotated = sum(count)) %>%
+  dplyr::ungroup() %>%
+  pivot_wider(names_from = "habitat", values_from = "count", values_fill = 0) %>%
+  dplyr::select(-c(any_of("Fishes"))) %>%
+  CheckEM::clean_names() %>%
+  dplyr::mutate(across(.cols = 5:last_col(),
+                       .fns = ~ .x / total_points_annotated,
+                       .names = "{.col}_percent")) %>%
+  glimpse()
+
+saveRDS(bruv_benthos_summarised, paste0("data/", park, "/raw/bruv_benthos_summarised.RDS"))
 
 # Combine the BRUV and BOSS metadata ----
 # Only the columns used downstream are kept - the observer and successful

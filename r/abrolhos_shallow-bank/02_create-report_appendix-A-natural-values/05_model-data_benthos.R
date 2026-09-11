@@ -21,11 +21,6 @@ config <- yaml::read_yaml(
 name <- config$name
 park <- config$park
 years <- config$years
-combine_benthos <- config$combine_benthos
-
-# Label used to save/read pooled benthos outputs (single combined file)
-# instead of one file per year. Ignored when combine_benthos is FALSE.
-benthos_label <- if (combine_benthos) paste(years, collapse = "_") else NA
 
 ## TODO Run below to install FSSgam package
 # if (!requireNamespace("remotes", quietly = TRUE)) {
@@ -49,10 +44,14 @@ metadata_bathy_derivatives <- readRDS(paste0("data/", park, "/tidy/", name, "_me
 habi <- readRDS(paste0("data/", park, "/tidy/", name, "_benthos-count.RDS")) %>%
   left_join(metadata_bathy_derivatives) %>%
   dplyr::filter(!is.na(geoscience_roughness)) %>%
+  # Drop stale factor levels carried in from the RDS - needed since year and
+  # status are forced in as factors below
+  dplyr::mutate(year   = droplevels(factor(as.character(year), levels = years)),
+                status = droplevels(factor(as.character(status)))) %>%
   glimpse()
 
 model_dat <- habi %>%
-  pivot_longer(cols = c(macroalgae, sand, rock, sessile_invertebrates, reef, seagrasses),
+  pivot_longer(cols = c(macroalgae, kelp, sand, rock, sessile_invertebrates, reef, seagrasses),
                names_to = "response", values_to = "number") %>%
   glimpse()
 
@@ -77,6 +76,10 @@ for(i in 1:length(unique.vars)){
 
 unique.vars.use
 
+# Kelp fails the 80% zero threshold above but is forced in anyway, since it is
+# now reported as its own habitat class
+if (!"kelp" %in% unique.vars.use) unique.vars.use <- c(unique.vars.use, "kelp")
+
 # # Or you can force in your own variables, you might need reef for fish predictions
 # unique.vars.use <- c("macroalgae",
 #                      "sand",
@@ -90,9 +93,9 @@ outdir    <- paste0("output/model-output/", park, "/habitat/")
 out.all   <- list()
 var.imp   <- list()
 resp.vars <- unique.vars.use
-factor.vars <- c(NULL) # TODO set factors - if one year of data or combining years set as null
+factor.vars <- c("year", "status") # forced in
 
-# Loop through thNULL# Loop through the FSS function for each Abiotic taxa----
+# Loop through the FSS function for each Abiotic taxa----
 for(i in 1:length(resp.vars)){
   print(resp.vars[i])
   use.dat <- model_dat[model_dat$response == resp.vars[i],]
@@ -151,37 +154,42 @@ write.csv(all.var.imp,         file = paste0(outdir, name, "_abiotic_all.var.imp
 ## TODO Select best models from above then write them below (check all.mod.fits and all.var.imp)
 # For each response, carefully write the selected model choosing model type (family),
 # predictor variables, factor variables, k and bs
-# TODO if only one year: remove "year +" and drop ", by = year" from each s() term for every model below
-# Sand
-# All five responses below took the same model: for each one, only the full
-# four-predictor model fell within delta AICc 2, so there is no simpler
-# alternative to choose. Variable importance is ~1 for every term.
+# Selected from the fresh FSSgam run with year + status forced in as factors
 # Seagrasses is not modelled - >80% zeros, so it never entered model selection.
 
 # Sand
 m_sand <- gam(cbind(sand, total_pts - sand) ~
-                s(geoscience_aspect, k = 3, bs = "cc") +
-                s(geoscience_depth, k = 3, bs = "cr") +
-                s(geoscience_detrended, k = 3, bs = "cr") +
-                s(geoscience_roughness, k = 3, bs = "cr"),
+                s(geoscience_aspect, by = year, k = 3, bs = "cc") +
+                s(geoscience_depth, by = year, k = 3, bs = "cr") +
+                s(geoscience_detrended, by = year, k = 3, bs = "cr") +
+                year,
               data = habi, method = "REML", family = binomial("logit"))
 summary(m_sand)
 
 # Macroalgae
 m_macro <- gam(cbind(macroalgae, total_pts - macroalgae) ~
-                 s(geoscience_aspect, k = 3, bs = "cc") +
-                 s(geoscience_depth, k = 3, bs = "cr") +
-                 s(geoscience_detrended, k = 3, bs = "cr") +
-                 s(geoscience_roughness, k = 3, bs = "cr"),
+                 s(geoscience_aspect, by = year, k = 3, bs = "cc") +
+                 s(geoscience_depth, by = year, k = 3, bs = "cr") +
+                 status + year,
                data = habi, method = "REML", family = binomial("logit"))
 summary(m_macro)
 
-# Rock - lowest deviance explained of the five (0.22), interpret with care
+# Kelp - split out of Macroalgae (Large canopy-forming, i.e. Ecklonia
+# radiata) in 01_call-API.R. Forced into unique.vars.use above even though it
+# fails the 80% zero threshold.
+m_kelp <- gam(cbind(kelp, total_pts - kelp) ~
+                s(geoscience_aspect, by = status, k = 3, bs = "cc") +
+                s(geoscience_depth, by = status, k = 3, bs = "cr") +
+                s(geoscience_detrended, by = status, k = 3, bs = "cr") +
+                status,
+              data = habi, method = "REML", family = binomial("logit"))
+summary(m_kelp)
+
+# Rock - lowest deviance explained of the responses (0.47), interpret with care
 m_rock <- gam(cbind(rock, total_pts - rock) ~
-                s(geoscience_aspect, k = 3, bs = "cc") +
-                s(geoscience_depth, k = 3, bs = "cr") +
-                s(geoscience_detrended, k = 3, bs = "cr") +
-                s(geoscience_roughness, k = 3, bs = "cr"),
+                s(geoscience_depth, by = status, k = 3, bs = "cr") +
+                s(geoscience_roughness, by = status, k = 3, bs = "cr") +
+                status + year,
               data = habi, method = "REML", family = binomial("logit"))
 summary(m_rock)
 
@@ -190,19 +198,19 @@ summary(m_rock)
 
 # Inverts
 m_inverts <- gam(cbind(sessile_invertebrates, total_pts - sessile_invertebrates) ~
-                   s(geoscience_aspect, k = 3, bs = "cc") +
                    s(geoscience_depth, k = 3, bs = "cr") +
-                   s(geoscience_detrended, k = 3, bs = "cr") +
-                   s(geoscience_roughness, k = 3, bs = "cr"),
+                   s(geoscience_aspect, by = status, k = 3, bs = "cc") +
+                   s(geoscience_detrended, by = status, k = 3, bs = "cr") +
+                   status,
                  data = habi, method = "REML", family = binomial("logit"))
 summary(m_inverts)
 
 # Reef
 m_reef <- gam(cbind(reef, total_pts - reef) ~
-                s(geoscience_aspect, k = 3, bs = "cc") +
-                s(geoscience_depth, k = 3, bs = "cr") +
-                s(geoscience_detrended, k = 3, bs = "cr") +
-                s(geoscience_roughness, k = 3, bs = "cr"),
+                s(geoscience_aspect, by = year, k = 3, bs = "cc") +
+                s(geoscience_depth, by = year, k = 3, bs = "cr") +
+                s(geoscience_detrended, by = year, k = 3, bs = "cr") +
+                year,
               data = habi, method = "REML", family = binomial("logit"))
 summary(m_reef)
 
@@ -226,18 +234,16 @@ preddf_s <- cbind(preddf, terra::extract(marine_parks, predv)) %>%
   dplyr::mutate(status = as.factor(ifelse(is.na(status), "Fished", "No-Take"))) %>%
   glimpse()
 
-if (combine_benthos) {
-  preddf_sy <- preddf_s
-} else {
-  preddf_sy <- purrr::map_dfr(years, \(yy) preddf_s %>% dplyr::mutate(year = yy)) %>%
-    dplyr::mutate(year = factor(year, levels = levels(habi$year)))
-}
+# year is forced in as a factor above, so predictions are always made per year
+preddf_sy <- purrr::map_dfr(years, \(yy) preddf_s %>% dplyr::mutate(year = yy)) %>%
+  dplyr::mutate(year = factor(year, levels = levels(habi$year)))
 
 # predict, rasterise and plot
 # TODO comment-out any habitats not modeled above
 predhab <- cbind(preddf_sy,
                  "p_sand"    = predict(m_sand, preddf_sy, type = "response", se.fit = T),
                  "p_macro"   = predict(m_macro, preddf_sy, type = "response", se.fit = T),
+                 "p_kelp"    = predict(m_kelp, preddf_sy, type = "response", se.fit = T),
                  "p_rock"    = predict(m_rock, preddf_sy, type = "response", se.fit = T),
                  "p_inverts" = predict(m_inverts, preddf_sy, type = "response", se.fit = T),
                  "p_reef"    = predict(m_reef, preddf_sy, type = "response", se.fit = T)
@@ -246,28 +252,23 @@ predhab <- cbind(preddf_sy,
 
 # Calculate MESS and mask predictions ----
 # TODO remove habitats not predicted
-resp.vars <- c("p_sand", "p_macro", "p_rock", "p_inverts", "p_reef")
+resp.vars <- c("p_sand", "p_macro", "p_kelp", "p_rock", "p_inverts", "p_reef")
 
-# One output per label: each survey year, or a single combined label when pooling.
-pred.labels <- if (combine_benthos) benthos_label else years
+pred.labels <- years
 
 # Helper: return the habi + predhab rows that belong to a given output label.
-# When pooling there is no year split, so we use every row.
 rows_for <- function(label) {
-  if (combine_benthos) {
-    list(habi = habi, predhab = predhab)
-  } else {
-    list(
-      habi    = dplyr::filter(habi,    as.character(year) == label),
-      predhab = dplyr::filter(predhab, as.character(year) == label)
-    )
-  }
+  list(
+    habi    = dplyr::filter(habi,    as.character(year) == label),
+    predhab = dplyr::filter(predhab, as.character(year) == label)
+  )
 }
 
 # Labels and colours for dominant habitat outputs
 dom_labels <- c(
   sand = "Sand",
   macro = "Macroalgae",
+  kelp = "Kelp",
   seagrass = "Seagrass",
   inverts = "Sessile invertebrates",
   reef = "Reef",
@@ -358,7 +359,7 @@ for (this_label in pred.labels) {
   # TODO remove irrelevant habitats
   se_rasts <- terra::subset(
     preddf_m,
-    c("p_sand.se.fit", "p_macro.se.fit", "p_rock.se.fit",
+    c("p_sand.se.fit", "p_macro.se.fit", "p_kelp.se.fit", "p_rock.se.fit",
       "p_inverts.se.fit", "p_reef.se.fit")
   )
 
@@ -380,7 +381,7 @@ for (this_label in pred.labels) {
       dom_tag = unname(dom_labels[as.character(dom_tag)]),
       dom_tag = factor(
         dom_tag,
-        levels = c("Sand", "Macroalgae", "Rock", "Sessile invertebrates")
+        levels = c("Sand", "Macroalgae", "Kelp", "Rock", "Sessile invertebrates")
       )
     )
 

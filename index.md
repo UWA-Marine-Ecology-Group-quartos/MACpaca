@@ -50,6 +50,13 @@
 - [Appendix B - Pressures Report (to add)](quartos/geographe/Project%204.21-Geographe-2-Appendix%20A-q-Natural%20values.html)
 - [Appendix C - Data Analysis Report (to add)](quartos/geographe/Project%204.21-Geographe-2-Appendix%20A-q-Natural%20values.html)
 
+#### Abrolhos Marine Park (Shallow Bank)
+- Data syntheses (to add)
+- Methods - [Data analysis](https://github.com/UWA-Marine-Ecology-Group-quartos/australian-marine-parks/tree/e6640eaf458e06f89f77bdbee34a0608b85418bb/r/abrolhos_shallow-bank)
+- [Appendix A - Natural Values Report](quartos/abrolhos_shallow-bank/Project%204.21-Abrolhos-Shallow-Bank-Appendix%20A-q-Natural%20values.html)
+- Appendix B - Pressures Report (to add)
+- Appendix C - Data Analysis Report (to add)
+
 #### Beagle Marine Park
 - Data syntheses - [BRUV](https://dev.globalarchive.org/ui/main/syntheses/71)
 - Methods - [Data analysis](https://github.com/UWA-Marine-Ecology-Group-quartos/australian-marine-parks/tree/e6640eaf458e06f89f77bdbee34a0608b85418bb/r/abrolhos_clio-bank)

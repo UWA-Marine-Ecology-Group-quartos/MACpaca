@@ -10,6 +10,7 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
   grad_high <- c(
     "Sand"                  = "wheat",
     "Macroalgae"            = "darkorange4",
+    "Kelp"                  = "olivedrab",
     "Seagrass"              = "forestgreen",
     "Rock"                  = "grey40",
     "Sessile invertebrates" = "deeppink3"
@@ -19,13 +20,14 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
   legend_names <- c(
     "Sand"                  = "Sand",
     "Macroalgae"            = "Macroalgae",
+    "Kelp"                  = "Kelp",
     "Seagrass"              = "Seagrass",
     "Rock"                  = "Rock",
     "Sessile invertebrates" = "Sessile\ninvertebrates"
   )
 
   # Canonical rendering order — filter to modelled taxa only
-  hab_order <- c("Sand", "Rock", "Macroalgae", "Seagrass", "Sessile invertebrates")
+  hab_order <- c("Sand", "Rock", "Macroalgae", "Kelp", "Seagrass", "Sessile invertebrates")
   modelled  <- hab_order[hab_order %in% names(habitat_lookup)]
 
   multi_year <- length(dat_list) > 1

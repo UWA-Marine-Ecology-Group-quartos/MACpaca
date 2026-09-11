@@ -15,10 +15,12 @@ config <- yaml::read_yaml(
 name <- config$name
 park <- config$park
 
-# TODO Change pdf_name/html_name to your quarto output names
-pdf_name <- "Project 4.21-Abrolhos-Shallow-Bank-Appendix A-q-Natural values.pdf"
-html_name <- "Project 4.21-Abrolhos-Shallow-Bank-Appendix A-q-Natural values.html"
-html_files_dir <- "09_quarto_files" # supporting folder Quarto generates alongside the HTML
+# TODO Change pdf_name/html_name to your quarto output names - these are still
+# leftover placeholder text from the TEMPLATE this appendix was copied from,
+# and need setting once 10_quarto.qmd's title/output-file are finalised
+pdf_name <- "Project 4.21-Geographe-2-Appendix A-q-Natural values.pdf"
+html_name <- "Project 4.21-Geographe-2-Appendix A-q-Natural values.html"
+html_files_dir <- "10_quarto_files" # supporting folder Quarto generates alongside the HTML
 
 source_dir <- paste0(
   "r/", park,
@@ -64,6 +66,7 @@ if (dir.exists(file.path(source_dir, html_files_dir))) {
   dest_files_path <- file.path(dest_dir, html_files_dir)
 
   # Remove any stale leftover folder from a previous run
+  # (this is what was silently blocking file.rename() before)
   if (dir.exists(dest_files_path)) dir_delete(dest_files_path)
 
   dir_copy(

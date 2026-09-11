@@ -45,16 +45,19 @@ library(geos)
 file.sources <- list.files(pattern = "*.R", path = paste0("r/", park, "/functions/"), full.names = TRUE)
 sapply(file.sources, source, .GlobalEnv)
 
-# TODO Set cropping extent - larger than most zoomed out plot
-e <- ext(114.2, 115.8, -34.7, -33.1)
+# TODO Set cropping extent - larger than most zoomed out plot. Ballpark for
+# Ningaloo, check against the 02_spatial-layers.R buffer and adjust
+e <- ext(113.2, 114.4, -23.6, -21.4)
 
 # Load necessary spatial files
+# No north-west network copy of the Australia outline layer - shared national
+# asset, only exists under south-west network
 ausc <- st_read("data/south-west network/spatial/shapefiles/aus-shapefile-w-investigator-stokes.shp") %>%
   st_crop(e) %>%
   st_transform(4326)
 
-marine_parks <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
-  dplyr::filter(name %in% c("Ngari Capes", "Geographe", "South-west Corner")) # TODO select relevant parks
+marine_parks <- st_read("data/north-west network/spatial/shapefiles/north-west-network-australia_marine-parks-all.shp") %>%
+  dplyr::filter(name %in% "Ningaloo")
 
 marine_parks_amp <- marine_parks %>%
   dplyr::filter(epbc %in% "Commonwealth") %>%
@@ -65,9 +68,11 @@ marine_parks_state <- marine_parks %>%
   st_transform(4326)
 
 npz <- marine_parks[marine_parks$zone %in% "National Park Zone", ]
+# Ningaloo's Commonwealth waters have no Sanctuary Zone (only the State park
+# does) - wasanc will come back empty, which is expected here
 wasanc <- marine_parks[marine_parks$zone %in% "Sanctuary Zone", ]
 
-cwatr <- st_read("data/south-west network/spatial/shapefiles/amb_coastal_waters_limit.shp") %>%
+cwatr <- st_read("data/north-west network/spatial/shapefiles/amb_coastal_waters_limit.shp") %>%
   st_make_valid() %>%
   st_crop(e) %>%
   st_transform(4326)
@@ -76,7 +81,7 @@ cwatr_offset <- st_as_sf(geos_offset_curve(as_geos_geometry(cwatr), distance = 0
 st_crs(cwatr_offset) <- 4326
 
 # Load the bathymetry data (GA 250m resolution)
-bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
+bathy <- rast("data/north-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
   crop(e) %>%
   clamp(upper = 0, lower = -250, values = FALSE) %>%
   trim() %>%
@@ -85,25 +90,22 @@ bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__
 names(bathy)[3] <- "Depth"
 
 # Map pretty habitat names to raster layer prefixes in dat
+# Only sand and sessile invertebrates were modelled in 05 - macroalgae, rock
+# and seagrasses never had enough non-zero samples (>80% zeros)
 habitat_lookup <- c(
   "Sand" = "sand",
-  "Macroalgae" = "macro",
-  "Seagrass" = "seagrass",
-  "Sessile invertebrates" = "inverts",
-  "Rock" = "rock"
+  "Sessile invertebrates" = "inverts"
 )
 
 # Optional habitat colours for other functions if needed
 hab_cols <- c(
   "Sand" = "wheat",
-  "Macroalgae" = "darkgoldenrod4",
-  "Seagrass" = "forestgreen",
-  "Rock" = "grey40",
   "Sessile invertebrates" = "plum"
 )
 
-# TODO Plot extent
-prediction_limits <- c(115.035, 115.57, -33.665, -33.34)
+# TODO Plot extent - fill in from the 02_spatial-layers.R
+# "07 (benthos) prediction_limits <- c(...)" message
+prediction_limits <- c(113.2, 114.4, -23., -21.4)
 
 # Read all years once
 
@@ -436,11 +438,11 @@ for (taxa_code in names(taxa_lookup)) {
 
 # ---- Scatterpie data prep ----
 
-# TODO Set the extent of the study
-e <- ext(114.8, 116, -33.8, -33)
+# TODO Set the extent of the study - ballpark for Ningaloo, check and adjust
+e <- ext(113.2, 114.4, -23, -21.5)
 
 # Load the bathymetry data (GA 250m resolution)
-bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
+bathy <- rast("data/north-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
   crop(e) %>%
   clamp(upper = 0, lower = -250, values = FALSE) %>%
   trim() %>%
@@ -467,13 +469,13 @@ benthos <- readRDS(
   arrange(desc(Sand))
 
 hab_fills <- scale_fill_manual(
-  name = "Habitat",
+  name = "",
   limits = c("Rock", "Sessile invertebrates", "Macroalgae", "Seagrass", "Sand"),
   values = c(
     "Rock" = "grey40",
     "Sessile invertebrates" = "plum",
-    "Macroalgae" = "darkgoldenrod4",
-    "Seagrass" = "forestgreen",
+    "Seagrass" = "green",
+    "Macroalgae" = "brown",
     "Sand" = "wheat"
   )
 )
@@ -494,7 +496,7 @@ depth_fills <- scale_fill_manual(
   guide = "none"
 )
 
-site_limits <- c(115.0, 115.67, -33.3, -33.65) # TODO set limits
+site_limits <- c(113.2, 114.4, -21.5, -23) # TODO set limits - ballpark for Ningaloo, check and adjust
 
 if (combine_benthos) {
 
@@ -512,7 +514,7 @@ if (combine_benthos) {
   p_scatterpie <- scatterpie_plot_single(
     benthos_year = benthos_pooled,
     site_limits = site_limits,
-    pie_radius = 0.005
+    pie_radius = 0.01
   )
 
   print(p_scatterpie)
@@ -551,7 +553,7 @@ if (combine_benthos) {
     p_scatterpie <- scatterpie_plot_single(
       benthos_year = benthos_year,
       site_limits = site_limits,
-      pie_radius = 0.005
+      pie_radius = 0.01
     )
 
     print(p_scatterpie)
@@ -578,7 +580,7 @@ if (combine_benthos) {
     benthos = benthos,
     years = years,
     site_limits = site_limits,
-    pie_radius = 0.005
+    pie_radius = 0.01
   )
 
   print(p_scatterpie_multi)

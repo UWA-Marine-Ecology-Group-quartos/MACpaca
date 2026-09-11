@@ -5,6 +5,7 @@ categoricalhabitat_plot_single <- function(pred_plot, prediction_limits, habitat
     "Rock"                  = "grey40",
     "Sessile invertebrates" = "plum",
     "Macroalgae"            = "darkgoldenrod4",
+    "Kelp"                  = "darkolivegreen",
     "Seagrass"              = "forestgreen",
     "Sand"                  = "wheat"
   )
@@ -21,6 +22,7 @@ categoricalhabitat_plot_single <- function(pred_plot, prediction_limits, habitat
       dom_tag = dplyr::case_when(
         dom_tag %in% c("sand", "Sand")                                                        ~ "Sand",
         dom_tag %in% c("macro", "macroalgae", "Macroalgae")                                   ~ "Macroalgae",
+        dom_tag %in% c("kelp", "Kelp")                                                        ~ "Kelp",
         dom_tag %in% c("seagrass", "seagrasses", "Seagrass", "Seagrasses")                    ~ "Seagrass",
         dom_tag %in% c("rock", "Rock")                                                        ~ "Rock",
         dom_tag %in% c("sessile invertebrates", "Sessile Invertebrates", "inverts", "Inverts") ~ "Sessile invertebrates",

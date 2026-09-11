@@ -14,6 +14,7 @@ controlplot_benthos <- function(data, taxa, amp_abbrv, state_abbrv = NULL,
     taxa_label <- dplyr::case_when(
       taxa == "seagrass"   ~ "Seagrass",
       taxa == "macroalgae" ~ "Macroalgae",
+      taxa == "kelp"       ~ "Kelp",
       taxa == "rock"       ~ "Rock",
       taxa == "sand"       ~ "Sand",
       taxa == "inverts"    ~ "Sessile invertebrates",
@@ -38,12 +39,15 @@ controlplot_benthos <- function(data, taxa, amp_abbrv, state_abbrv = NULL,
       paste(state_abbrv, "other zones"))
   }
 
-  zone_levels <- c(amp_levels, state_levels)
+  # Samples/predictions outside every marine park zone are labelled Coastal
+  # Waters by controldata_benthos() - include it as a zone level
+  zone_levels <- c(amp_levels, state_levels, "Coastal Waters")
 
   fill_vals  <- setNames(c("#7bbc63", "#b9e6fb",
-                           "#bfd054", "#bddde1")[seq_along(zone_levels)],
+                           "#bfd054", "#bddde1",
+                           "grey70")[seq_along(zone_levels)],
                          zone_levels)
-  shape_vals <- setNames(c(21, 21, 25, 25)[seq_along(zone_levels)],
+  shape_vals <- setNames(c(21, 21, 25, 25, 22)[seq_along(zone_levels)],
                          zone_levels)
 
   # year may arrive as a factor or character (config$years is quoted in YAML),

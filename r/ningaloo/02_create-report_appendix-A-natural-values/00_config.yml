@@ -1,5 +1,6 @@
-name: "TEMPLATE"
-park: "geographe"
-years: ["2023", "2024"]      # EVERY survey year
-combine_benthos: false       # true = pool benthos years into ONE
+name: "ningaloo"
+park: "ningaloo"
+years:      ["2019", "2021", "2022", "2024"]   # EVERY survey year - BRUV + BOSS combined
+fish_years: ["2019", "2021", "2022", "2024"]   # Years modelled for fish (BRUV only, same years)
+combine_benthos: true       # true = pool benthos years into ONE
                              # Combine benthos if years have samples in different spatial areas
