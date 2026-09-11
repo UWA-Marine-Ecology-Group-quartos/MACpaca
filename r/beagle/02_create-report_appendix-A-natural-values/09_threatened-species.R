@@ -250,9 +250,32 @@ y_breaks <- seq(floor(map_limits[3] / label_interval_y) * label_interval_y,
 base_map <- function() {
   list(
     geom_sf(data = ausc, fill = "seashell2", colour = "grey80", linewidth = 0.1),
-    geom_sf(data = marine_parks_amp, fill = NA, colour = "#7bbc63", linewidth = 0.2),
-    geom_sf(data = marine_parks_state, fill = NA, colour = "#bfd054", linewidth = 0.2),
+
+    geom_sf(
+      data        = marine_parks_amp,
+      aes(colour  = zone),
+      fill        = NA,
+      linewidth   = 0.2,
+      show.legend = FALSE
+    ),
+    scale_colour_manual(
+      values = with(marine_parks_amp, setNames(colour, zone))
+    ),
+    ggnewscale::new_scale_color(),
+
     geom_sf(data = cwatr, colour = "firebrick", linewidth = 0.3, alpha = 0.8),
+    ggnewscale::new_scale_color(),
+
+    geom_sf(
+      data        = marine_parks_state,
+      aes(colour  = zone),
+      fill        = NA,
+      linewidth   = 0.2,
+      show.legend = FALSE
+    ),
+    scale_colour_manual(
+      values = with(marine_parks_state, setNames(colour, zone))
+    ),
     scale_x_continuous(breaks = x_breaks),
     scale_y_continuous(breaks = y_breaks),
     coord_sf(xlim = map_limits[1:2], ylim = map_limits[3:4], crs = 4326),
@@ -379,3 +402,4 @@ occ_points_other <- non_threatened_obs %>%
   dplyr::filter(is.finite(longitude_dd), is.finite(latitude_dd))
 
 save_paginated_overview(occ_points_other, "non-threatened-species-occurrence")
+
