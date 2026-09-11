@@ -1,0 +1,26 @@
+Title: Heard and McDonald Islands Management Zones
+
+Authors:
+  - URSULA HARRIS (INVESTIGATOR, TECHNICAL CONTACT)
+  - ANGELA BENDER (DIF AUTHOR)
+
+Owner: Commonwealth of Australia
+
+Citation: Harris, U. (2007) Heard and McDonald Islands Management Zones, Ver. 1,  <em>Australian Antarctic Data Centre</em> - <a href="http://dx.doi.org/doi:10.26179/5b73a81686490">doi:10.26179/5b73a81686490</a>, Accessed: 2020-07-02
+
+Revision Date: 2018-08-15
+
+Metadata URL: https://data.aad.gov.au/metadata/records/heard_manage_gis
+
+Dataset API URL: https://data.aad.gov.au/s3/api/bucket/datasets/gis/heard/Management_zones_py?export=json
+
+Abstract: The Heard Island management zones are a polygon and line dataset stored in the Geographical Information System (GIS). These areas were developed inline with the Heard Island and McDonald Islands Marine Reserve Management Plan, published in 2005.
+
+Use Constraints: This data set conforms to the CCBY Attribution License
+(http://creativecommons.org/licenses/by/4.0/).
+
+Please follow instructions listed in the citation reference provided at http://data.aad.gov.au/aadc/metadata/citation.cfm?entry_id=heard_manage_gis when using these data.
+
+ID: 1371
+Metadata ID: heard_manage_gis
+UUID: 837C1223-F046-4710-9EA6-63CE1E514CBD

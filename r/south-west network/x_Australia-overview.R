@@ -37,16 +37,19 @@ library(ggpattern)
 library(ggnewscale)
 library(scales)     # load AFTER terra so scales::rescale() wins
 library(tidyterra)
+library(patchwork)
 
 # ── Load spatial files ──────────────────────────────────────────────────────
-# CAPAD Australian Marine Parks (already in WGS 84)
-# Parenthetical suffixes are stripped from zone_type, e.g.
-# "Special Purpose Zone (Trawl)" -> "Special Purpose Zone"
-marine.parks <- st_read("data/south-west network/spatial/shapefiles/Collaborative_Australian_Protected_Areas_Database_(CAPAD)_2022_-_Marine.shp") %>%
+# CAPAD Australian Protected Areas Database (CAPAD) 2024 - Marine
+# NOTE: as of the 2024 release, CAPAD no longer populates ZONE_TYPE for ANY
+# feature (Commonwealth or State/Territory) - it comes back 100% NA. Kept here
+# for state/territory attributes (name, iucn, type, etc.) and the sanctuary
+# split below, but Commonwealth zoning now comes from a separate live source
+# (see step 2).
+marine.parks <- st_read("data/south-west network/spatial/shapefiles/Collaborative_Australian_Protected_Areas_Database_(CAPAD)_2024_-_Marine.shp") %>%
   clean_names() %>%
-  dplyr::mutate(zone_type = str_replace_all(zone_type, "\\s*\\([^\\)]+\\)", "")) %>%
+  sf::st_make_valid() %>%
   glimpse()
-unique(marine.parks$zone_type)
 
 # Exclusive Economic Zone (Perth Treaty) limits
 eez <- st_read("data/south-west network/spatial/shapefiles/Exclusive_Economic_Zone_(Perth_Treaty)_limits.shp") %>%
@@ -57,20 +60,28 @@ eez <- st_read("data/south-west network/spatial/shapefiles/Exclusive_Economic_Zo
 # 2. PREPARE MARINE PARK LAYERS
 # ==============================================================================
 
-# State marine parks: simplify to sanctuary vs. other state marine park
+# ── State marine parks ──────────────────────────────────────────────────────
+# TODO / KNOWN ISSUE: this sanctuary/non-sanctuary split originally relied on
+# zone_type (via str_detect(zone_type, "Sanctuary|No take")), but zone_type is
+# now NA for every state/territory row in CAPAD 2024 (confirmed: 4073/4073 NA).
+# This classification is currently WRONG - every state feature is falling into
+# the "State Marine Park" catch-all below, with none correctly flagged as
+# Sanctuary Zone. This needs a proper fix (likely via `iucn`, `type`, or a
+# per-jurisdiction join) before this map can be trusted - do not publish
+# figures from this layer until it's resolved.
 state.mps <- marine.parks %>%
   dplyr::filter(!epbc %in% "Commonwealth") %>%
-  dplyr::mutate(sanctuary = if_else(str_detect(zone_type, "Sanctuary"),
+  dplyr::mutate(sanctuary = if_else(str_detect(zone_type, "Sanctuary|No take"),
                                     "Sanctuary Zone", "State Marine Park")) %>%
   glimpse()
 unique(state.mps$zone_type)
 
-# Australian (Commonwealth) marine parks: keep only the AMP zone vocabulary.
-# This both drops the GBR / other-reserve vocabularies and guarantees every
-# value present has a matching key in the manual scales below.
-# NOTE: because the parentheses were stripped above, the "(Trawl)" and
-# "(Mining Exclusion)" stripe keys in the scales never match - they are
-# inert and kept only for reference.
+# ── Australian (Commonwealth) marine parks ──────────────────────────────────
+# CAPAD 2024 dropped zone naming for AMPs entirely (zone_type NA for all 1264
+# Commonwealth rows), so Commonwealth zoning is now pulled live from Parks
+# Australia / DCCEEW's own zoning layer instead of from CAPAD. This layer is
+# independently maintained and more current than CAPAD's snapshot (e.g. it
+# reflects the Feb 2025 South-east re-zoning).
 amp_zones <- c(
   "Special Purpose Zone",
   "National Park Zone",
@@ -80,21 +91,35 @@ amp_zones <- c(
   "Sanctuary Zone"
 )
 
+amp_zoning_url <- "https://gis.environment.gov.au/gispubmap/rest/services/ogc_services/Australian_Marine_Parks/MapServer/0/query?where=1%3D1&outFields=*&f=geojson"
 
-fed.mps <- st_read("data/south-west network/spatial/shapefiles/Collaborative_Australian_Protected_Areas_Database_(CAPAD)_2022_-_Marine.shp") %>%
+# zonename carries a bracketed sub-classification for some zones, e.g.
+# "Special Purpose Zone (Trawl)", "Habitat Protection Zone (Macquarie)" -
+# stripped here the same way the old CAPAD zone_type parsing did, to collapse
+# back down to the 6-category amp_zones vocabulary.
+fed.mps <- st_read(amp_zoning_url) %>%
   clean_names() %>%
-  mutate(zone_type = str_replace_all(zone_type, "\\s*\\([^\\)]+\\)", "")) %>%
-  filter(epbc == "Commonwealth") %>%
+  st_make_valid() %>%
+  st_transform(st_crs(marine.parks)) %>%   # WGS84 -> GDA94, match CAPAD layers
+  mutate(zone_type = str_replace_all(zonename, "\\s*\\([^\\)]+\\)", "")) %>%
   filter(zone_type %in% amp_zones) %>%
   glimpse()
 
 sort(unique(fed.mps$zone_type))
+# sanity check - should be 0 rows / empty if every zone matched amp_zones
+st_read(amp_zoning_url) %>%
+  st_drop_geometry() %>%
+  clean_names() %>%
+  mutate(zone_type = str_replace_all(zonename, "\\s*\\([^\\)]+\\)", "")) %>%
+  filter(!zone_type %in% amp_zones) %>%
+  count(zonename)
 
 
 # ==============================================================================
 # 3. BATHYMETRY AND TOPOGRAPHY HILLSHADING
 # ==============================================================================
-# ── Bathymetry (sea floor only) ─────────────────────────────────────────────
+# (unchanged from original)
+
 bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
   aggregate(fact = 10) %>%
   clamp(upper = 0, values = F)
@@ -104,7 +129,6 @@ aspect <- terrain(bathy, "aspect", unit = "radians")
 hillbath <- shade(slope, aspect, 10, 0)
 names(hillbath) <- "shades"
 
-# Hillshading needs a greyscale palette mapped to the shade values
 pal_greys <- hcl.colors(1000, "Grays")
 
 index <- hillbath %>%
@@ -113,7 +137,6 @@ index <- hillbath %>%
   pull(index_col)
 vector_colsbathy <- pal_greys[index]
 
-# ── Topography (land only) ──────────────────────────────────────────────────
 topo <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
   aggregate(fact = 10) %>%
   clamp(lower = 1, values = F)
@@ -133,11 +156,10 @@ vector_cols <- pal_greys[index]
 # ==============================================================================
 # 4. PLOT INPUTS
 # ==============================================================================
+# (unchanged from original - plot_limits, cities data.frame, etc.)
+
 plot_limits <- c(94.0, 170.0, -48.0, -9.0)
 
-# Capital cities - label placed to one side of each point so the text never
-# overlaps the marker. hjust = 0 puts the label to the right, hjust = 1 to the
-# left; lab_x is the matching offset position.
 cities <- data.frame(
   city  = c("Darwin", "Brisbane", "Sydney", "Canberra", "Adelaide", "Melbourne", "Perth"),
   x     = c(130.8444, 153.0260, 151.2093, 149.1310, 138.6007, 144.9631, 115.8617),
@@ -188,6 +210,15 @@ p1 <- ggplot() +
   scale_fill_hypso_tint_c(palette = "dem_poster",
                           alpha = 0.6,
                           na.value = "transparent") +
+  # ── Mask out New Zealand ──
+  # plot_limits extends to 170 E / -48 S, which pulls in NZ's South Island.
+  # Painting an ocean-coloured rectangle over it hides it without needing to
+  # crop the whole map. Bounds are approximate - adjust to fully cover NZ
+  # without encroaching on the Norfolk/Lord Howe EEZ circle nearby (~160-165 E).
+  # Colour should match the surrounding deep-ocean tone - tweak against your
+  # actual render.
+  annotate("rect", xmin = 165.5, xmax = 172, ymin = -48, ymax = -33,
+           fill = "#2b63b5", colour = NA) +
   # ── Capital cities ──
   geom_point(data = cities, aes(x = x, y = y),
              shape = 9, size = 1) +
@@ -214,9 +245,116 @@ p1 <- ggplot() +
 
 # p1
 
-# Save plot
+# Save plot (main map only, no insets - kept for reference/QA)
 ggsave(paste(paste0('plots/', park, '/spatial/'), 'australia-overview.png'),
        plot = p1, dpi = 600, width = 8, height = 6, bg = "white")
+
+# ==============================================================================
+# 6. INSET MAPS FOR REMOTE TERRITORIES
+# ==============================================================================
+
+# Bounding boxes: c(xmin, xmax, ymin, ymax)
+# NOTE: check these against your actual fed.mps/eez extents once rendered -
+# tighten or widen so the full dashed EEZ circle is visible in each inset.
+macquarie_bbox <- c(152, 165, -59, -50)
+himi_bbox      <- c(66.3, 80.0, -57.3, -48.7)
+
+make_inset <- function(bbox, title) {
+  ext_box <- ext(bbox[1], bbox[2], bbox[3], bbox[4])
+
+  bathy_c    <- crop(bathy, ext_box)
+  topo_c     <- crop(topo, ext_box)
+  hillbath_c <- crop(hillbath, ext_box)
+  hill_c     <- crop(hill, ext_box)
+
+  ggplot() +
+    # ── Bathymetry hillshade + colour ──
+    geom_spatraster(data = hillbath_c, fill = pal_greys[
+      round(rescale(values(hillbath_c), to = c(1, length(pal_greys))))
+    ], maxcell = Inf) +
+    geom_spatraster(data = bathy_c, show.legend = FALSE, alpha = 0.6) +
+    scale_fill_gradientn(colours = c("#061442", "#2b63b5", "#9dc9e1"),
+                         values = rescale(c(-6221, -120, 0))) +
+    new_scale_fill() +
+    # ── State marine parks ──
+    geom_sf(data = state.mps, aes(fill = sanctuary), colour = NA, show.legend = FALSE) +
+    scale_fill_manual(values = c("Sanctuary Zone" = "#bfd054",
+                                 "State Marine Park" = "grey80")) +
+    new_scale_fill() +
+    # ── Federal (AMP) marine parks ──
+    geom_sf(data = fed.mps, aes(fill = zone_type), colour = NA, alpha = 0.7,
+            show.legend = FALSE) +
+    scale_fill_manual(values = c(
+      "Special Purpose Zone" = "#6daff4", "National Park Zone" = "#7bbc63",
+      "Habitat Protection Zone" = "#fff8a3", "Recreational Use Zone" = "#ffb36b",
+      "Multiple Use Zone" = "#b9e6fb", "Sanctuary Zone" = "#f7c0d8"
+    )) +
+    new_scale_fill() +
+    # ── EEZ boundary (dashed) ──
+    geom_sf(data = eez, colour = "grey20", linetype = 2, linewidth = 0.4, fill = NA) +
+    # ── Land hillshade + topography colour (matches main map layer order) ──
+    geom_spatraster(data = hill_c, alpha = 1, show.legend = FALSE) +
+    scale_fill_gradientn(colors = pal_greys, na.value = NA) +
+    new_scale_fill() +
+    geom_spatraster(data = topo_c, show.legend = FALSE) +
+    scale_fill_hypso_tint_c(palette = "dem_poster", alpha = 0.6, na.value = "transparent") +
+    coord_sf(xlim = bbox[1:2], ylim = bbox[3:4], expand = FALSE) +
+    labs(title = title) +
+    theme_void() +
+    theme(
+      plot.title = element_text(size = 6.5, hjust = 0.5, margin = margin(b = 2)),
+      panel.background = element_rect(fill = NA, colour = NA),
+      panel.border = element_rect(colour = "black", fill = NA, linewidth = 0.6),
+      plot.background  = element_rect(fill = NA, colour = NA)
+    )
+}
+
+# ── Vector-only inset (no bathymetry/topo raster) ──
+# Needed for territories outside the AusBathyTopo raster's coverage
+# (xmin/xmax 92.0-172.0 E, ymin/ymax -60.0 to -8.0 S). Heard & McDonald
+# Islands sit at ~73 E, well outside this range, so crop() on bathy/topo
+# fails with "extents do not overlap". Macquarie Island (~159 E) IS inside
+# the raster extent, so it keeps using the full terrain-shaded make_inset().
+make_inset_novector <- function(bbox, title) {
+  ggplot() +
+    geom_sf(data = state.mps, aes(fill = sanctuary), colour = NA, show.legend = FALSE) +
+    scale_fill_manual(values = c("Sanctuary Zone" = "#bfd054",
+                                 "State Marine Park" = "grey80")) +
+    new_scale_fill() +
+    geom_sf(data = fed.mps, aes(fill = zone_type), colour = NA, alpha = 0.7,
+            show.legend = FALSE) +
+    scale_fill_manual(values = c(
+      "Special Purpose Zone" = "#6daff4", "National Park Zone" = "#7bbc63",
+      "Habitat Protection Zone" = "#fff8a3", "Recreational Use Zone" = "#ffb36b",
+      "Multiple Use Zone" = "#b9e6fb", "Sanctuary Zone" = "#f7c0d8"
+    )) +
+    geom_sf(data = eez, colour = "grey20", linetype = 2, linewidth = 0.4, fill = NA) +
+    coord_sf(xlim = bbox[1:2], ylim = bbox[3:4], expand = FALSE) +
+    labs(title = title) +
+    theme_void() +
+    theme(
+      plot.title = element_text(size = 6.5, hjust = 0.5, margin = margin(b = 2)),
+      panel.background = element_rect(fill = "#2b63b5", colour = NA),
+      panel.border = element_rect(colour = "black", fill = NA, linewidth = 0.6),
+      plot.background  = element_rect(fill = NA, colour = NA)
+    )
+}
+
+inset_macquarie <- make_inset(macquarie_bbox, "Macquarie Island")
+inset_himi      <- make_inset_novector(himi_bbox, "Heard & McDonald Islands")
+
+# ── Compose main map + insets ──
+# left/bottom/right/top are fractions (0-1) of the full p1 canvas.
+# Adjust these once you see the rendered output.
+p1_final <- p1 +
+  inset_element(inset_himi,      left = 0.02, bottom = 0.03, right = 0.22, top = 0.20) +
+  inset_element(inset_macquarie, left = 0.80, bottom = 0.03, right = 0.98, top = 0.20) &
+  theme(plot.background = element_rect(fill = "white", colour = NA))
+
+# p1_final
+
+ggsave(paste0('plots/', park, '/spatial/australia-overview.png'),
+       plot = p1_final, dpi = 600, width = 8, height = 6, bg = "white")
 
 # ==============================================================================
 # End of script

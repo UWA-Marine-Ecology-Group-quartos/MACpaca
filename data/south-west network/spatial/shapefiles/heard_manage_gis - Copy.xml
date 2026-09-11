@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DIF xmlns="http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/" xmlns:dif="http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/ https://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/dif_v9.9.3.xsd">
+  <Entry_ID>heard_manage_gis</Entry_ID>
+  <Entry_Title>Heard and McDonald Islands Management Zones</Entry_Title>
+  <Data_Set_Citation>
+    <Dataset_Creator>Harris, U.</Dataset_Creator>
+    <Dataset_Title>Heard and McDonald Islands Management Zones</Dataset_Title>
+    <Dataset_Series_Name>CAASM Metadata</Dataset_Series_Name>
+    <Dataset_Release_Date>2007-10-10</Dataset_Release_Date>
+    <Dataset_Publisher>Australian Antarctic Data Centre</Dataset_Publisher>
+    <Version>1</Version>
+    <Dataset_DOI>doi:10.26179/5b73a81686490</Dataset_DOI>
+    <Online_Resource>https://data.aad.gov.au/metadata/records/heard_manage_gis</Online_Resource>
+  </Data_Set_Citation>
+  <Personnel>
+    <Role>INVESTIGATOR</Role>
+    <Role>TECHNICAL CONTACT</Role>
+    <First_Name>URSULA</First_Name>
+    <Last_Name>HARRIS</Last_Name>
+    <Email>gis@aad.gov.au</Email>
+    <Phone>+61 3 6232 3519</Phone>
+    <Fax>+61 3 6232 3351</Fax>
+    <Contact_Address>
+      <Address>Australian Antarctic Division</Address>
+      <Address>203 Channel Highway</Address>
+      <City>Kingston</City>
+      <Province_or_State>Tasmania</Province_or_State>
+      <Postal_Code>7050</Postal_Code>
+      <Country>Australia</Country>
+    </Contact_Address>
+  </Personnel>
+  <Personnel>
+    <Role>DIF AUTHOR</Role>
+    <First_Name>ANGELA</First_Name>
+    <Last_Name>BENDER</Last_Name>
+    <Contact_Address>
+      <Address>Australian Antarctic Division</Address>
+      <Address>203 Channel Highway</Address>
+      <City>Kingston</City>
+      <Province_or_State>Tasmania</Province_or_State>
+      <Postal_Code>7050</Postal_Code>
+      <Country>Australia</Country>
+    </Contact_Address>
+  </Personnel>
+  <Discipline>
+    <Discipline_Name>EARTH SCIENCE</Discipline_Name>
+  </Discipline>
+  <Parameters>
+    <Category>EARTH SCIENCE</Category>
+    <Topic>HUMAN DIMENSIONS</Topic>
+    <Term>ENVIRONMENTAL GOVERNANCE/MANAGEMENT</Term>
+    <Variable_Level_1>LAND MANAGEMENT</Variable_Level_1>
+  </Parameters>
+  <Parameters>
+    <Category>EARTH SCIENCE</Category>
+    <Topic>HUMAN DIMENSIONS</Topic>
+    <Term>ENVIRONMENTAL GOVERNANCE/MANAGEMENT</Term>
+    <Variable_Level_1>LAND MANAGEMENT</Variable_Level_1>
+    <Variable_Level_2>LAND TENURE</Variable_Level_2>
+  </Parameters>
+  <ISO_Topic_Category>ENVIRONMENT</ISO_Topic_Category>
+  <ISO_Topic_Category>IMAGERY/BASE MAPS/EARTH COVER</ISO_Topic_Category>
+  <ISO_Topic_Category>PLANNING CADASTRE</ISO_Topic_Category>
+  <Keyword>GIS</Keyword>
+  <Keyword>HEARD ISLAND</Keyword>
+  <Keyword>MANAGEMENT</Keyword>
+  <Sensor_Name>
+    <Short_Name>Computer</Short_Name>
+    <Long_Name>Computer</Long_Name>
+  </Sensor_Name>
+  <Source_Name>
+    <Short_Name>MAPS</Short_Name>
+  </Source_Name>
+  <Temporal_Coverage>
+    <Start_Date>2003-06-23</Start_Date>
+    <Stop_Date>2003-06-23</Stop_Date>
+  </Temporal_Coverage>
+  <Data_Set_Progress>COMPLETE</Data_Set_Progress>
+  <Spatial_Coverage>
+    <Southernmost_Latitude>-54.0</Southernmost_Latitude>
+    <Northernmost_Latitude>-52.0</Northernmost_Latitude>
+    <Westernmost_Longitude>72.0</Westernmost_Longitude>
+    <Easternmost_Longitude>74.0</Easternmost_Longitude>
+  </Spatial_Coverage>
+  <Location>
+    <Location_Category>OCEAN</Location_Category>
+    <Location_Type>SOUTHERN OCEAN</Location_Type>
+    <Detailed_Location>Heard Island</Detailed_Location>
+  </Location>
+  <Location>
+    <Location_Category>CONTINENT</Location_Category>
+    <Location_Type>AUSTRALIA/NEW ZEALAND</Location_Type>
+    <Location_Subregion1>AUSTRALIA</Location_Subregion1>
+    <Detailed_Location>Heard Island</Detailed_Location>
+  </Location>
+  <Location>
+    <Location_Category>GEOGRAPHIC REGION</Location_Category>
+    <Location_Type>POLAR</Location_Type>
+  </Location>
+  <Quality>See the data quality information. The value value for the q_info table is store in the attribute data. Then search the details for this record from the provided URL.
+
+Usually mapped to a Universal Transverse Mercator projection, Zone 43.</Quality>
+  <Access_Constraints>These data are publicly available for download from the provided URL.
+
+Stored data format: ArcView shapefile
+
+Available format type: ArcView shapefile. Stored as geographicals with a projection file.</Access_Constraints>
+  <Use_Constraints>This data set conforms to the CCBY Attribution License
+(http://creativecommons.org/licenses/by/4.0/).
+
+Please follow instructions listed in the citation reference provided at http://data.aad.gov.au/aadc/metadata/citation.cfm?entry_id=heard_manage_gis when using these data.</Use_Constraints>
+  <Data_Set_Language>English</Data_Set_Language>
+  <Originating_Center>Australian Antarctic Division</Originating_Center>
+  <Data_Center>
+    <Data_Center_Name>
+      <Short_Name>AU/AADC</Short_Name>
+      <Long_Name>Australian Antarctic Data Centre, Australia</Long_Name>
+    </Data_Center_Name>
+    <Data_Center_URL>http://data.aad.gov.au</Data_Center_URL>
+    <Personnel>
+      <Role>DATA CENTER CONTACT</Role>
+      <First_Name>DATA OFFICER</First_Name>
+      <Last_Name>AADC</Last_Name>
+      <Email>metadata@aad.gov.au</Email>
+      <Phone>+61 3 6232 3244</Phone>
+      <Fax>+61 3 6232 3351</Fax>
+      <Contact_Address>
+        <Address>Australian Antarctic Division</Address>
+        <Address>203 Channel Highway</Address>
+        <City>Kingston</City>
+        <Province_or_State>Tasmania</Province_or_State>
+        <Postal_Code>7050</Postal_Code>
+        <Country>Australia</Country>
+      </Contact_Address>
+    </Personnel>
+  </Data_Center>
+  <Distribution>
+    <Distribution_Media>HTTP</Distribution_Media>
+    <Distribution_Format>shapefiles</Distribution_Format>
+    <Fees>Free</Fees>
+  </Distribution>
+  <Summary>
+    <Abstract>The Heard Island management zones are a polygon and line dataset stored in the Geographical Information System (GIS). These areas were developed inline with the Heard Island and McDonald Islands Marine Reserve Management Plan, published in 2005.</Abstract>
+  </Summary>
+  <Related_URL>
+    <URL_Content_Type>
+      <Type>GET DATA</Type>
+    </URL_Content_Type>
+    <URL>https://data.aad.gov.au/eds/1371/download</URL>
+    <Description>Download page for the Australian Antarctic Data Centre: Heard Island and McDonald Islands Management Zones</Description>
+  </Related_URL>
+  <Related_URL>
+    <URL_Content_Type>
+      <Type>VIEW RELATED INFORMATION</Type>
+    </URL_Content_Type>
+    <URL>http://data.aad.gov.au/aadc/ftc/index.cfm</URL>
+    <Description>Search the SCAR Feature Catalogue, dataset identifiers and quality information indicators</Description>
+  </Related_URL>
+  <Related_URL>
+    <URL_Content_Type>
+      <Type>VIEW RELATED INFORMATION</Type>
+    </URL_Content_Type>
+    <URL>http://data.aad.gov.au/aadc/mapcat/display_map.cfm?map_id=13100</URL>
+    <Description>Map Catalogue: Heard Island and McDonald Islands Management Zones</Description>
+  </Related_URL>
+  <Related_URL>
+    <URL_Content_Type>
+      <Type>VIEW RELATED INFORMATION</Type>
+    </URL_Content_Type>
+    <URL>http://data.aad.gov.au/aadc/mapcat/display_map.cfm?map_id=13099</URL>
+    <Description>Map Catalogue: Heard and McDonald Islands</Description>
+  </Related_URL>
+  <Related_URL>
+    <URL_Content_Type>
+      <Type>VIEW RELATED INFORMATION</Type>
+    </URL_Content_Type>
+    <URL>http://data.aad.gov.au/aadc/mapcat/display_map.cfm?map_id=13101</URL>
+    <Description>Map Catalogue: Azorella Peninsula, Heard Island</Description>
+  </Related_URL>
+  <Related_URL>
+    <URL_Content_Type>
+      <Type>VIEW RELATED INFORMATION</Type>
+    </URL_Content_Type>
+    <URL>http://data.aad.gov.au/aadc/mapcat/display_map.cfm?map_id=13103</URL>
+    <Description>Map Catalogue: Spit Bay, Heard Island</Description>
+  </Related_URL>
+  <Related_URL>
+    <URL_Content_Type>
+      <Type>VIEW RELATED INFORMATION</Type>
+    </URL_Content_Type>
+    <URL>http://data.aad.gov.au/aadc/metadata/citation.cfm?entry_id=heard_manage_gis</URL>
+    <Description>Citation reference for this metadata record and dataset</Description>
+  </Related_URL>
+  <IDN_Node>
+    <Short_Name>AMD/AU</Short_Name>
+  </IDN_Node>
+  <IDN_Node>
+    <Short_Name>CEOS</Short_Name>
+  </IDN_Node>
+  <IDN_Node>
+    <Short_Name>AMD</Short_Name>
+  </IDN_Node>
+  <Originating_Metadata_Node>AADC</Originating_Metadata_Node>
+  <Metadata_Name>CEOS IDN DIF</Metadata_Name>
+  <Metadata_Version>VERSION 9.7</Metadata_Version>
+  <DIF_Creation_Date>2004-03-11</DIF_Creation_Date>
+  <Last_DIF_Revision_Date>2018-08-15</Last_DIF_Revision_Date>
+  <DIF_Revision_History>2007-10-09 - Record updated by Ursula Ryan.
+2018-08-15 - record updated by Dave Connell - basic updates.</DIF_Revision_History>
+  <Extended_Metadata>
+    <Metadata>
+      <Group>gov.nasa.gsfc.gcmd</Group>
+      <Name>metadata.uuid</Name>
+      <Value>2d3b848a-cae2-45f7-a1c5-5787d6acbc2f</Value>
+    </Metadata>
+    <Metadata>
+      <Group>gov.nasa.gsfc.gcmd</Group>
+      <Name>metadata.extraction_date</Name>
+      <Value>2015-11-29 19:46:15</Value>
+    </Metadata>
+    <Metadata>
+      <Group>gov.nasa.gsfc.gcmd</Group>
+      <Name>metadata.keyword_version</Name>
+      <Value>8.6</Value>
+    </Metadata>
+  </Extended_Metadata>
+</DIF>
