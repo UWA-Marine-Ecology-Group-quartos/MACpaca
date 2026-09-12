@@ -45,7 +45,7 @@ file.sources <- list.files(pattern = "*.R", path = "functions/", full.names = T)
 sapply(file.sources, source, .GlobalEnv)
 
 # TODO Set cropping extent - larger than most zoomed out plot
-e <- ext(146.41, 147.58, -39.639, -38.98)
+e <- ext(145.8295, 148.1605, -40.0882, -38.53088)
 
 # Load necessary spatial files
 sf_use_s2(T)
@@ -111,7 +111,7 @@ bathdf <- as.data.frame(bathy, xy = T)
 
 # 1. Location overview plot
 # Set plot inputs
-plot_limits <- c(146.41, 147.58, -39.639, -38.98) # TODO Extent of the main plot
+plot_limits <- c(145.8295, 148.1605, -40.0882, -38.5308) # TODO Extent of the main plot
 study_limits <- c(146.41, 147.58, -39.639, -38.98) # TODO Extent of sampling
 annotation_labels <- data.frame(x = c(147.32768512820624, 146.98513770318644, 146.3897652901061), # TODO Labels for annotation e.g. nearby towns
                                 y = c(-39.47277252941975, -39.218907889490175, -39.1042783147102854),
@@ -159,7 +159,7 @@ transect_line <- sfheaders::sf_linestring(
 ) %>%
   st_set_crs(4326)
 
-sealevel_plot(plot_limits, annotation_labels)
+sealevel_plot(site_limits, annotation_labels)
 # Save plot
 ggsave(filename = paste(paste0('plots/', park, '/spatial/', name) , 'old-sea-levels.png',
                         sep = "-"), units = "in", dpi = 600,
@@ -167,7 +167,12 @@ ggsave(filename = paste(paste0('plots/', park, '/spatial/', name) , 'old-sea-lev
        width = 8, height = 6)
 
 
-result1 <- dem_cross_section(146.478747, 147.57597, -39.061852, -39.63149, maxdist = 120, cwatr = cwatr)
+result1 <- dem_cross_section(146.480198, 147.57597, -39.066565, -39.63149, maxdist = 120, cwatr = cwatr)
+
+bath_df1        <- result1$profile
+cwatr_crossings <- result1$cwatr_crossings
+
+result1 <- dem_cross_section(146.7570, 147.0936, -39.6524, -39.0196, maxdist = 60, cwatr = cwatr, center_on = "middle")
 
 bath_df1        <- result1$profile
 cwatr_crossings <- result1$cwatr_crossings

@@ -265,7 +265,6 @@ base_map <- function() {
 
     geom_sf(data = cwatr, colour = "firebrick", linewidth = 0.3, alpha = 0.8),
     ggnewscale::new_scale_color(),
-
     geom_sf(
       data        = marine_parks_state,
       aes(colour  = zone),
@@ -318,6 +317,7 @@ save_paginated_overview <- function(occ_points, file_stem) {
 
     p <- ggplot() +
       base_map() +
+      ggnewscale::new_scale_color() +
       geom_point(data = all_drops,
                  aes(x = longitude_dd, y = latitude_dd),
                  colour = "grey80", size = 0.3) +
