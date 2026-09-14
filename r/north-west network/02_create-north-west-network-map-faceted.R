@@ -81,9 +81,10 @@ marine_parks <- st_read("data/north-west network/spatial/shapefiles/north-west-n
     # WA state marine parks (Gascoyne–Pilbara–Kimberley)
     "Hamelin Pool", "Muiron Islands", "Barrow Island", "Thevenard Island",
     "Montebello Islands", "Yawuru Nagulagun / Roebuck Bay", "Yawuru",
-    "Nyangumarta Warrarn", "Bardi Jawi Gaarra", "North Kimberley", "Mayala",
-    "Lalang-gaddam", "Rowley Shoals", "Scott Reef" ))
-
+    "Nyangumarta Warrarn",
+    "Lalang-garram / Camden Sound", "Lalang-garram / Horizontal Falls", "North Lalang-garram",
+    "North Kimberley",
+    "Rowley Shoals", "Scott Reef" ))
 marine_parks_amp <- marine_parks %>%
   dplyr::filter(epbc %in% "Commonwealth")
 
@@ -94,18 +95,27 @@ marine_parks_ipa <- marine_parks %>%
 marine_parks_state <- marine_parks %>%
   dplyr::filter(epbc %in% "State") %>%
   dplyr::mutate(
-    zone = case_when(
+    zone = dplyr::case_when(
+      zone == "National Park Zone" & stringr::str_detect(zone_type, "General Use") ~ "General Use Zone",
+      zone == "National Park Zone" & stringr::str_detect(zone_type, "Recreation")   ~ "Recreational Use Zone",
+      zone == "National Park Zone" & stringr::str_detect(zone_type, "Unassigned")   ~ "Special Purpose Zone",  # or whatever fits your scheme — check what "Unassigned" should map to
       zone == "Reef Observation Area"   ~ "Sanctuary Zone",
-      zone == "National Park Zone"      ~ "Sanctuary Zone",
       zone == "Habitat Protection Zone" ~ "Recreational Use Zone",
       TRUE                              ~ zone
     ),
-    colour = case_when(
-      zone == "Other State Marine Park Zone" ~ "#FFB6C1",   # pink
-      zone == "Sanctuary Zone"               ~ "#bfd4a5",
-      TRUE                                   ~ colour
+    colour = case_when(                                    # REPLACE THIS BLOCK
+      zone == "Other State Marine Park Zone" ~ "#FFB6C1",
+      zone == "Sanctuary Zone"                ~ "#bfd4a5",
+      zone == "General Use Zone"              ~ "#bddde1",
+      zone == "Recreational Use Zone"         ~ "#f4e952",
+      zone == "Special Purpose Zone"          ~ "#c5bcc9",
+      TRUE                                    ~ colour
     )
   )
+marine_parks %>%
+  st_drop_geometry() %>%
+  dplyr::filter(zone == "Special Purpose Zone") %>%
+  dplyr::distinct(zone, colour)
 
 # Bathymetry data
 bathy <- rast("data/north-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
@@ -173,13 +183,14 @@ make_zone_panel <- function(plot_limits, mp_amp, mp_state, mp_ipa = NULL,
 
   mp_state <- dplyr::bind_rows(mp_state, mp_ipa_recoded)
 
-  state_breaks <- c("Sanctuary Zone", "General Use Zone",
-                    "Recreational Use Zone", "Special Purpose Zone",
-                    "Other State Marine Park Zone")
+  state_breaks <- c("Sanctuary Zone", "General Use Zone", "Recreational Use Zone",
+                    "Special Purpose Zone", "Other State Marine Park Zone")
   if ("Indigenous Protected Area" %in% unique(mp_state$zone)) {
     state_breaks <- c(state_breaks, "Indigenous Protected Area")
   }
 
+  # NEW — restrict to zones actually present in this panel
+  state_breaks <- intersect(state_breaks, unique(mp_state$zone))
   p <- ggplot() +
 
     # Bathymetry filled contours
@@ -226,7 +237,7 @@ make_zone_panel <- function(plot_limits, mp_amp, mp_state, mp_ipa = NULL,
       scale_fill_manual(name   = "Terrestrial Parks",
                         guide  = guide_legend(order = 3, ncol = 1,
                                               title.position = "top"),
-                        values = c("National Park"  = "#c4cea6",
+                        values = c("National Park"  = "#c4cea6",   # CHANGED
                                    "Nature Reserve" = "#e4d0bb"),
                         breaks = terrnp_types) +
       new_scale_fill()
@@ -462,7 +473,7 @@ make_zone_plot_left_legend(
   state_legend_title  = "State Marine Parks",
   save_name           = "kimberley-MPs",
   width               = 8,
-  height              = 4.5
+  height              = 5.5
 )
 
 # ── Mermaid Reef  ─────────────────────────────────────────────────────────────
