@@ -234,10 +234,10 @@ for (metric_name in names(fish_metric_lookup)) {
     layer_stub = layer_stub,
     dat_list = dat_list,
     prediction_limits = prediction_limits,
-    pred_limits = NULL, #quantile(unlist(lapply(dat_list, function(x) values(x[[paste0("p_", layer_stub, ".fit")]]))),
-                      #     probs = c(0, 0.98), na.rm = TRUE),   # set numeric vector if you want fixed limits
-    se_limits = NULL #quantile(unlist(lapply(dat_list, function(x) values(x[[paste0("p_", layer_stub, ".se.fit")]]))),
-                     #    probs = c(0, 0.98), na.rm = TRUE)      # auto-scale within metric across years
+    pred_limits = quantile(unlist(lapply(dat_list, function(x) values(x[[paste0("p_", layer_stub, ".fit")]]))),
+                           probs = c(0, 0.98), na.rm = TRUE),   # set numeric vector if you want fixed limits
+    se_limits = quantile(unlist(lapply(dat_list, function(x) values(x[[paste0("p_", layer_stub, ".se.fit")]]))),
+                        probs = c(0, 0.98), na.rm = TRUE)      # auto-scale within metric across years
   )
 
   print(p_metric)
@@ -539,6 +539,7 @@ ggsave(
 
 # Read in maxn (Commonwealth only)
 maxn <- readRDS(paste0("data/", park, "/raw/_count-with-zeros.RDS")) %>%
+  dplyr::filter(genus != "Trachurus") %>%
   semi_join(metadata_amp, by = c("campaignid", "sample")) %>%
   mutate(year = year(date_time)) %>%
   left_join(sti, by = c("family", "genus", "species")) %>%

@@ -1,9 +1,9 @@
-sealevel_plot <- function(plot_limits, annotation_labels) {
+sealevel_plot <- function(site_limits, annotation_labels) {
   ggplot() +
-    geom_spatraster(data = clamp(bathy, upper = -50, values = F)) +
-    scale_fill_gradient2(low = "royalblue4", mid = "lightskyblue1", high = "white", name = "Depth (m)",
-                         na.value = "#f9ddb1") +
-    new_scale_fill() +
+    #geom_spatraster(data = clamp(bathy, upper = -50, values = F)) +
+    #scale_fill_gradient2(low = "royalblue4", mid = "lightskyblue1", high = "white", name = "Depth (m)",
+    #                     na.value = "#f9ddb1") +
+    #new_scale_fill() +
     geom_spatraster_contour_filled(data = bathy,
                                    breaks = c(0, -40, -70, -125)) +
     depth_fills +
@@ -35,7 +35,7 @@ sealevel_plot <- function(plot_limits, annotation_labels) {
               nudge_x = 0.03) +   # shift right of the point instead of nudging vertically
     # <<< END NEW >>>
 
-    coord_sf(xlim = c(plot_limits[1], plot_limits[2]), ylim = c(plot_limits[3], plot_limits[4]), crs = 4326) +
+    coord_sf(xlim = c(site_limits[1], site_limits[2]), ylim = c(site_limits[3], site_limits[4]), crs = 4326) +
     labs(x = "Longitude", y = "Latitude") +
     theme_minimal()
 }

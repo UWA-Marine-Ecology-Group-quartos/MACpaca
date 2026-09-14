@@ -366,22 +366,51 @@ for (yr in year_levels) {
   message("Habitat response curves for ", yr, " -> ", basename(f))
 }
 
-# ---- Fish: modelled count metric --------------------------------------------
+# ---- Fish: modelled count metric, one figure per survey year ---------------
+# A fish smooth can also be fitted with by = year, same as habitat above, so
+# it needs the same per-year split rather than one held-year figure.
 fish_subset <- function(resp) dat$fish %>% dplyr::filter(.data$response == resp)
 
-fig_c2_2 <- build_curve_grid(
-  models        = models$fish,
-  data_for      = fish_subset,
-  obs_for       = function(resp) fish_subset(resp)$count,
-  response_order = fish_response_order,
-  term_order     = fish_term_order,
-  ncol           = 3,
-  pad_rows       = TRUE
-)
+fish_ylims <- purrr::map(fish_response_order, function(resp) {
+  range(fish_subset(resp)$count, na.rm = TRUE)
+}) %>% setNames(fish_response_order)
 
-ggsave(file.path(figdir, paste0(name, "_fish-response-curves.png")), fig_c2_2,
-       width = 8, height = 2.1 * attr(fig_c2_2, "n_rows"),
-       dpi = 300, bg = "white")
+fish_flat_across_years <- names(models$fish)[
+  !vapply(models$fish, model_has_by_year, logical(1))
+]
+if (length(fish_flat_across_years)) {
+  message("Fish responses with no year-varying smooth (identical curve ",
+          "shape in both year figures, intercept aside): ",
+          paste(unname(response_labels[fish_flat_across_years]), collapse = ", "))
+}
+
+fish_curve_files <- character()
+
+for (yr in year_levels) {
+
+  ref_yr <- factor_ref
+  ref_yr["year"] <- yr
+
+  g <- build_curve_grid(
+    models        = models$fish,
+    data_for      = fish_subset,
+    obs_for       = function(resp) fish_subset(resp)$count,
+    response_order = fish_response_order,
+    term_order     = fish_term_order,
+    ncol           = 3,
+    pad_rows       = TRUE,
+    ref            = ref_yr,
+    ylim_for       = function(resp) fish_ylims[[resp]]
+  )
+
+  f <- file.path(figdir, paste0(name, "_fish-response-curves_", yr, ".png"))
+
+  ggsave(f, g, width = 8, height = 2.1 * attr(g, "n_rows"),
+         dpi = 300, bg = "white")
+
+  fish_curve_files <- c(fish_curve_files, f)
+  message("Fish response curves for ", yr, " -> ", basename(f))
+}
 
 message("Appendix C figures written to: ", figdir)
 message("Habitat response curves drawn per year (",
@@ -396,9 +425,9 @@ fish_no_status <- names(models$fish)[
   !vapply(models$fish, model_has_term, logical(1), tm = "status")
 ]
 
-message("Fish response curves drawn at year = ", factor_ref["year"],
-        ", status = ", factor_ref["status"],
-        " for the metrics that retain those terms.")
+message("Fish response curves drawn per year (",
+        paste(year_levels, collapse = ", "), ") at status = ",
+        factor_ref["status"], ", for the metrics that retain those terms.")
 if (length(fish_no_year)) {
   message("  year NOT in the final model for: ",
           paste(unname(response_labels[fish_no_year]), collapse = ", "))

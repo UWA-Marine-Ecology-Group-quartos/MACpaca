@@ -11,40 +11,40 @@ site_plot <- function(site_limits, # Tighter zoom for this plot
     terr_fills +
     new_scale_fill() +
     geom_sf(data = marine_parks_state, aes(fill = zone), colour = NA, alpha = 0.4) +
-    scale_fill_manual(name = "State Marine Parks", guide = "legend",
-                      values = with(marine_parks_state, setNames(colour, zone))) +
+    scale_fill_manual(name = "State Marine Parks",
+                      values = with(marine_parks_state, setNames(colour, zone)),
+                      guide  = guide_legend(order = 2)) +
     new_scale_fill() +
     geom_sf(data = marine_parks_amp, aes(fill = zone), colour = NA, alpha = 0.8) +
-    scale_fill_manual(name = "Australian Marine Parks", guide = "legend",
-                      values = with(marine_parks_amp, setNames(colour, zone))) +
+    scale_fill_manual(name = "Australian Marine Parks",
+                      values = with(marine_parks_amp, setNames(colour, zone)),
+                      guide  = guide_legend(order = 3)) +
     new_scale_fill() +
     labs(x = NULL, y = NULL) +
     new_scale_fill() +
     geom_sf(data = cwatr, colour = "firebrick", alpha = 1, size = 0.2, lineend = "round") +
-    geom_sf(data = metadata, alpha = 1, shape = 21, size = 0.7, fill = "black") + ##HE removed , aes(colour = method) as no BOSS
-    scale_colour_manual(values = c("BRUV" = "#E1BE6A",
-                                   "BOSS" = "#40B0A6"),
-                        name = "Method") +
+    geom_sf(data = metadata, alpha = 1, shape = 16, size = 1, aes(colour = year)) +
+    scale_colour_manual(values = c("2018" = "#5390d9",
+                                   "2025" = "#593982"),
+                        name = "Year", guide  = guide_legend(order = 1)) +
 
-    # >>> NEW: X markers at annotation label coords <<<
     geom_point(data = annotation_labels,
                aes(x = x, y = y),
                shape = 4,
                size = 1,
                stroke = 0.5,
                colour = "black") +
-    geom_text(data = annotation_labels[1:2, ],       # first two, unchanged styling
+    geom_text(data = annotation_labels[1:2, ],
               aes(x = x, y = y, label = label),
               size = 1.65,
               fontface = "italic",
               nudge_y = -0.03) +
-    geom_text(data = annotation_labels[3, ],          # Wilsons Promontory only
+    geom_text(data = annotation_labels[3, ],
               aes(x = x, y = y, label = label),
               size = 1.65,
               fontface = "italic",
-              hjust = 0,          # left-align text so it grows rightward from the anchor point
-              nudge_x = 0.03) +   # shift right of the point instead of nudging vertically
-    # <<< END NEW >>>
+              hjust = 0,
+              nudge_x = 0.03) +
 
     coord_sf(xlim = c(site_limits[1], site_limits[2]), ylim = c(site_limits[3], site_limits[4]), crs = 4326) +
     theme_minimal() +
