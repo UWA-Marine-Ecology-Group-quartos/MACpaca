@@ -234,11 +234,19 @@ knitr::include_graphics(fig("fish-importance.png"))
 
 {{< pagebreak >}}
 
+<!--
+TODO If a final fish model uses by = year (check the "year-varying smooths"
+message from 03_create-figures.R), its curve shape differs by year and needs
+the same per-year split as habitat above - reuse the sub-numbering block from
+the habitat section and add one figure chunk per survey year in curve_years.
+If no fish model uses by = year, the single chunk below is already correct.
+-->
+
 ```{r}
 #| out-width: "80%"
 #| fig-align: center
 #| fig-cap: !expr paste0('Plots of the best model found to predict the probability of occurrence of key fish groups. Individual panes display the predicted relationships between model covariates and each demersal fish metric. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value, with year held at ', curve_year, ' and zone status held at areas ', curve_status, '.', curve_hold_note, ' Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data from all survey years and zones. \\*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays.')
-knitr::include_graphics(fig("fish-response-curves.png"))
+knitr::include_graphics(fig(paste0("fish-response-curves_", curve_year, ".png"))) # TODO one chunk per survey year if any final fish model uses by = year
 ```
 
 {{< pagebreak >}}
