@@ -73,7 +73,8 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
     "kelp_se"       = "p_kelp.se.fit",
     "rock_se"       = "p_rock.se.fit",
     "sand_se"       = "p_sand.se.fit",
-    "inverts_se"    = "p_inverts.se.fit"
+    "inverts_se"    = "p_inverts.se.fit",
+    "reef_se"       = "p_reef.se.fit"
   )
 
   replacement_mean <- c(
@@ -82,7 +83,8 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
     "kelp"       = "p_kelp.fit",
     "rock"       = "p_rock.fit",
     "sand"       = "p_sand.fit",
-    "inverts"    = "p_inverts.fit"
+    "inverts"    = "p_inverts.fit",
+    "reef"       = "p_reef.fit"
   )
 
   out <- list(shallow = NULL, meso = NULL, rari = NULL)
@@ -101,7 +103,7 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
       ) %>%
       dplyr::mutate(ID = as.character(ID), year = year) %>%
       dplyr::rename(dplyr::any_of(replacement_se)) %>%
-      dplyr::select(ID, year, dplyr::any_of(c("seagrass_se", "macroalgae_se", "kelp_se", "rock_se", "sand_se", "inverts_se")))
+      dplyr::select(ID, year, dplyr::any_of(c("seagrass_se", "macroalgae_se", "kelp_se", "rock_se", "sand_se", "inverts_se", "reef_se")))
 
     means.shallow <- terra::extract(dat.shallow, marine_parks) %>%
       dplyr::group_by(ID) %>%
@@ -111,7 +113,7 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
       ) %>%
       dplyr::mutate(ID = as.character(ID), year = year) %>%
       dplyr::rename(dplyr::any_of(replacement_mean)) %>%
-      dplyr::select(ID, year, dplyr::any_of(c("seagrass", "macroalgae", "kelp", "rock", "sand", "inverts")))
+      dplyr::select(ID, year, dplyr::any_of(c("seagrass", "macroalgae", "kelp", "rock", "sand", "inverts", "reef")))
 
     park_dat.shallow <- as.data.frame(marine_parks) %>%
       tibble::rownames_to_column() %>%
@@ -126,7 +128,8 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
         "kelp", "kelp_se",
         "rock", "rock_se",
         "sand", "sand_se",
-        "inverts", "inverts_se"
+        "inverts", "inverts_se",
+        "reef", "reef_se"
       ))) %>%
       dplyr::group_by(zone_new, year) %>%
       dplyr::summarise(
@@ -151,7 +154,7 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
       ) %>%
       dplyr::mutate(ID = as.character(ID), year = year) %>%
       dplyr::rename(dplyr::any_of(replacement_se)) %>%
-      dplyr::select(ID, year, dplyr::any_of(c("seagrass_se", "macroalgae_se", "kelp_se", "rock_se", "sand_se", "inverts_se")))
+      dplyr::select(ID, year, dplyr::any_of(c("seagrass_se", "macroalgae_se", "kelp_se", "rock_se", "sand_se", "inverts_se", "reef_se")))
 
     means.meso <- terra::extract(dat.meso, marine_parks) %>%
       dplyr::group_by(ID) %>%
@@ -161,7 +164,7 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
       ) %>%
       dplyr::mutate(ID = as.character(ID), year = year) %>%
       dplyr::rename(dplyr::any_of(replacement_mean)) %>%
-      dplyr::select(ID, year, dplyr::any_of(c("seagrass", "macroalgae", "kelp", "rock", "sand", "inverts")))
+      dplyr::select(ID, year, dplyr::any_of(c("seagrass", "macroalgae", "kelp", "rock", "sand", "inverts", "reef")))
 
     park_dat.meso <- as.data.frame(marine_parks) %>%
       tibble::rownames_to_column() %>%
@@ -176,7 +179,8 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
         "kelp", "kelp_se",
         "rock", "rock_se",
         "sand", "sand_se",
-        "inverts", "inverts_se"
+        "inverts", "inverts_se",
+        "reef", "reef_se"
       ))) %>%
       dplyr::group_by(zone_new, year) %>%
       dplyr::summarise(
@@ -201,7 +205,7 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
       ) %>%
       dplyr::mutate(ID = as.character(ID), year = year) %>%
       dplyr::rename(dplyr::any_of(replacement_se)) %>%
-      dplyr::select(ID, year, dplyr::any_of(c("seagrass_se", "macroalgae_se", "kelp_se", "rock_se", "sand_se", "inverts_se")))
+      dplyr::select(ID, year, dplyr::any_of(c("seagrass_se", "macroalgae_se", "kelp_se", "rock_se", "sand_se", "inverts_se", "reef_se")))
 
     means.rari <- terra::extract(dat.rari, marine_parks) %>%
       dplyr::group_by(ID) %>%
@@ -211,7 +215,7 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
       ) %>%
       dplyr::mutate(ID = as.character(ID), year = year) %>%
       dplyr::rename(dplyr::any_of(replacement_mean)) %>%
-      dplyr::select(ID, year, dplyr::any_of(c("seagrass", "macroalgae", "kelp", "rock", "sand", "inverts")))
+      dplyr::select(ID, year, dplyr::any_of(c("seagrass", "macroalgae", "kelp", "rock", "sand", "inverts", "reef")))
 
     park_dat.rari <- as.data.frame(marine_parks) %>%
       tibble::rownames_to_column() %>%
@@ -226,7 +230,8 @@ controldata_benthos <- function(dat, year, amp_abbrv, state_abbrv) {
         "kelp", "kelp_se",
         "rock", "rock_se",
         "sand", "sand_se",
-        "inverts", "inverts_se"
+        "inverts", "inverts_se",
+        "reef", "reef_se"
       ))) %>%
       dplyr::group_by(zone_new, year) %>%
       dplyr::summarise(

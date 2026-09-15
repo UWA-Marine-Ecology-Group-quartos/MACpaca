@@ -310,7 +310,7 @@ for (habitat_name in names(habitat_lookup)) {
     ),
     plot = p_hab,
     height = 5,
-    width = 8,
+    width = 7,
     dpi = 300,
     units = "in",
     bg = "white"
@@ -370,7 +370,8 @@ taxa_lookup <- c(
   "macroalgae" = "Macroalgae",
   "kelp"       = "Kelp",
   "rock"       = "Rock",
-  "inverts"    = "Sessile invertebrates"
+  "inverts"    = "Sessile invertebrates",
+  "reef"       = "Functional reef"
 )
 
 for (taxa_code in names(taxa_lookup)) {
@@ -529,7 +530,7 @@ ggsave(
     paste(years, collapse = "-"), ".png"
   ),
   plot = p_scatterpie_multi,
-  height = 6,
+  height = 4.5,
   width = 7,
   dpi = 300,
   bg = "white"

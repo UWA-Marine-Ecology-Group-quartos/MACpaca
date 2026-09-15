@@ -61,10 +61,10 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
     axis.ticks        = element_line(linewidth = 0.2),
     panel.grid.major  = element_line(linewidth = 0.2, colour = "grey85"),
     panel.grid.minor  = element_blank(),
-    legend.title      = element_text(size = 9),
-    legend.text       = element_text(size = 8),
-    legend.key.height = unit(0.45, "cm"),
-    legend.key.width  = unit(0.45, "cm"),
+    legend.title      = element_text(size = 10),
+    legend.text       = element_text(size = 9),
+    legend.key.height = unit(0.5, "cm"),
+    legend.key.width  = unit(0.5, "cm"),
     plot.margin       = margin(2, 2, 2, 2, unit = "mm")
   )
 
@@ -193,8 +193,8 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
             title.position = "top",
             title.hjust    = 0.5,
             label.hjust    = 0.5,
-            barwidth       = unit(1.6, "cm"),
-            barheight      = unit(0.3, "cm")
+            barwidth       = unit(2.4, "cm"),
+            barheight      = unit(0.45, "cm")
           )
         )
     }
@@ -230,21 +230,24 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
       annotate(
         "text", x = 0.5, y = 0.5,
         label = label, angle = 90,
-        fontface = "bold", size = 3.5
-      )
+        fontface = "bold", size = 5
+      ) +
+      scale_x_continuous(limits = c(0, 1), expand = c(0, 0)) +
+      scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) +
+      theme(plot.margin = margin(0, 0, 0, 0))
   }
 
-  dom_label <- row_label_plot("Predicted Habitat Probability")
+  dom_label <- row_label_plot("Predicted Habitat\nProbability")
   se_label  <- row_label_plot("Standard Error")
 
   # ------------------------------------------------------------
   # Combine
   # ------------------------------------------------------------
   dom_row <- dom_label + wrap_plots(p_dom, nrow = 1, guides = "collect") +
-    plot_layout(widths = c(0.06, 1))
+    plot_layout(widths = c(0.035, 1))
 
   se_row <- se_label + wrap_plots(p_se, nrow = 1, guides = "collect") +
-    plot_layout(widths = c(0.06, 1))
+    plot_layout(widths = c(0.035, 1))
 
   p_out <- (dom_row / se_row) +
     plot_layout(heights = c(1, 1), guides = "collect") &
@@ -254,10 +257,10 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
       legend.box           = "horizontal",
       legend.box.just      = "centre",
       legend.justification = "centre",
-      legend.title         = element_text(size = 9, margin = margin(b = 2, r = 3)),
-      legend.text          = element_text(size = 8),
-      legend.key.height    = unit(0.3, "cm"),
-      legend.key.width     = unit(0.35, "cm"),
+      legend.title         = element_text(size = 10, margin = margin(b = 2, r = 3)),
+      legend.text          = element_text(size = 9),
+      legend.key.height    = unit(0.4, "cm"),
+      legend.key.width     = unit(0.45, "cm"),
       legend.spacing.x     = unit(1, "mm"),
       legend.spacing.y     = unit(0.5, "mm"),
       legend.spacing       = unit(0.5, "mm"),

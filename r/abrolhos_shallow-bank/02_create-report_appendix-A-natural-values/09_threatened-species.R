@@ -234,8 +234,8 @@ all_drops <- metadata_fish %>%
   dplyr::distinct(campaignid, sample, longitude_dd, latitude_dd)
 
 # TODO Spacing of the longitude and latitude labels, in degrees
-label_interval_x <- 0.3
-label_interval_y <- 0.3
+label_interval_x <- 0.4
+label_interval_y <- 0.4
 
 x_breaks <- seq(floor(map_limits[1] / label_interval_x) * label_interval_x,
                 ceiling(map_limits[2] / label_interval_x) * label_interval_x,

@@ -24,6 +24,22 @@ format:
   html:
     output-file: "Project 4.21-Abrolhos-Shallow-Bank-Appendix A-q-Natural values.html"
     fig-dpi: 96
+    include-in-header:
+      text: |
+        <style>
+          caption,
+          .gt_caption,
+          .table-caption,
+          figcaption,
+          .figure-caption,
+          .quarto-float-caption,
+          .quarto-float-caption-top,
+          .quarto-float-tbl figcaption {
+            text-align: justify !important;
+            text-justify: inter-word;
+            hyphens: auto;
+          }
+        </style>
 toc: true
 execute:
   echo: false
@@ -132,7 +148,7 @@ sampling_summary %>%
 
 ```{r}
 #| fig-width: 9
-#| fig-height: 6
+#| fig-height: 5
 #| fig-cap: "Habitat classes observed in spatially balanced stereo-BRUV and drop-camera imagery visualised as spatial pie charts, pooled across the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 show_png(hab(paste0("_scatterpie_", dash_label, ".png")))
 ```
@@ -142,8 +158,8 @@ show_png(hab(paste0("_scatterpie_", dash_label, ".png")))
 ### Dominant habitat types
 
 ```{r}
-#| fig-width: 8
-#| fig-height: 5
+#| fig-width: 9
+#| fig-height: 7.5
 #| fig-cap: "Predicted dominant habitat type from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 p_dom <- readRDS(hab(paste0("_predicted-dominant-benthos-and-combined-se_", dash_label, ".rds")))
 p_dom
@@ -166,8 +182,16 @@ p_cat
 ### Functional reef distribution and probability
 
 ```{r}
-#| fig-width: 9
-#| fig-height: 5
+#| fig-width: 6
+#| fig-height: 3
+#| fig-cap: "Functional reef: benchmark plots by zone and depth contour from stereo-BRUV and drop-camera groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+p_control <- readRDS(hab("_control-plot_functional-reef.rds"))
+p_control
+```
+
+```{r}
+#| fig-width: 8
+#| fig-height: 4
 #| fig-cap: "Predicted reef distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 show_png(hab(paste0("_predicted-reef-and-se_", dash_label, ".png")))
 ```
@@ -178,8 +202,16 @@ show_png(hab(paste0("_predicted-reef-and-se_", dash_label, ".png")))
 ### Sand
 
 ```{r}
-#| fig-width: 9
-#| fig-height: 5
+#| fig-width: 6
+#| fig-height: 3
+#| fig-cap: "Sand: benchmark plots by zone and depth contour from stereo-BRUV and drop-camera groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+p_control <- readRDS(hab("_control-plot_sand.rds"))
+p_control
+```
+
+```{r}
+#| fig-width: 8
+#| fig-height: 3.6
 #| fig-cap: "Sand: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 show_png(hab(paste0("_predicted-individual-habitat_sand_", dash_label, ".png")))
 ```
@@ -189,8 +221,16 @@ show_png(hab(paste0("_predicted-individual-habitat_sand_", dash_label, ".png")))
 ### Macroalgae
 
 ```{r}
-#| fig-width: 9
-#| fig-height: 5
+#| fig-width: 6
+#| fig-height: 3
+#| fig-cap: "Macroalgae: benchmark plots by zone and depth contour from stereo-BRUV and drop-camera groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+p_control <- readRDS(hab("_control-plot_macroalgae.rds"))
+p_control
+```
+
+```{r}
+#| fig-width: 8
+#| fig-height: 3.6
 #| fig-cap: "Macroalgae: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 show_png(hab(paste0("_predicted-individual-habitat_macroalgae_", dash_label, ".png")))
 ```
@@ -200,8 +240,16 @@ show_png(hab(paste0("_predicted-individual-habitat_macroalgae_", dash_label, ".p
 ### Kelp
 
 ```{r}
-#| fig-width: 9
-#| fig-height: 5
+#| fig-width: 6
+#| fig-height: 3
+#| fig-cap: "Kelp: benchmark plots by zone and depth contour from stereo-BRUV and drop-camera groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+p_control <- readRDS(hab("_control-plot_kelp.rds"))
+p_control
+```
+
+```{r}
+#| fig-width: 8
+#| fig-height: 3.6
 #| fig-cap: "Kelp: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 show_png(hab(paste0("_predicted-individual-habitat_kelp_", dash_label, ".png")))
 ```
@@ -211,8 +259,16 @@ show_png(hab(paste0("_predicted-individual-habitat_kelp_", dash_label, ".png")))
 ### Rock
 
 ```{r}
-#| fig-width: 9
-#| fig-height: 5
+#| fig-width: 6
+#| fig-height: 3
+#| fig-cap: "Rock: benchmark plots by zone and depth contour from stereo-BRUV and drop-camera groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+p_control <- readRDS(hab("_control-plot_rock.rds"))
+p_control
+```
+
+```{r}
+#| fig-width: 8
+#| fig-height: 3.6
 #| fig-cap: "Rock: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 show_png(hab(paste0("_predicted-individual-habitat_rock_", dash_label, ".png")))
 ```
@@ -222,8 +278,16 @@ show_png(hab(paste0("_predicted-individual-habitat_rock_", dash_label, ".png")))
 ### Sessile invertebrates
 
 ```{r}
-#| fig-width: 9
-#| fig-height: 5
+#| fig-width: 6
+#| fig-height: 3
+#| fig-cap: "Sessile invertebrates: benchmark plots by zone and depth contour from stereo-BRUV and drop-camera groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+p_control <- readRDS(hab("_control-plot_sessile-invertebrates.rds"))
+p_control
+```
+
+```{r}
+#| fig-width: 8
+#| fig-height: 3.6
 #| fig-cap: "Sessile invertebrates: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 show_png(hab(paste0("_predicted-individual-habitat_sessile-invertebrates_", dash_label, ".png")))
 ```
@@ -281,7 +345,7 @@ p_sac
 
 ```{r}
 #| fig-width: 8
-#| fig-height: 4
+#| fig-height: 5
 #| fig-cap: "Demersal fish - Species richness: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing, shown separately for the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 show_png(fish(paste0("_predicted-individual-fish-metric_whole-assemblage_", dash_label, ".png")))
 ```
@@ -318,7 +382,7 @@ p_bar
 
 ```{r}
 #| fig-width: 8
-#| fig-height: 4
+#| fig-height: 5
 #| fig-cap: "Demersal fish - Total abundance: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing, shown separately for the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 show_png(fish(paste0("_predicted-individual-fish-metric_total-abundance_", dash_label, ".png")))
 ```
@@ -355,7 +419,7 @@ p_bar
 
 ```{r}
 #| fig-width: 8
-#| fig-height: 4
+#| fig-height: 5
 #| fig-cap: "Demersal fish - Large Reef Fish Index\\*: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing, shown separately for the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 show_png(fish(paste0("_predicted-individual-fish-metric_large-reef-fish-index_", dash_label, ".png")))
 ```
@@ -392,7 +456,7 @@ p_bar
 
 ```{r}
 #| fig-width: 8
-#| fig-height: 4
+#| fig-height: 5
 #| fig-cap: "Demersal fish - Reef Fish Thermal Index: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing, shown separately for the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 show_png(fish(paste0("_predicted-individual-fish-metric_cti_", dash_label, ".png")))
 ```

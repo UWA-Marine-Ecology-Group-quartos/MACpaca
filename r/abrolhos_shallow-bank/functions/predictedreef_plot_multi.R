@@ -235,21 +235,11 @@ predictedreef_plot_multi <- function(dat_list, prediction_limits, se_limits = NU
   p_out <- (pred_row / se_row) +
     plot_layout(heights = c(1, 1), guides = "collect") &
     theme(
-      legend.position      = "bottom",
-      legend.direction     = "horizontal",
-      legend.box           = "horizontal",
-      legend.box.just      = "centre",
-      legend.justification = "centre",
-      legend.title         = element_text(size = 9, margin = margin(b = 2, r = 3)),
-      legend.text          = element_text(size = 8),
-      legend.key.height    = unit(0.3, "cm"),
-      legend.key.width     = unit(0.35, "cm"),
-      legend.spacing.x     = unit(1, "mm"),
-      legend.spacing.y     = unit(0.5, "mm"),
-      legend.spacing       = unit(0.5, "mm"),
-      legend.box.margin    = margin(0, 0, 0, 0),
-      panel.spacing        = unit(0.5, "mm"),
-      plot.margin          = margin(2, 2, 2, 2, unit = "mm")
+      legend.position    = "right",
+      legend.box.margin  = margin(l = 4, unit = "mm"),
+      legend.margin      = margin(l = 2, r = 4, unit = "mm"),
+      panel.spacing      = unit(0.5, "mm"),
+      plot.margin        = margin(2, 8, 2, 2, unit = "mm")
     )
 
   p_out <- cowplot::plot_grid(p_out, marine_park_legend(), ncol = 1, rel_heights = c(1, 0.145))
