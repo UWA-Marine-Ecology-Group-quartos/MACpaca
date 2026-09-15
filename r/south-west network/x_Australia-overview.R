@@ -362,18 +362,14 @@ ggsave(paste0('plots/', park, '/spatial/australia-overview.png'),
 # ==============================================================================
 # End of script
 # ==============================================================================
-
-fed.mps_check <- fed.mps %>%
-  st_centroid() %>%
-  dplyr::mutate(lon = sf::st_coordinates(.)[,1],
-                lat = sf::st_coordinates(.)[,2]) %>%
-  st_drop_geometry()
-
-# adjust this bounding box to roughly where you see the second "circle" on your render
-fed.mps_check %>%
-  dplyr::filter(lon > 130, lon < 150, lat < -40, lat > -48) %>%
-  dplyr::distinct(resname, netname, zone_type)
+nrow(eez)
+nrow(distinct(st_drop_geometry(eez)))
 
 nrow(fed.mps)
-nrow(distinct(st_drop_geometry(fed.mps)))
-fed.mps %>% st_drop_geometry() %>% count(resname, polygonid) %>% filter(n > 1)
+fed.mps %>% st_drop_geometry() %>% count(polygonid) %>% filter(n > 1)
+
+nrow(state.mps)
+state.mps %>% st_drop_geometry() %>% count(pa_id, pa_pid) %>% filter(n > 1)
+
+names(eez)
+st_drop_geometry(eez) %>% distinct(across(everything())) %>% as.data.frame()
