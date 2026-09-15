@@ -183,7 +183,7 @@ cities$lab_x <- cities$x + ifelse(cities$hjust == 0, 0.7, -0.7)
 
 
 # ==============================================================================
-# 5. FIGURE 1: AUSTRALIA-WIDE MARINE PARKS OVERVIEW MAP
+# 5. FIGURE 1: AUSTRALIA-WIDE MARINE PARKS OVERVIEW MAP (no insets)
 # ==============================================================================
 p1 <- ggplot() +
   geom_spatraster(data = hillbath, fill = vector_colsbathy, maxcell = Inf,
@@ -192,16 +192,17 @@ p1 <- ggplot() +
   scale_fill_gradientn(colours = c("#061442", "#2b63b5", "#9dc9e1"),
                        values = rescale(c(-6221, -120, 0))) +
   new_scale_fill() +
+
+  # State marine parks
   geom_sf(data = state.mps, aes(fill = sanctuary), colour = NA) +
   scale_fill_manual(values = c("Sanctuary Zone" = "#bfd054",
-                               "State Marine Park" = "grey80"),
+                               "State Marine Park" = "#8a8a8a"),
                     name = "State Marine Parks",
                     guide = guide_legend(ncol = 1, order = 2)) +
   new_scale_fill() +
-  geom_sf(data = fed.mps,
-          aes(fill = zone_type),
-          colour = NA,
-          alpha = 0.7) +
+
+  # Australian (Commonwealth) marine parks
+  geom_sf(data = fed.mps, aes(fill = zone_type), colour = NA, alpha = 0.7) +
   scale_fill_manual(
     values = c(
       "Special Purpose Zone" = "#6daff4",
@@ -215,6 +216,7 @@ p1 <- ggplot() +
     guide = guide_legend(ncol = 2, order = 1)
   ) +
   new_scale_fill() +
+
   geom_sf(data = eez, colour = "grey20", linetype = 2, fill = NA) +
   geom_spatraster(data = hill, alpha = 1, show.legend = F) +
   scale_fill_gradientn(colors = pal_greys, na.value = NA) +
@@ -224,11 +226,11 @@ p1 <- ggplot() +
                           alpha = 0.6,
                           na.value = "transparent") +
 
-  # ── Capital cities ──
-  geom_point(data = cities, aes(x = x, y = y),
-             shape = 9, size = 1) +
+  # Capital cities
+  geom_point(data = cities, aes(x = x, y = y), shape = 9, size = 1) +
   geom_text(data = cities, aes(x = lab_x, y = y, label = city, hjust = hjust),
             size = 3) +
+
   theme_minimal() +
   theme(panel.grid = element_blank(),
         legend.position = "bottom",
@@ -243,28 +245,33 @@ p1 <- ggplot() +
         axis.text.y = element_text(size = 8),
         axis.title = element_blank(),
         axis.ticks = element_line(colour = "grey80", linewidth = 0.3),
-        legend.margin = margin(0, 0, 0, 0)) +
+        legend.margin = margin(0, 0, 0, 0),
+        plot.background = element_rect(fill = "white", colour = NA)) +
   labs(x = NULL, y = NULL) +
   coord_sf(xlim = c(plot_limits[1], plot_limits[2]),
            ylim = c(plot_limits[3], plot_limits[4]))
 
-# p1
-
-# Save plot (main map only, no insets - kept for reference/QA)
-ggsave(paste(paste0('plots/', park, '/spatial/'), 'australia-overview.png'),
+# Save main map only (no insets)
+ggsave(paste0('plots/', park, '/spatial/', 'australia-overview-main.png'),
        plot = p1, dpi = 600, width = 8, height = 6, bg = "white")
+
 
 # ==============================================================================
 # 6. INSET MAPS FOR REMOTE TERRITORIES
 # ==============================================================================
 
-# Bounding boxes: c(xmin, xmax, ymin, ymax)
-# NOTE: check these against your actual fed.mps/eez extents once rendered -
-# tighten or widen so the full dashed EEZ circle is visible in each inset.
 macquarie_bbox <- c(152, 165, -59, -50)
 himi_bbox      <- c(66.3, 80.0, -57.3, -48.7)
 
-make_inset <- function(bbox, title) {
+# Small helper — text-only panel used above each inset map
+make_title_panel <- function(title) {
+  ggplot() +
+    annotate("text", x = 0, y = 0, label = title, size = 2.3, hjust = 0.5, lineheight = 0.85) +
+    theme_void() +
+    theme(plot.margin = margin(0, 0, 0, 0))
+}
+
+make_inset <- function(bbox) {
   ext_box <- ext(bbox[1], bbox[2], bbox[3], bbox[4])
   bathy_c    <- crop(bathy, ext_box)
   topo_c     <- crop(topo, ext_box)
@@ -281,7 +288,7 @@ make_inset <- function(bbox, title) {
     new_scale_fill() +
     geom_sf(data = state.mps, aes(fill = sanctuary), colour = NA, show.legend = FALSE) +
     scale_fill_manual(values = c("Sanctuary Zone" = "#bfd054",
-                                 "State Marine Park" =  "grey80")) +
+                                 "State Marine Park" = "#8a8a8a")) +
     new_scale_fill() +
     geom_sf(data = fed.mps, aes(fill = zone_type), colour = NA, alpha = 0.7,
             show.legend = FALSE) +
@@ -297,29 +304,21 @@ make_inset <- function(bbox, title) {
     new_scale_fill() +
     geom_spatraster(data = topo_c, show.legend = FALSE) +
     scale_fill_hypso_tint_c(palette = "dem_poster", alpha = 0.6, na.value = "transparent") +
-    annotate("text", x = mean(bbox[1:2]), y = bbox[4], label = title,
-             size = 2.3, vjust = -0.4, hjust = 0.5) +
-    coord_sf(xlim = bbox[1:2], ylim = bbox[3:4], expand = FALSE, clip = "off") +
+    coord_sf(xlim = bbox[1:2], ylim = bbox[3:4], expand = FALSE) +
     theme_void() +
     theme(
       panel.background = element_rect(fill = NA, colour = NA),
       panel.border = element_rect(colour = "black", fill = NA, linewidth = 0.6),
       plot.background  = element_rect(fill = NA, colour = NA),
-      plot.margin = margin(t = 8, r = 2, b = 2, l = 2)
+      plot.margin = margin(0, 2, 2, 2)
     )
 }
 
-# ── Vector-only inset (no bathymetry/topo raster) ──
-# Needed for territories outside the AusBathyTopo raster's coverage
-# (xmin/xmax 92.0-172.0 E, ymin/ymax -60.0 to -8.0 S). Heard & McDonald
-# Islands sit at ~73 E, well outside this range, so crop() on bathy/topo
-# fails with "extents do not overlap". Macquarie Island (~159 E) IS inside
-# the raster extent, so it keeps using the full terrain-shaded make_inset().
-make_inset_novector <- function(bbox, title) {
+make_inset_novector <- function(bbox) {
   ggplot() +
     geom_sf(data = state.mps, aes(fill = sanctuary), colour = NA, show.legend = FALSE) +
     scale_fill_manual(values = c("Sanctuary Zone" = "#bfd054",
-                                 "State Marine Park" = "grey80")) +
+                                 "State Marine Park" = "#8a8a8a")) +
     new_scale_fill() +
     geom_sf(data = fed.mps, aes(fill = zone_type), colour = NA, alpha = 0.7,
             show.legend = FALSE) +
@@ -329,47 +328,34 @@ make_inset_novector <- function(bbox, title) {
       "Multiple Use Zone" = "#b9e6fb", "Sanctuary Zone" = "#f7c0d8"
     )) +
     geom_sf(data = eez, colour = "grey20", linetype = 2, linewidth = 0.4, fill = NA) +
-    annotate("text", x = mean(bbox[1:2]), y = bbox[4], label = title,
-             size = 2.3, vjust = -0.4, hjust = 0.5) +
-    coord_sf(xlim = bbox[1:2], ylim = bbox[3:4], expand = FALSE, clip = "off") +
+    coord_sf(xlim = bbox[1:2], ylim = bbox[3:4], expand = FALSE) +
     theme_void() +
     theme(
       panel.background = element_rect(fill = "#54648B", colour = NA),
       panel.border = element_rect(colour = "black", fill = NA, linewidth = 0.6),
       plot.background  = element_rect(fill = NA, colour = NA),
-      plot.margin = margin(t = 8, r = 2, b = 2, l = 2)
+      plot.margin = margin(0, 2, 2, 2)
     )
 }
 
-inset_macquarie <- make_inset(macquarie_bbox, "Macquarie Island")
-inset_himi      <- make_inset_novector(himi_bbox, "Heard & McDonald Islands")
+# Build map panels and title panels separately
+inset_macquarie <- make_inset(macquarie_bbox)
+inset_himi      <- make_inset_novector(himi_bbox)
 
-# ── Compose main map + insets ──
-# left/bottom/right/top are fractions (0-1) of the full p1 canvas.
-# Adjust these once you see the rendered output.
+title_macquarie <- make_title_panel("Macquarie Island")
+title_himi      <- make_title_panel("Heard & McDonald Islands")
 
-p1 <- p1 + theme(plot.background = element_rect(fill = "white", colour = NA))
-
+# Assemble — title sits just above its matching map box (title's bottom ==
+# map's top, small gap), added as independent flat sibling insets
 p1_final <- p1 +
-  inset_element(inset_himi,      left = 0.02, bottom = 0.03, right = 0.22, top = 0.20) +
-  inset_element(inset_macquarie, left = 0.80, bottom = 0.03, right = 0.98, top = 0.20)
+  inset_element(title_himi,      left = 0.015, bottom = 0.205, right = 0.18, top = 0.24) +
+  inset_element(inset_himi,      left = -0.02, bottom = 0.03,  right = 0.18, top = 0.20) +
+  inset_element(title_macquarie, left = 0.82, bottom = 0.205, right = 1.04, top = 0.24) +
+  inset_element(inset_macquarie, left = 0.83, bottom = 0.03,  right = 1.04, top = 0.20)
 
-# p1_final
-
-ggsave(paste0('plots/', park, '/spatial/australia-overview.png'),
+ggsave(paste0('plots/', park, '/spatial/', 'australia-overview-with-insets.png'),
        plot = p1_final, dpi = 600, width = 8, height = 6, bg = "white")
 
 # ==============================================================================
 # End of script
 # ==============================================================================
-nrow(eez)
-nrow(distinct(st_drop_geometry(eez)))
-
-nrow(fed.mps)
-fed.mps %>% st_drop_geometry() %>% count(polygonid) %>% filter(n > 1)
-
-nrow(state.mps)
-state.mps %>% st_drop_geometry() %>% count(pa_id, pa_pid) %>% filter(n > 1)
-
-names(eez)
-st_drop_geometry(eez) %>% distinct(across(everything())) %>% as.data.frame()
