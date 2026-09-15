@@ -1,11 +1,11 @@
 ---
-title: "Appendix C - [TEMPLATE] Marine Park Data Analysis Report"
+title: "Appendix C - Beagle Marine Park Data Analysis Report"
 subtitle: "South-west Marine Parks Network"
 filters:
   - appendix-c-numbering.lua
 format:
   pdf:
-    output-file: "Project 4.21-[TEMPLATE]-3-Appendix C-q-Data analysis.pdf"
+    output-file: "Project 4.21-Beagle-3-Appendix C-q-Data analysis.pdf"
     fig-pos: 'H'
     geometry:
       - top=2cm
@@ -26,7 +26,7 @@ format:
         \renewcommand{\thetable}{C.\arabic{table}}
         \captionsetup{format=plain, indention=0pt}
   html:
-    output-file: "Project 4.21-[TEMPLATE]-3-Appendix C-q-Data analysis.html"
+    output-file: "Project 4.21-Beagle-3-Appendix C-q-Data analysis.html"
     fig-dpi: 96
     embed-resources: true
     include-in-header:
@@ -195,24 +195,34 @@ the C.<parent>.<n> sub-numbering block below - just include that one figure
 chunk directly, the same way the fish response curves are included further
 down. If combine_benthos is FALSE, keep the block below and add one figure
 chunk per survey year (one readRDS/include_graphics per year in curve_years).
+--->
 
 ```{=latex}
 \setcounter{parentfig}{\numexpr\value{figure}+1\relax}
 \setcounter{figure}{0}
 \renewcommand{\thefigure}{C.\arabic{parentfig}.\arabic{figure}}
 ```
+<!--
 ... the per-year figure chunks ...
+--->
 ```{=latex}
 \setcounter{figure}{\value{parentfig}}
 \renewcommand{\thefigure}{C.\arabic{figure}}
 ```
--->
+
 
 ```{r}
 #| out-width: "100%"
 #| fig-align: center
-#| fig-cap: 'Plots of the most parsimonious model found to predict the probability of occurrence of key habitat types. Individual panes display the predicted relationships between model covariates and the probability of occurrence of each habitat class. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value. Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data from all survey years.'
-knitr::include_graphics(fig(paste0("habitat-response-curves_", curve_year, ".png"))) # TODO one chunk per survey year if combine_benthos is FALSE
+#| fig-cap: 'Plots of the most parsimonious model found to predict the probability of occurrence of key habitat types in 2018. Individual panes display the predicted relationships between model covariates and the probability of occurrence of each habitat class. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value. Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data from survey year.'
+knitr::include_graphics(fig(paste0("habitat-response-curves_", 2018, ".png")))
+```
+
+```{r}
+#| out-width: "100%"
+#| fig-align: center
+#| fig-cap: 'Plots of the most parsimonious model found to predict the probability of occurrence of key habitat types in 2025. Individual panes display the predicted relationships between model covariates and the probability of occurrence of each habitat class. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value. Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data from survey year.'
+knitr::include_graphics(fig(paste0("habitat-response-curves_", 2025, ".png")))# TODO one chunk per survey year if combine_benthos is FALSE
 ```
 
 {{< pagebreak >}}

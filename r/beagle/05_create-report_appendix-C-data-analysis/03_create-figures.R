@@ -71,6 +71,10 @@ model_has_by_year <- function(mod) {
 report_terms <- function(model_list, what) {
   for (resp in names(model_list)) {
     mod <- model_list[[resp]]
+    if (is.null(mod)) {
+      message("  [", what, "] ", resp, " - not modelled (NULL)")
+      next
+    }
     kept <- c("year", "status")[
       vapply(c("year", "status"), function(t) model_has_term(mod, t), logical(1))
     ]
@@ -79,7 +83,6 @@ report_terms <- function(model_list, what) {
             "; year-varying smooths: ", if (model_has_by_year(mod)) "yes" else "no")
   }
 }
-
 message("Final model structure:")
 report_terms(models$habitat, "habitat")
 report_terms(models$fish,    "fish")
@@ -170,7 +173,7 @@ fig_c1_1 <- build_importance_plot(
   var_imp  = read_var_imp(here("output", "model-output", park, "habitat",
                                paste0(name, "_abiotic_all.var.imp.csv"))),
   signs    = habitat_signs,
-  models   = models$habitat,
+  models   = models$habitat[!vapply(models$habitat, is.null, logical(1))],  # drop NULL models
   response_order = habitat_response_order,
   term_order     = habitat_term_order,
   italic_y = TRUE
@@ -409,3 +412,4 @@ if (length(fish_no_status)) {
 }
 message("04_quarto.qmd builds the fish caption from the same objects, so the ",
         "caption follows automatically.")
+

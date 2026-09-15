@@ -85,9 +85,7 @@ final_models_habitat <- list(
                                      s(geoscience_aspect, by = year, k = 3, bs = "cc") +
                                      s(geoscience_detrended, by = year, k = 3, bs = "cr"),
                                     data = habi, method = "REML", family = binomial("logit")), # [TEMPLATE]
-  macroalgae            = NULL, # [TEMPLATE]
-  seagrasses            = NULL, # [TEMPLATE]
-  rock                  = NULL, # [TEMPLATE]
+
   sessile_invertebrates = gam(cbind(sessile_invertebrates, total_pts - sessile_invertebrates) ~
                                 s(geoscience_roughness, k = 3, bs = "cr") +
                                 s(geoscience_aspect, by = year, k = 3, bs = "cc") +
