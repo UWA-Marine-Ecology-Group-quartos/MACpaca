@@ -212,7 +212,7 @@ preddf <- preds %>%
 
 # Extract status to predict onto
 marine_parks <- st_read("data/amp_shapefile/Australian_Marine_Parks_v2.shp") %>%
-  dplyr::filter(name %in% c("Hunter", "Kent Group National Park")) %>% # TODO select marine parks in your area
+  dplyr::filter(name %in% c("Hunter")) %>% # TODO select marine parks in your area
   vect() %>%
   glimpse()
 

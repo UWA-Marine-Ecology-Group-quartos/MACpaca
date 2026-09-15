@@ -180,6 +180,13 @@ build_report_kable <- function(df, show_aicc = FALSE, centre_response = FALSE) {
   idx  <- report_row_index(df)
   body <- df %>% select(-selected) %>% format_numeric_cols()
 
+  # Escape LaTeX-special characters in the model term string only - every
+  # other column is either numeric or a short label with no underscores.
+  # escape = FALSE below is required for the math-mode headers and, when
+  # centre_response is TRUE, the raw \multirow markup - so it can't be
+  # switched on globally, and this column has to be escaped by hand instead.
+  body$model <- gsub("_", r"(\\_)", body$model)
+
   if (show_aicc) body <- body %>% relocate(aicc, .after = omega_aicc)
 
   n_col <- ncol(body)
