@@ -291,7 +291,7 @@ control_all <- purrr::map(years, \(yy) {
   terra::crs(dat_yy) <- "EPSG:4326"
 
   controldata_fish(dat = dat_yy, year = as.numeric(yy),
-                   amp_abbrv = "ABMP")   # TODO park abbreviation
+                   amp_abbrv = "ABRMP")   # TODO park abbreviation
 })
 
 park_dat.shallow <- purrr::map_dfr(control_all, "shallow") %>%
@@ -333,7 +333,7 @@ for (metric_code in names(metric_lookup)) {
   p_metric <- controlplot_fish(
     data = park_dat.control,
     metric = metric_code,
-    amp_abbrv = "ABMP",   # TODO park abbreviation
+    amp_abbrv = "ABRMP",   # TODO park abbreviation
     metric_label = metric_lookup[[metric_code]]
   )
 
@@ -668,7 +668,7 @@ bar_cti <- ggplot(
     ),
     width = 0.2
   ) +
-  geom_text(aes(y = 23, label = niche_lab), hjust = 0, size = 3) +
+  geom_text(aes(y = 45, label = niche_lab), hjust = 0, size = 3) +
   coord_flip(clip = "off") +
   facet_wrap(~year, nrow = 1, scales = "free_y") +
   scale_x_reordered() +

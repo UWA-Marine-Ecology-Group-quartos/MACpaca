@@ -45,7 +45,7 @@ scatterpie_plot_multi <- function(benthos, years, site_limits, pie_radius = 0.00
     hab_fills +
     facet_wrap(~year, nrow = 1) +
     scale_x_continuous(breaks = scales::breaks_width(0.4)) +
-    scale_y_continuous(breaks = scales::breaks_width(0.4)) +
+    scale_y_continuous(breaks = scales::breaks_width(0.2)) +
     coord_sf(
       xlim = c(site_limits[1], site_limits[2]),
       ylim = c(site_limits[3], site_limits[4]),

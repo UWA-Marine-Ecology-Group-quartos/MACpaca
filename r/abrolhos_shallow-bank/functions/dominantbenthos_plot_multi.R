@@ -18,11 +18,11 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
 
   # Legend label (line break for long names)
   legend_names <- c(
-    "Sand"                  = "Sand",
-    "Macroalgae"            = "Macroalgae",
-    "Kelp"                  = "Kelp",
-    "Seagrass"              = "Seagrass",
-    "Rock"                  = "Rock",
+    "Sand"                  = "\nSand",
+    "Macroalgae"            = "\nMacroalgae",
+    "Kelp"                  = "\nKelp",
+    "Seagrass"              = "\nSeagrass",
+    "Rock"                  = "\nRock",
     "Sessile invertebrates" = "Sessile\ninvertebrates"
   )
 
@@ -141,7 +141,7 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
       )),
       # Axis labels every 0.4 degrees
       scale_x_continuous(breaks = scales::breaks_width(0.4)),
-      scale_y_continuous(breaks = scales::breaks_width(0.4)),
+      scale_y_continuous(breaks = scales::breaks_width(0.2)),
       coord_sf(
         xlim   = c(prediction_limits[1], prediction_limits[2]),
         ylim   = c(prediction_limits[3], prediction_limits[4]),
@@ -216,8 +216,11 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
         na.value = "transparent",
         name     = "Normalised\ncombined SE",
         limits   = se_limits,
-        oob      = scales::squish
-
+        oob      = scales::squish,
+        guide    = guide_colorbar(
+          barwidth  = unit(2.4, "cm"),
+          barheight = unit(0.45, "cm")
+        )
       ) +
       build_base(i, show_x = TRUE, show_park_legend = FALSE)
   })
@@ -244,10 +247,10 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
   # Combine
   # ------------------------------------------------------------
   dom_row <- dom_label + wrap_plots(p_dom, nrow = 1, guides = "collect") +
-    plot_layout(widths = c(0.035, 1))
+    plot_layout(widths = c(0.08, 1))
 
   se_row <- se_label + wrap_plots(p_se, nrow = 1, guides = "collect") +
-    plot_layout(widths = c(0.035, 1))
+    plot_layout(widths = c(0.08, 1))
 
   p_out <- (dom_row / se_row) +
     plot_layout(heights = c(1, 1), guides = "collect") &

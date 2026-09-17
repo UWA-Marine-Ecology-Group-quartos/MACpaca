@@ -1,0 +1,273 @@
+---
+title: "Appendix C2 - Ningaloo Marine Park (National Park Zone) Data Analysis Report"
+subtitle: "North-west Marine Parks Network"
+filters:
+  - appendix-c-numbering.lua
+format:
+  pdf:
+    output-file: "Project 4.21-Ningaloo-3-Appendix C2-q-Data analysis.pdf"
+    fig-pos: 'H'
+    geometry:
+      - top=2cm
+      - bottom=2.5cm
+      - left=2cm
+      - right=2cm
+    include-in-header:
+      text: |
+        \usepackage{caption}
+        \usepackage{float}
+        \usepackage{chngcntr}
+        \usepackage{arydshln}
+        \renewcommand{\arraystretch}{1.35}
+        \floatplacement{table}{H}
+        \floatplacement{figure}{H}
+        % Holds a figure's number while its per-year sub-figures are numbered.
+        \newcounter{parentfig}
+        \renewcommand{\thefigure}{C2.\arabic{figure}}
+        \renewcommand{\thetable}{C2.\arabic{table}}
+        \captionsetup{format=plain, indention=0pt}
+  html:
+    output-file: "Project 4.21-Ningaloo-3-Appendix C2-q-Data analysis.html"
+    fig-dpi: 96
+    embed-resources: true
+    include-in-header:
+      text: |
+        <style>
+          caption,
+          .gt_caption,
+          .table-caption,
+          figcaption,
+          .figure-caption,
+          .quarto-float-caption,
+          .quarto-float-caption-top,
+          .quarto-float-tbl figcaption {
+            text-align: justify !important;
+            text-justify: inter-word;
+            hyphens: auto;
+          }
+        </style>
+    include-after-body:
+      text: |
+        <script>
+        // appendix-c-numbering.lua only numbers figures - tables are prefixed
+        // here, flat as C2.<n> to match the PDF's \thetable.
+        (function () {
+          var tbl = 0;
+          document.querySelectorAll("#quarto-document-content figcaption.quarto-float-tbl").forEach(function (el) {
+            tbl += 1;
+            // el.innerHTML re-serialises a non-breaking space as the literal
+            // "&nbsp;" entity text, not a whitespace character, so \s alone
+            // does not match it - match either form here.
+            el.innerHTML = el.innerHTML.replace(
+              /^(\s*Table(?:\s|&nbsp;)+)\d+/,
+              "$1C2." + tbl
+            );
+          });
+        })();
+        </script>
+toc: true
+execute:
+  echo: false
+  warning: false
+  message: false
+post-render: 05_move-pdf.R
+---
+
+```{r}
+#| include: false
+library(here)
+library(knitr)
+library(dplyr)
+library(gt)
+
+source("02_load-model-selection.R")
+source("Gt_model_tables.R")
+
+habitat_table <- get_habitat_report_table()
+fish_table    <- get_fish_report_table()
+
+figdir_src <- file.path(appc_out, "figures")
+
+# HTML cannot load an absolute path the way LaTeX can, so each figure is copied
+# in beside this document and referenced relatively.
+figdir_local <- "figures"
+dir.create(figdir_local, showWarnings = FALSE)
+
+fig <- function(f) {
+  src <- file.path(figdir_src, paste0(name, "_", f))
+  if (!file.exists(src)) stop("Figure not found: ", src, "\nRun 03_create-figures.R first.")
+  dest <- file.path(figdir_local, paste0(name, "_", f))
+  file.copy(src, dest, overwrite = TRUE)
+  dest
+}
+
+curve_years <- as.character(sort(unlist(config$years)))
+
+list_and <- function(x) {
+  if (!length(x)) return("")
+  if (length(x) == 1) return(x)
+  paste0(paste(utils::head(x, -1), collapse = ", "), " and ", utils::tail(x, 1))
+}
+
+curve_caption <- function(yr) {
+  paste0("Plots of the most parsimonious model found to predict the probability ",
+         "of occurrence of key habitat types in ", yr, ". Individual panes ",
+         "display the predicted relationships between model covariates and the ",
+         "probability of occurrence of each habitat class. Solid lines represent ",
+         "predicted Generalized Additive Model (GAM) fits with other variables ",
+         "held constant at their mean value and survey year held at ", yr, ". ",
+         "Dashed lines represent upper and lower standard error bounds around ",
+         "the prediction, and points represent the observed data for that year.")
+}
+
+fish_curve_caption <- function(yr) {
+  paste0("Plots of the most parsimonious model found to predict key demersal fish ",
+         "metrics in ", yr, ". Individual panes display the predicted relationships ",
+         "between model covariates and each fish metric. Solid lines represent ",
+         "predicted Generalized Additive Model (GAM) fits with other variables ",
+         "held constant at their mean value, survey year held at ", yr, ", and ",
+         "zone status held at its reference level. Dashed lines represent upper ",
+         "and lower standard error bounds around the prediction, and points ",
+         "represent the observed data for that year.")
+}
+```
+
+# Data Analysis
+
+Statistical methods and model selection results underpinning the natural values
+reported in Appendix A2.
+
+{{< pagebreak >}}
+
+## Benthic ecosystem extent
+
+```{r}
+#| label: tbl-c1-1
+#| tbl-cap: !expr paste0('Habitat model selection results. Top generalised additive models (GAMs) for predicting the probability of occurrence of key habitats from full subset analyses. Differences between the lowest reported corrected Akaike Information Criterion ($\\Delta$AICc), AICc weight ($\\omega$AICc), variance explained (R$^2$) and effective degrees of freedom (EDF) are reported for model comparison. Model selection was based on the most parsimonious model (fewest variables - shown in bold) within two units of the lowest AICc. Survey year was offered as a candidate predictor and retained in every top model, so covariate relationships are fitted separately for ', list_and(curve_years), '.')
+build_habitat_model_table(habitat_table)
+```
+
+```{r}
+#| out-width: "85%"
+#| fig-align: center
+#| fig-cap: 'Variable importance scores for predicting the probability of occurrence of main habitat categories. Response variables included in the most parsimonious top model are indicated (X), with the colour gradient representing positive (red), zero (white) and negative (blue) relationships. Aspect is a circular variable, so the direction of its relationship should be read from the response curves rather than the colour gradient.'
+knitr::include_graphics(fig("habitat-importance.png"))
+```
+
+```{=latex}
+\setcounter{parentfig}{\numexpr\value{figure}+1\relax}
+\setcounter{figure}{0}
+\renewcommand{\thefigure}{C2.\arabic{parentfig}.\arabic{figure}}
+```
+{{< pagebreak >}}
+
+### 2019
+```{r}
+#| out-width: "80%"
+#| out-height: "80%"
+#| fig-align: center
+#| fig-cap: !expr curve_caption("2019")
+knitr::include_graphics(fig("habitat-response-curves_2019.png"))
+```
+{{< pagebreak >}}
+
+### 2021
+```{r}
+#| out-width: "80%"
+#| out-height: "80%"
+#| fig-align: center
+#| fig-cap: !expr curve_caption("2021")
+knitr::include_graphics(fig("habitat-response-curves_2021.png"))
+```
+{{< pagebreak >}}
+
+### 2022
+```{r}
+#| out-width: "80%"
+#| out-height: "80%"
+#| fig-align: center
+#| fig-cap: !expr curve_caption("2022")
+knitr::include_graphics(fig("habitat-response-curves_2022.png"))
+```
+{{< pagebreak >}}
+
+### 2024
+```{r}
+#| out-width: "80%"
+#| out-height: "80%"
+#| fig-align: center
+#| fig-cap: !expr curve_caption("2024")
+knitr::include_graphics(fig("habitat-response-curves_2024.png"))
+```
+
+```{=latex}
+\setcounter{figure}{\value{parentfig}}
+\renewcommand{\thefigure}{C2.\arabic{figure}}
+```
+{{< pagebreak >}}
+
+## Fish
+
+```{r}
+#| label: tbl-c1-2
+#| tbl-cap: !expr paste0('Demersal fish model selection results. Top generalised additive models (GAMs) for predicting key fish metrics from full subset analyses. Differences between the lowest reported corrected Akaike Information Criterion ($\\Delta$AICc), AICc weight ($\\omega$AICc), variance explained (R$^2$) and effective degrees of freedom (EDF) are reported for model comparison. Model selection was based on the most parsimonious model (fewest variables - shown in bold) within two units of the lowest AICc. Survey year and zone status (No-Take/Fished) were forced into every candidate model rather than offered as candidates themselves, so the fitted relationships shown for ', list_and(curve_years), ' share the same covariate effects and differ only by year and status.')
+build_fish_model_table(fish_table)
+```
+
+```{r}
+#| out-width: "85%"
+#| fig-align: center
+#| fig-cap: 'Variable importance scores for predicting key demersal fish metrics. Response variables included in the most parsimonious top model are indicated (X), with the colour gradient representing positive (red), zero (white) and negative (blue) relationships. Aspect is a circular variable, so the direction of its relationship should be read from the response curves rather than the colour gradient.'
+knitr::include_graphics(fig("fish-importance.png"))
+```
+
+```{=latex}
+\setcounter{parentfig}{\numexpr\value{figure}+1\relax}
+\setcounter{figure}{0}
+\renewcommand{\thefigure}{C2.\arabic{parentfig}.\arabic{figure}}
+```
+{{< pagebreak >}}
+
+### 2019
+```{r}
+#| out-width: "80%"
+#| out-height: "80%"
+#| fig-align: center
+#| fig-cap: !expr fish_curve_caption("2019")
+knitr::include_graphics(fig("fish-response-curves_2019.png"))
+```
+{{< pagebreak >}}
+
+### 2021
+```{r}
+#| out-width: "80%"
+#| out-height: "80%"
+#| fig-align: center
+#| fig-cap: !expr fish_curve_caption("2021")
+knitr::include_graphics(fig("fish-response-curves_2021.png"))
+```
+{{< pagebreak >}}
+
+### 2022
+```{r}
+#| out-width: "80%"
+#| out-height: "80%"
+#| fig-align: center
+#| fig-cap: !expr fish_curve_caption("2022")
+knitr::include_graphics(fig("fish-response-curves_2022.png"))
+```
+{{< pagebreak >}}
+
+### 2024
+```{r}
+#| out-width: "80%"
+#| out-height: "80%"
+#| fig-align: center
+#| fig-cap: !expr fish_curve_caption("2024")
+knitr::include_graphics(fig("fish-response-curves_2024.png"))
+```
+
+```{=latex}
+\setcounter{figure}{\value{parentfig}}
+\renewcommand{\thefigure}{C2.\arabic{figure}}
+```

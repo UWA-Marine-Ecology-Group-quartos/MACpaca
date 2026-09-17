@@ -184,7 +184,7 @@ p_cat
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Functional reef: benchmark plots by zone and depth contour from stereo-BRUV and drop-camera groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+#| fig-cap: "Functional reef: benchmark plots by zone and depth contour from stereo-BRUV and drop-camera groundtruthing. ABRMP = Abrolhos Marine Park (Commonwealth)."
 p_control <- readRDS(hab("_control-plot_functional-reef.rds"))
 p_control
 ```
@@ -204,7 +204,7 @@ show_png(hab(paste0("_predicted-reef-and-se_", dash_label, ".png")))
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Sand: benchmark plots by zone and depth contour from stereo-BRUV and drop-camera groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+#| fig-cap: "Sand: benchmark plots by zone and depth contour from stereo-BRUV and drop-camera groundtruthing. ABRMP = Abrolhos Marine Park (Commonwealth)."
 p_control <- readRDS(hab("_control-plot_sand.rds"))
 p_control
 ```
@@ -212,7 +212,7 @@ p_control
 ```{r}
 #| fig-width: 8
 #| fig-height: 3.6
-#| fig-cap: "Sand: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+#| fig-cap: "Sand: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABRMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 show_png(hab(paste0("_predicted-individual-habitat_sand_", dash_label, ".png")))
 ```
 
@@ -223,7 +223,7 @@ show_png(hab(paste0("_predicted-individual-habitat_sand_", dash_label, ".png")))
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Macroalgae: benchmark plots by zone and depth contour from stereo-BRUV and drop-camera groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+#| fig-cap: "Macroalgae: benchmark plots by zone and depth contour from stereo-BRUV and drop-camera groundtruthing. ABRMP = Abrolhos Marine Park (Commonwealth)."
 p_control <- readRDS(hab("_control-plot_macroalgae.rds"))
 p_control
 ```
@@ -231,7 +231,7 @@ p_control
 ```{r}
 #| fig-width: 8
 #| fig-height: 3.6
-#| fig-cap: "Macroalgae: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+#| fig-cap: "Macroalgae: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABRMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 show_png(hab(paste0("_predicted-individual-habitat_macroalgae_", dash_label, ".png")))
 ```
 
@@ -242,7 +242,7 @@ show_png(hab(paste0("_predicted-individual-habitat_macroalgae_", dash_label, ".p
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Kelp: benchmark plots by zone and depth contour from stereo-BRUV and drop-camera groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+#| fig-cap: "Kelp: benchmark plots by zone and depth contour from stereo-BRUV and drop-camera groundtruthing. ABRMP = Abrolhos Marine Park (Commonwealth)."
 p_control <- readRDS(hab("_control-plot_kelp.rds"))
 p_control
 ```
@@ -250,7 +250,7 @@ p_control
 ```{r}
 #| fig-width: 8
 #| fig-height: 3.6
-#| fig-cap: "Kelp: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+#| fig-cap: "Kelp: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABRMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 show_png(hab(paste0("_predicted-individual-habitat_kelp_", dash_label, ".png")))
 ```
 
@@ -261,7 +261,7 @@ show_png(hab(paste0("_predicted-individual-habitat_kelp_", dash_label, ".png")))
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Rock: benchmark plots by zone and depth contour from stereo-BRUV and drop-camera groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+#| fig-cap: "Rock: benchmark plots by zone and depth contour from stereo-BRUV and drop-camera groundtruthing. ABRMP = Abrolhos Marine Park (Commonwealth)."
 p_control <- readRDS(hab("_control-plot_rock.rds"))
 p_control
 ```
@@ -269,7 +269,7 @@ p_control
 ```{r}
 #| fig-width: 8
 #| fig-height: 3.6
-#| fig-cap: "Rock: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+#| fig-cap: "Rock: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABRMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 show_png(hab(paste0("_predicted-individual-habitat_rock_", dash_label, ".png")))
 ```
 
@@ -280,7 +280,7 @@ show_png(hab(paste0("_predicted-individual-habitat_rock_", dash_label, ".png")))
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Sessile invertebrates: benchmark plots by zone and depth contour from stereo-BRUV and drop-camera groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+#| fig-cap: "Sessile invertebrates: benchmark plots by zone and depth contour from stereo-BRUV and drop-camera groundtruthing. ABRMP = Abrolhos Marine Park (Commonwealth)."
 p_control <- readRDS(hab("_control-plot_sessile-invertebrates.rds"))
 p_control
 ```
@@ -288,7 +288,7 @@ p_control
 ```{r}
 #| fig-width: 8
 #| fig-height: 3.6
-#| fig-cap: "Sessile invertebrates: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+#| fig-cap: "Sessile invertebrates: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABRMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 show_png(hab(paste0("_predicted-individual-habitat_sessile-invertebrates_", dash_label, ".png")))
 ```
 
@@ -324,7 +324,7 @@ p_bubble
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Demersal fish - Species richness: benchmark plots by zone and depth contour from stereo-BRUV groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+#| fig-cap: "Demersal fish - Species richness: benchmark plots by zone and depth contour from stereo-BRUV groundtruthing. ABRMP = Abrolhos Marine Park (Commonwealth)."
 p_control <- readRDS(fish("_control-plot_species-richness-per-bruv.rds"))
 p_control
 ```
@@ -332,7 +332,7 @@ p_control
 ```{r}
 #| fig-width: 7
 #| fig-height: 4
-#| fig-cap: "Demersal fish - Species richness: species accumulation curve by year and zoning status from stereo-BRUV groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+#| fig-cap: "Demersal fish - Species richness: species accumulation curve by year and zoning status from stereo-BRUV groundtruthing. ABRMP = Abrolhos Marine Park (Commonwealth)."
 p_sac <- readRDS(fish("_SAC-sample.rds"))
 p_sac
 ```
@@ -361,7 +361,7 @@ show_png(fish(paste0("_predicted-individual-fish-metric_whole-assemblage_", dash
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Demersal fish - Total abundance: benchmark plots by zone and depth contour from stereo-BRUV groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+#| fig-cap: "Demersal fish - Total abundance: benchmark plots by zone and depth contour from stereo-BRUV groundtruthing. ABRMP = Abrolhos Marine Park (Commonwealth)."
 p_control <- readRDS(fish("_control-plot_total-abundance-per-bruv.rds"))
 p_control
 ```
@@ -369,7 +369,7 @@ p_control
 ```{r}
 #| fig-width: 10
 #| fig-height: 4
-#| fig-cap: "Demersal fish - Total abundance: top 10 most abundant species in each survey year from stereo-BRUV groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth). Species appearing in only one year's top 10 are shown in bold."
+#| fig-cap: "Demersal fish - Total abundance: top 10 most abundant species in each survey year from stereo-BRUV groundtruthing. ABRMP = Abrolhos Marine Park (Commonwealth). Species appearing in only one year's top 10 are shown in bold."
 p_bar <- readRDS(fish("_top_maxn_bar_plot.rds"))
 p_bar
 ```
@@ -398,7 +398,7 @@ show_png(fish(paste0("_predicted-individual-fish-metric_total-abundance_", dash_
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Demersal fish - Large Reef Fish Index\\*: benchmark plots by zone and depth contour from stereo-BRUV groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth). \\*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays."
+#| fig-cap: "Demersal fish - Large Reef Fish Index\\*: benchmark plots by zone and depth contour from stereo-BRUV groundtruthing. ABRMP = Abrolhos Marine Park (Commonwealth). \\*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays."
 p_control <- readRDS(fish("_control-plot_large-reef-fish-index-biomass-g-per-bruv.rds"))
 p_control
 ```
@@ -406,7 +406,7 @@ p_control
 ```{r}
 #| fig-width: 10
 #| fig-height: 4
-#| fig-cap: "Demersal fish - Large Reef Fish Index\\*: top 10 greatest biomass species in each survey year from stereo-BRUV groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth). The 2021 survey is shown pooled across zones because only five deployments were in fished waters."
+#| fig-cap: "Demersal fish - Large Reef Fish Index\\*: top 10 greatest biomass species in each survey year from stereo-BRUV groundtruthing. ABRMP = Abrolhos Marine Park (Commonwealth). The 2021 survey is shown pooled across zones because only five deployments were in fished waters."
 p_bar <- readRDS(fish("_top_b20_bar_plot_mixed.rds"))
 p_bar
 ```
@@ -435,7 +435,7 @@ show_png(fish(paste0("_predicted-individual-fish-metric_large-reef-fish-index_",
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Demersal fish - Reef Fish Thermal Index: benchmark plots by zone and depth contour, with annual sea surface temperature (black line, grey band = SD) overlaid, from stereo-BRUV groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+#| fig-cap: "Demersal fish - Reef Fish Thermal Index: benchmark plots by zone and depth contour, with annual sea surface temperature (black line, grey band = SD) overlaid, from stereo-BRUV groundtruthing. ABRMP = Abrolhos Marine Park (Commonwealth)."
 p_control <- readRDS(fish("_control-plot_community-thermal-index-c.rds"))
 p_control
 ```
@@ -443,7 +443,7 @@ p_control
 ```{r}
 #| fig-width: 10
 #| fig-height: 4
-#| fig-cap: "Demersal fish - Reef Fish Thermal Index: species thermal niche of the top 10 most abundant species in each survey year from stereo-BRUV groundtruthing. ABMP = Abrolhos Marine Park (Commonwealth)."
+#| fig-cap: "Demersal fish - Reef Fish Thermal Index: species thermal niche of the top 10 most abundant species in each survey year from stereo-BRUV groundtruthing. ABRMP = Abrolhos Marine Park (Commonwealth)."
 p_bar <- readRDS(fish("_top_maxn_cti_bar_plot.rds"))
 p_bar
 ```

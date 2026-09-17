@@ -21,9 +21,42 @@ format:
         \newcounter{metric}
         \counterwithin*{figure}{metric}
         \captionsetup{format=plain, indention=0pt}
+        % Appendix prefix. Change A here and in figure-numbering.lua together.
+        \renewcommand{\thefigure}{A.\arabic{figure}}
+        \renewcommand{\thetable}{A.\arabic{table}}
   html:
     output-file: "Project 4.21-Ningaloo-2-Appendix A-q-Natural values.html"
     fig-dpi: 96
+    include-in-header:
+      text: |
+        <style>
+          caption,
+          .gt_caption,
+          .table-caption,
+          figcaption,
+          .figure-caption,
+          .quarto-float-caption,
+          .quarto-float-caption-top,
+          .quarto-float-tbl figcaption {
+            text-align: justify !important;
+            text-justify: inter-word;
+            hyphens: auto;
+          }
+        </style>
+    include-after-body:
+      text: |
+        <script>
+        // Figures are prefixed by figure-numbering.lua. Quarto builds the table
+        // caption after that filter runs, so the table prefix is applied here.
+        // TODO Keep "A" in step with fig_prefix in figure-numbering.lua.
+        document.querySelectorAll("caption, .gt_caption, .table-caption, figcaption")
+          .forEach(function (el) {
+            // el.innerHTML re-serialises a non-breaking space as the literal
+            // "&nbsp;" entity text, not a whitespace character, so \s alone
+            // does not match it - match either form here.
+            el.innerHTML = el.innerHTML.replace(/^(\s*Table(?:\s|&nbsp;)+)(\d+)/, "$1A.$2");
+          });
+        </script>
 toc: true
 execute:
   echo: false
@@ -171,7 +204,7 @@ grid::grid.raster(img)
 % to <metric>.<plot> numbering. `metric` is seeded to the last benthic-extent
 % figure number so the majors carry on sequentially (4, 5, 6, ...).
 \setcounter{metric}{\value{figure}}
-\renewcommand{\thefigure}{\arabic{metric}.\arabic{figure}}
+\renewcommand{\thefigure}{A.\arabic{metric}.\arabic{figure}}
 ```
 
 <!-- Only sand and sessile invertebrates were modelled in 05_model-data_benthos.R
@@ -230,7 +263,7 @@ real survey years (2019, 2021, 2022, 2024). -->
 
 ```{=latex}
 \stepcounter{metric}
-\renewcommand{\thefigure}{\arabic{metric}}
+\renewcommand{\thefigure}{A.\arabic{metric}}
 ```
 
 ```{r}
@@ -244,7 +277,7 @@ p_bubble
 {{< pagebreak >}}
 
 ```{=latex}
-\renewcommand{\thefigure}{\arabic{metric}.\arabic{figure}}
+\renewcommand{\thefigure}{A.\arabic{metric}.\arabic{figure}}
 ```
 
 ### Species richness

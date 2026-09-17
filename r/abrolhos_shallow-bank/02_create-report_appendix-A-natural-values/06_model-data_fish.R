@@ -57,7 +57,9 @@ resp.vars
 
 # Run the full subset model selection----
 savedir <- paste0("output/model-output/", park, "/fish/maxn/")
-factor.vars <- c("year") # TODO set factors, drop year if only one year of data
+# status and year are forced into every model via null.terms below, so they
+# are no longer offered as candidate factors here
+factor.vars <- NA
 out.all     <- list()
 var.imp     <- list()
 
@@ -65,7 +67,7 @@ var.imp     <- list()
 for(i in 1:length(resp.vars)){
   print(resp.vars[i])
   use.dat <- as.data.frame(tidy_maxn[which(tidy_maxn$response == resp.vars[i]), ])
-  Model1  <- gam(count ~ s(geoscience_depth, k = 3, bs = 'cr'),
+  Model1  <- gam(count ~ year + status + s(geoscience_depth, k = 3, bs = 'cr'),
                  family = tw(),  data = use.dat) # TODO check family
 
   model.set <- generate.model.set(use.dat = use.dat,
@@ -73,6 +75,7 @@ for(i in 1:length(resp.vars)){
                                   pred.vars.cont = pred.vars,
                                   pred.vars.fact = factor.vars,
                                   cyclic.vars = "geoscience_aspect",
+                                  null.terms = "year + status", # force year and status
                                   k = 3, # TODO check this, maybe add cov.cutoff
                                   factor.smooth.interactions = F, # TODO check this
                                   max.predictors = 5 # TODO check this
@@ -144,13 +147,15 @@ savedir <- paste0("output/model-output/", park, "/fish/length/")
 name_b20 <- paste(name,"b20", sep = "_")
 out.all <- list()
 var.imp <- list()
-factor.vars <- c("year") # TODO check, drop year if only one year of data
+# status and year are forced into every model via null.terms below, so they
+# are no longer offered as candidate factors here
+factor.vars <- NA
 
 # Loop through the FSS function for each Taxa----
 for(i in 1:length(resp.vars)){
   print(resp.vars[i])
   use.dat = as.data.frame(tidy_b20[which(tidy_b20$response==resp.vars[i]),])
-  Model1  <- gam(count ~ s(geoscience_depth, k = 3, bs = 'cr'),
+  Model1  <- gam(count ~ year + status + s(geoscience_depth, k = 3, bs = 'cr'),
                  tw(),  data = use.dat) # TODO check family
 
   model.set <- generate.model.set(use.dat = use.dat,
@@ -158,6 +163,7 @@ for(i in 1:length(resp.vars)){
                                   pred.vars.cont = pred.vars,
                                   pred.vars.fact = factor.vars,
                                   cyclic.vars = "geoscience_aspect",
+                                  null.terms = "year + status", # force year and status
                                   k = 3, # TODO check this, maybe add cov.cutoff
                                   factor.smooth.interactions = F, # TODO check this
                                   max.predictors = 5 # TODO check this
@@ -207,33 +213,32 @@ fabund <- bind_rows(tidy_maxn, tidy_b20) %>%
 # predictor variables, factor variables, k and bs
 
 
-# Total abundance - depth alone (delta 0, wi 0.715). The only other model within
-# 2 adds roughness for +0.006 deviance explained.
-m_abundance <- gam(count ~ s(geoscience_depth, k = 3, bs = "cr"),
+# Total abundance - depth alone (delta 0, wi 0.711), simplest of two models
+# within delta AICc 2 (the other adds roughness).
+m_abundance <- gam(count ~ year + status + s(geoscience_depth, k = 3, bs = "cr"),
                    data = fabund %>% dplyr::filter(response %in% "total_abundance"),
                    family = tw())
 summary(m_abundance)
 
-# Species richness - only one model fell within delta AICc 2, so there is no
-m_richness <- gam(count ~ s(geoscience_aspect, k = 3, bs = "cc") +
-                    s(reef, k = 3, bs = "cr") +
-                    year,
+# Species richness - reef alone (delta 1.617, wi 0.308), simplest of two
+# models within delta AICc 2 (the other adds aspect).
+m_richness <- gam(count ~ year + status +
+                    s(reef, k = 3, bs = "cr"),
                   data = fabund %>% dplyr::filter(response %in% "species_richness"),
                   family = tw())
 summary(m_richness)
 
-# CTI - depth alone (delta 0). Three other models within 2 each add one term for
-# ~0.01 deviance explained. Deviance explained is only 14% - interpret with care.
-m_cti <- gam(count ~ s(geoscience_depth, k = 3, bs = "cr"),
+# CTI - depth alone (delta 0, wi 0.579), the only model within delta AICc 2.
+# Deviance explained is only 15% - interpret with care.
+m_cti <- gam(count ~ year + status + s(geoscience_depth, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "cti"),
              family = tw())
 summary(m_cti)
 
-# B20 - detrended + year (delta 0, wi 0.302). The only other model within 2
-# adds aspect for negligible improvement. Deviance explained is 13.6% -
-# interpret with care.
-m_b20 <- gam(count ~ s(geoscience_detrended, k = 3, bs = "cr") +
-               year,
+# B20 - detrended alone (delta 0, wi 0.225), simplest of four models within
+# delta AICc 2. Deviance explained is only 14% - interpret with care.
+m_b20 <- gam(count ~ year + status +
+               s(geoscience_detrended, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "b20"),
              family = tw())
 summary(m_b20)

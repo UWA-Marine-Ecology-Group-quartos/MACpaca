@@ -113,7 +113,7 @@ fishmetric_plot <- function(metric_name,
         ),
         # Axis labels every 0.4 degrees
         scale_x_continuous(breaks = scales::breaks_width(0.4)),
-        scale_y_continuous(breaks = scales::breaks_width(0.4)),
+        scale_y_continuous(breaks = scales::breaks_width(0.2)),
         coord_sf(
           xlim = c(prediction_limits[1], prediction_limits[2]),
           ylim = c(prediction_limits[3], prediction_limits[4]),

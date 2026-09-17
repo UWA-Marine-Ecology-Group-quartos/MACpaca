@@ -1,0 +1,11 @@
+name:            "Shallow-bank"
+park:            "abrolhos_shallow-bank"
+years:           ["2021", "2025"]   # EVERY survey year, must match Appendix A config
+combine_benthos: FALSE             # must match the Appendix A config - year is a
+                                    # covariate (main effect and/or by-year smooth) in
+                                    # several benthos GAMs (sand, macroalgae, reef), so
+                                    # years are modelled separately, not pooled
+
+# Appendix C output name. Must match the `output-file:` in 04_quarto.qmd,
+# minus the extension.
+report_name:     "Project 4.21-Abrolhos-Shallow-Bank-Appendix C-q-Data analysis"

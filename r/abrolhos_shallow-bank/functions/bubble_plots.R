@@ -127,7 +127,7 @@ bubble_plots <- function(dat,
       ggnewscale::new_scale_color() +
       build_parks(show_park_legend = FALSE) +
       scale_x_continuous(breaks = scales::breaks_width(0.4)) +
-      scale_y_continuous(breaks = scales::breaks_width(0.4)) +
+      scale_y_continuous(breaks = scales::breaks_width(0.2)) +
       coord_sf(
         xlim   = c(bubble_limits[1], bubble_limits[2]),
         ylim   = c(bubble_limits[3], bubble_limits[4]),

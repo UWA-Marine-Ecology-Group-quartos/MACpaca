@@ -1,0 +1,5 @@
+name: "ningaloo_npz02"
+park: "ningaloo_npz02"
+years:      ["2019", "2021", "2022", "2024"]   # EVERY survey year - drives the benthos
+fish_years: ["2019", "2021", "2022", "2024"]   # Years modelled for fish (BRUV only, same years)
+combine_benthos: FALSE      # FALSE = model + plot each year separately (year forced in)

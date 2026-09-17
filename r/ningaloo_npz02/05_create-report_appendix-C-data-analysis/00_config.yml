@@ -1,0 +1,5 @@
+name:            "ningaloo_npz02"
+park:            "ningaloo_npz02"
+years:           [2019, 2021, 2022, 2024]
+combine_benthos: FALSE
+report_name:     "Project 4.21-Ningaloo-3-Appendix C2-q-Data analysis"  # TODO
