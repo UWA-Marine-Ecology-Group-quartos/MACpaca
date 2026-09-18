@@ -14,7 +14,7 @@
 --]]
 
 -- Default for this appendix. YAML, if present, wins over this.
-local fig_prefix = "A."
+local fig_prefix = "A1."
 
 -- Only run for HTML targets - PDF keeps its existing LaTeX-driven numbering.
 if not FORMAT:match("html") then

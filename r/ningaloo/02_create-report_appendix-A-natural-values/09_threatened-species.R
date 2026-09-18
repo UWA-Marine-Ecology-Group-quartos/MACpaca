@@ -237,8 +237,8 @@ all_drops <- metadata_fish %>%
   dplyr::distinct(campaignid, sample, longitude_dd, latitude_dd)
 
 # TODO Spacing of the longitude and latitude labels, in degrees
-label_interval_x <- 0.3
-label_interval_y <- 0.3
+label_interval_x <- 0.6
+label_interval_y <- 0.8
 
 x_breaks <- seq(floor(map_limits[1] / label_interval_x) * label_interval_x,
                 ceiling(map_limits[2] / label_interval_x) * label_interval_x,
@@ -322,7 +322,7 @@ save_paginated_overview <- function(occ_points, file_stem) {
     ggsave(
       filename = paste0(page_stem, ".png"),
       plot = p,
-      height = 8, width = 10, dpi = 600, units = "in", bg = "white"
+      height = 10, width = 12, dpi = 600, units = "in", bg = "white"
     )
     saveRDS(p, paste0(page_stem, ".rds"))
   }

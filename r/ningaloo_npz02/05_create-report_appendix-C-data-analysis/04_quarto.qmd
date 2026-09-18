@@ -164,7 +164,7 @@ knitr::include_graphics(fig("habitat-importance.png"))
 ### 2019
 ```{r}
 #| out-width: "80%"
-#| out-height: "80%"
+#| out-height: "50%"
 #| fig-align: center
 #| fig-cap: !expr curve_caption("2019")
 knitr::include_graphics(fig("habitat-response-curves_2019.png"))
@@ -174,7 +174,7 @@ knitr::include_graphics(fig("habitat-response-curves_2019.png"))
 ### 2021
 ```{r}
 #| out-width: "80%"
-#| out-height: "80%"
+#| out-height: "50%"
 #| fig-align: center
 #| fig-cap: !expr curve_caption("2021")
 knitr::include_graphics(fig("habitat-response-curves_2021.png"))
@@ -184,7 +184,7 @@ knitr::include_graphics(fig("habitat-response-curves_2021.png"))
 ### 2022
 ```{r}
 #| out-width: "80%"
-#| out-height: "80%"
+#| out-height: "50%"
 #| fig-align: center
 #| fig-cap: !expr curve_caption("2022")
 knitr::include_graphics(fig("habitat-response-curves_2022.png"))
@@ -194,7 +194,7 @@ knitr::include_graphics(fig("habitat-response-curves_2022.png"))
 ### 2024
 ```{r}
 #| out-width: "80%"
-#| out-height: "80%"
+#| out-height: "50%"
 #| fig-align: center
 #| fig-cap: !expr curve_caption("2024")
 knitr::include_graphics(fig("habitat-response-curves_2024.png"))

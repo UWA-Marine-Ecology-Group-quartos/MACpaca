@@ -15,16 +15,13 @@ config <- yaml::read_yaml(
 name <- config$name
 park <- config$park
 
-# TODO Change pdf_name/html_name to your quarto output names - these are still
-# leftover placeholder text from the TEMPLATE this appendix was copied from,
-# and need setting once 10_quarto.qmd's title/output-file are finalised
-pdf_name <- "Project 4.21-Ningaloo-2-Appendix A1-q-Natural values.pdf"
-html_name <- "Project 4.21-Ningaloo-2-Appendix A1-q-Natural values.html"
-html_files_dir <- "10_quarto_files" # supporting folder Quarto generates alongside the HTML
+pdf_name <- "Project 4.21-Ningaloo-3-Appendix C1-q-Data analysis.pdf"
+html_name <- "Project 4.21-Ningaloo-3-Appendix C1-q-Data analysis.html"
+html_files_dir <- "04_quarto_files" # supporting folder Quarto generates alongside the HTML
 
 source_dir <- paste0(
   "r/", park,
-  "/02_create-report_appendix-A-natural-values"
+  "/05_create-report_appendix-C-data-analysis"
 )
 dest_dir <- paste0("quartos/", park)
 

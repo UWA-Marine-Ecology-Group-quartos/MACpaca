@@ -1,11 +1,11 @@
 ---
-title: "Appendix A - Ningaloo Marine Park Natural Values Report"
+title: "Appendix A1 - Ningaloo Marine Park Natural Values Report"
 subtitle: "North-west Marine Parks Network"
 filters:
   - figure-numbering.lua
 format:
   pdf:
-    output-file: "Project 4.21-Ningaloo-2-Appendix A-q-Natural values.pdf"
+    output-file: "Project 4.21-Ningaloo-2-Appendix A1-q-Natural values.pdf"
     fig-pos: 'H'
     geometry:
       - top=2cm
@@ -22,10 +22,10 @@ format:
         \counterwithin*{figure}{metric}
         \captionsetup{format=plain, indention=0pt}
         % Appendix prefix. Change A here and in figure-numbering.lua together.
-        \renewcommand{\thefigure}{A.\arabic{figure}}
-        \renewcommand{\thetable}{A.\arabic{table}}
+        \renewcommand{\thefigure}{A1.\arabic{figure}}
+        \renewcommand{\thetable}{A1.\arabic{table}}
   html:
-    output-file: "Project 4.21-Ningaloo-2-Appendix A-q-Natural values.html"
+    output-file: "Project 4.21-Ningaloo-2-Appendix A1-q-Natural values.html"
     fig-dpi: 96
     include-in-header:
       text: |
@@ -54,7 +54,7 @@ format:
             // el.innerHTML re-serialises a non-breaking space as the literal
             // "&nbsp;" entity text, not a whitespace character, so \s alone
             // does not match it - match either form here.
-            el.innerHTML = el.innerHTML.replace(/^(\s*Table(?:\s|&nbsp;)+)(\d+)/, "$1A.$2");
+            el.innerHTML = el.innerHTML.replace(/^(\s*Table(?:\s|&nbsp;)+)(\d+)/, "$1A1.$2");
           });
         </script>
 toc: true
@@ -151,8 +151,8 @@ sampling_summary %>%
 ### Observations
 
 ```{r}
-#| fig-width: 8
-#| fig-height: 8
+#| fig-width: 10
+#| fig-height: 6
 #| fig-cap: "Habitat classes observed in spatially balanced stereo-BRUV and drop-camera imagery visualised as spatial pie charts. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 img <- png::readPNG(here("plots/ningaloo/habitat/ningaloo_scatterpie_2019_2021_2022_2024.png"))
 grid::grid.raster(img)
@@ -204,7 +204,7 @@ grid::grid.raster(img)
 % to <metric>.<plot> numbering. `metric` is seeded to the last benthic-extent
 % figure number so the majors carry on sequentially (4, 5, 6, ...).
 \setcounter{metric}{\value{figure}}
-\renewcommand{\thefigure}{A.\arabic{metric}.\arabic{figure}}
+\renewcommand{\thefigure}{A1.\arabic{metric}.\arabic{figure}}
 ```
 
 <!-- Only sand and sessile invertebrates were modelled in 05_model-data_benthos.R
@@ -263,7 +263,7 @@ real survey years (2019, 2021, 2022, 2024). -->
 
 ```{=latex}
 \stepcounter{metric}
-\renewcommand{\thefigure}{A.\arabic{metric}}
+\renewcommand{\thefigure}{A1.\arabic{metric}}
 ```
 
 ```{r}
@@ -277,7 +277,7 @@ p_bubble
 {{< pagebreak >}}
 
 ```{=latex}
-\renewcommand{\thefigure}{A.\arabic{metric}.\arabic{figure}}
+\renewcommand{\thefigure}{A1.\arabic{metric}.\arabic{figure}}
 ```
 
 ### Species richness
@@ -295,8 +295,6 @@ p_bubble
 p_bar <- readRDS(here("plots/ningaloo/fish/ningaloo_SAC-sample.rds"))
 p_bar
 ```
-
-{{< pagebreak >}}
 
 :::{.content-hidden when-format="html"}
 ### Species richness {.unlisted .unnumbered}
@@ -318,21 +316,14 @@ grid::grid.raster(img)
 \stepcounter{metric}
 ```
 
-
-
 ```{r}
 #| fig-width: 8
-#| fig-height: 4.5
+#| fig-height: 3.5
 #| fig-cap: "Demersal fish - Total abundance: top 10 most abundant species (pooled across deployments) from stereo-BRUV groundtruthing. Ningaloo Marine Park (Commonwealth)."
 p_bar <- readRDS(here("plots/ningaloo/fish/ningaloo_top_maxn_bar_plot.rds"))
 p_bar
 ```
 
-{{< pagebreak >}}
-
-:::{.content-hidden when-format="html"}
-### Total abundance {.unlisted .unnumbered}
-:::
 
 ```{r}
 #| fig-width: 8
@@ -354,17 +345,11 @@ grid::grid.raster(img)
 
 ```{r}
 #| fig-width: 8
-#| fig-height: 4.5
+#| fig-height: 3.7
 #| fig-cap: "Demersal fish - Large Reef Fish Index\\*: top 10 greatest biomass species (pooled across deployments) from stereo-BRUV groundtruthing. Ningaloo Marine Park (Commonwealth). \\*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays."
 p_bar <- readRDS(here("plots/ningaloo/fish/ningaloo_top_b20_bar_plot.rds"))
 p_bar
 ```
-
-{{< pagebreak >}}
-
-:::{.content-hidden when-format="html"}
-### Large Reef Fish Index\* {.unlisted .unnumbered}
-:::
 
 ```{r}
 #| fig-width: 8
@@ -392,11 +377,6 @@ p_bar <- readRDS(here("plots/ningaloo/fish/ningaloo_top_maxn_cti_bar_plot.rds"))
 p_bar
 ```
 
-{{< pagebreak >}}
-
-:::{.content-hidden when-format="html"}
-### Reef fish thermal index {.unlisted .unnumbered}
-:::
 
 ```{r}
 #| fig-width: 8
@@ -463,8 +443,8 @@ threatened_species %>%
 ### Threatened shark and ray species
 
 ```{r}
-#| fig-width: 12
-#| fig-height: 12
+#| fig-width: 18
+#| fig-height: 18
 #| fig-cap: "Occurrence of threatened, IUCN Red List category, sharks and rays in stereo-BRUV imagery. Points are scaled by abundance (MaxN) and coloured by survey year; grey points show every stereo-BRUV deployment. Commonwealth and coastal marine park boundaries are shown. The red line delimits coastal and Commonwealth waters."
 readRDS(here("plots/ningaloo/fish/ningaloo_threatened-species-occurrence_page1_2019-2021-2022-2024.rds"))
 ```
@@ -481,8 +461,8 @@ ggplot object so it re-flows to whatever size you give it. -->
 ### Other shark and ray species
 
 ```{r}
-#| fig-width: 14
-#| fig-height: 14
+#| fig-width: 18
+#| fig-height: 18
 #| fig-cap: "Occurrence of shark and ray species that are not threatened in stereo-BRUV imagery. Points are scaled by abundance (MaxN) and coloured by survey year; grey points show every stereo-BRUV deployment, so a panel with no coloured points is a genuine absence rather than an absence of sampling. Commonwealth and state marine park boundaries are shown. The red line delimits state and commonwealth waters."
 readRDS(here("plots/ningaloo/fish/ningaloo_non-threatened-species-occurrence_page1_2019-2021-2022-2024.rds"))
 ```

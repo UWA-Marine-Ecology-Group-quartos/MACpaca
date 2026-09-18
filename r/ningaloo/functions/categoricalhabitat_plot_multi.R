@@ -122,6 +122,8 @@ categoricalhabitat_plot_multi <- function(dat_list, prediction_limits, habitat_l
       colour    = "red",
       linewidth = 0.5
     ) +
+    scale_x_continuous(breaks = scales::breaks_width(0.6)) +
+    scale_y_continuous(breaks = scales::breaks_width(0.5)) +
     coord_sf(
       xlim   = c(prediction_limits[1], prediction_limits[2]),
       ylim   = c(prediction_limits[3], prediction_limits[4]),

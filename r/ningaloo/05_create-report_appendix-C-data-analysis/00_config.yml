@@ -1,0 +1,5 @@
+name:            "ningaloo"
+park:            "ningaloo"
+years:           ["2019", "2021", "2022", "2024"]   # EVERY survey year, must match Appendix A1 config
+combine_benthos: true               # must match the Appendix A1 config - Ningaloo pools
+                                     # benthos years (campaigns sample different areas)

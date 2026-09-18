@@ -40,6 +40,8 @@ scatterpie_plot_single <- function(benthos_year, site_limits, pie_radius = 0.004
     ) +
     labs(x = "Longitude", y = "Latitude", fill = NULL) +
     scale_fill_manual(values = hab_cols_all[present_habs]) +
+    scale_x_continuous(breaks = scales::breaks_width(0.6)) +
+    scale_y_continuous(breaks = scales::breaks_width(0.5)) +
     coord_sf(
       xlim = c(site_limits[1], site_limits[2]),
       ylim = c(site_limits[3], site_limits[4]),
