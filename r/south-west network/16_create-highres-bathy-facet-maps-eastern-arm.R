@@ -16,50 +16,16 @@
 #          2. survey_spec() — helper to define a single survey overlay
 #             (raster, hillshade, palette, extent, label)
 #
-# ── 2026-09 revision A (per report review comments) ─────────────────────────
-#   1. Survey raster layers (hillshade + depth) now draw BEFORE the AMP zone
-#      boundaries and coastal waters line, so those boundaries render on top
-#      and stay visible over the high-res inset patches, instead of being
-#      covered by them.
-#   2. Depth legend is now forced to an explicit continuous guide_colorbar()
-#      (with defined breaks) rather than relying on an implicit/default guide,
-#      which was rendering as discrete categorised swatches instead of a
-#      smooth depth scale.
-#   3. Footprint box default colour changed from black to purple, so it no
-#      longer reads as an overlapping AMP boundary (which is also black).
-#      Still fully overridable via the footprint_colour argument.
+# Functions:
+#   survey_spec()                    defines one survey overlay (rasters,
+#                                    hillshade, palette, extent, label)
+#   network_map_with_survey_inset()  one call per park/region; takes any number
+#                                    of survey_spec() objects
 #
-# ── 2026-09 revision B (standalone rewrite) ─────────────────────────────────
-# This script previously required the AMP/WMS script and the LiDAR/multibeam
-# script to be run first, in the same R session, in the right order — and the
-# LiDAR/multibeam script's own rm(list = ls()) plus its own terrnp (DBCA
-# version, column `leg_catego`) would silently clobber the aus/terrnp/cwatr/
-# amp objects this script actually needs (CAPAD version, column `TYPE`).
-#
-# Rather than depend on those two large scripts (which each build several
-# other figures, palettes, and rasters this script never touches), section 0
-# below pulls in ONLY the handful of objects and functions this script
-# actually needs, loaded directly from the source shapefiles/rasters:
-#   - aus, terrnp, cwatr, capad, amp        <- lifted from the AMP/WMS script's
-#     get_meri_grey(), get_amp_bathy()         section 1 & 2, verbatim
-#     thin_breaks(), swc_inset_xlim/ylim
-#   - make_hillshade()                      <- lifted from the LiDAR/multibeam
-#     lidar_swc_east_crop, swc_east_bathy_crop   script's sections 1-4,
-#     hill_swc_east, bathy_palette_swc_east      SWC-east lines only
-#     swc_east_xlim, swc_east_ylim
-# Everything else those two scripts define (marine_parks, aus_hr, the DBCA
-# terrnp, the background hillshades, the other regions' rasters/palettes, the
-# faceted comparison figures, the AMP mosaic figures, etc.) is NOT needed by
-# network_map_with_survey_inset() and has been left out, which is also what
-# removes the terrnp/sf_use_s2 clash — we simply never load the other script's
-# conflicting versions of those objects.
-#
-# This file now runs top-to-bottom on its own (given the data files exist at
-# the paths below and you have internet access for the WMS/WFS calls). If you
-# want to reuse the section-0 setup for other regions/scripts too, it's a
-# clean lift-and-shift into its own "00_setup.R" that gets source()'d instead
-# — nothing below depends on it being inlined here specifically.
-###
+# Standalone: loads everything it needs; needs internet for the WMS/WFS calls.
+# Don't run the LiDAR/multibeam script in the same session afterwards. Its
+# rm(list = ls()) and its DBCA `terrnp` (column `leg_catego`) would replace the
+# objects this script needs (CAPAD `terrnp`, column `TYPE`).
 # Table of contents
 #     0.  Setup — spatial layers, WMS/WFS functions, SWC-east survey rasters
 #     1.  survey_spec() — single survey overlay helper
@@ -219,14 +185,6 @@ bathy_palette_swc_east <- colorRampPalette(c(
 # context map, with an outlined footprint box and a letter label for each
 # survey (e.g. "a.").
 #
-# Because everything is already in EPSG:4326, no manual inset positioning is
-# needed — the high-res raster is just an additional annotation_raster/
-# geom_spatraster layer at its own xlim/ylim, and it appears "inset" simply
-# because its extent is smaller than the surrounding context map.
-#
-# Requires (all loaded in section 0 above):
-#   aus, terrnp, cwatr, amp, capad
-#   get_meri_grey(), get_amp_bathy(), thin_breaks()
 # ==============================================================================
 # ── Helper: one survey overlay spec ───────────────────────────────────────────
 # Build one of these per high-res patch you want to drop into the map.
@@ -464,7 +422,7 @@ network_map_with_survey_inset(
   width       = 9,
   height      = 7
 )
-# ── Same map, no footprint box (letter label kept) — for comparison ─────────
+# ── Same map, no footprint box (letter label kept) — for comparison ───────────
 network_map_with_survey_inset(
   plot_limits = c(120.2, 122.4, -35.5, -33.6),
   surveys     = list(swc_east_survey),
