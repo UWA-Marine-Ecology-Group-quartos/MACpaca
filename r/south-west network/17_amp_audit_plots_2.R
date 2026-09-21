@@ -1024,7 +1024,16 @@ pie_layer <- function(pie_data, palette) {
 # what makes them automatically true-to-scale. `anchor` picks which corner
 # of xlim/ylim it sits in - chosen per network in Section 9 to clear real
 # park polygons/pies.
+nice_ref_totals <- function(max_total, n = 3) {
+  if (!is.finite(max_total) || max_total <= 0) return(numeric(0))
+  mag    <- floor(log10(max_total))
+  ladder <- sort(unique(as.vector(outer(c(1, 2, 5), 10^((mag - 3):(mag + 1))))))
+  ladder <- ladder[ladder >= 1]                    # whole sites only
+  top    <- max(which(ladder <= max_total))
+  ladder[pmax(1, (top - n + 1)):top]
+}
 pie_size_legend_layer <- function(scale_info, xlim, ylim, ref_totals = NULL,
+                                  n_ref = 3,                       # <- new
                                   unit_label = "sites",
                                   anchor = c("bottomleft", "bottomright",
                                              "topleft", "topright"),
@@ -1033,9 +1042,7 @@ pie_size_legend_layer <- function(scale_info, xlim, ylim, ref_totals = NULL,
   if (scale_info$max_total <= 0) return(list())
 
   if (is.null(ref_totals)) {
-    brks <- scales::breaks_extended(n = 3)(c(0, scale_info$max_total))
-    ref_totals <- sort(unique(round(brks[brks > 0 & brks <= scale_info$max_total])))
-    if (length(ref_totals) == 0) ref_totals <- round(scale_info$max_total)
+    ref_totals <- nice_ref_totals(scale_info$max_total, n = n_ref)  # <- replaces breaks_extended block
   }
 
   ref_r <- radius_for_totals(ref_totals, scale_info)   # same units as the real pie r
