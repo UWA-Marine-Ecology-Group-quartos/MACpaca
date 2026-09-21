@@ -1,259 +1,34 @@
 ###
-# Project: NESP 5.6 Project - South west Corner Report
-# Task:    Survey-effort pie chart overlays (national + network level)
-# Note:    SELF-CONTAINED - loads its own spatial data, does not require
-#          any other script to have been run first.
+# Project: NESP 5.6 - South-west Corner Report
+# Task:    Survey-effort pie chart overlays (national + network level),
+#          one set per method family (BRUV, UVC, ROV, drop camera, BOSS)
+# Author:  Abbey Gibbons
+# Date:    September 2026
 #
-# Outputs:
-#   1. National overview map, one pie per marine NETWORK    (Image 1 & 2)
-#   2. South-west network map, one pie per marine PARK/arm  (Image 3)
-#   Both repeated per survey method family (BRUV, UVC, ROV, drop camera, BOSS)
+# Outputs (plots/network/spatial/AMP_audit/):
+#   national/  one pie per marine network
+#   network/   one pie per marine park (or arm/split), for each of the 6 networks
 #
-# ------------------------------------------------------------------------
-# FIX APPLIED IN THIS VERSION (see original script's own Section 1 note):
-# The previous version built BOTH the national plot and the network plot
-# from `marine_parks`, loaded from
-# "south-and-western-australia_marine-parks-all.shp". That file only
-# contains South/WA parks. Your CSV has 6 networks / 48 parks
-# (Coral Sea x1, Indian Ocean Territories x2, North x8, North-west x13,
-# South-west x16, Temperate East x8) - so every network except South-west
-# (and maybe IOT) had NO matching polygon, got an NA centroid, and was
-# silently dropped from the "national" map. That's almost certainly why it
-# wasn't rendering as requested.
+# Data sources (two shapefiles, on purpose):
+#   - CAPAD Marine 2024 (Australia-wide): national map, the 5 non-SWC network
+#     maps, and all pie centroids.
+#   - south-and-western-australia_marine-parks-all.shp (SA/WA only): SWC map
+#     only. It is the only source of the state-park overlay and the Special
+#     Purpose Zone (Mining Exclusion) stripe, so the other 5 networks have
+#     neither.
 #
-# Fix: the national plot now uses `capad` (CAPAD Marine 2024 - already
-# loaded in this script, genuinely Australia-wide) for its basemap AND for
-# matching CSV parks to polygons/centroids. The regional
-# "south-and-western-australia..." file is still used, unchanged, for the
-# South-west network-level plot only.
-# ------------------------------------------------------------------------
-#
-# ------------------------------------------------------------------------
-# UPDATE (this version):
-#   1. Added 4 more spelling fixes to `name_fixes` (Section 2), found via
-#      the match-diagnostics message: Gulf of Carpenteria, Canarvon Canyon,
-#      Carter Island, and Solitary all had no matching CAPAD polygon.
-#      NOTE: "Solitary" -> "Solitary Islands" is a guess based on partial
-#      string match against CAPAD's `park_name_raw` - double check the raw
-#      CSV value for that row actually reads "Solitary" and not something
-#      else `clean_amp_name()` is mangling.
-#   2. `add_pies()` now draws every pie at the SAME fixed radius `r`
-#      instead of rescaling radius by sqrt(total sites). This means pie
-#      size no longer encodes total survey effort - only the slice
-#      proportions do. `r` is a new tunable argument on both
-#      `make_national_pie_map()` and `make_network_pie_map()`, replacing
-#      the old `min_r`/`max_r` pair. Starting values are guesses - tune
-#      per plot extent (national spans 57 degrees longitude, SWC network
-#      spans 15 degrees, so they need very different `r`).
-# ------------------------------------------------------------------------
-#
-# ------------------------------------------------------------------------
-# UPDATE 2 (this version):
-#   1. National pies left unchanged (r = 2.2, as before).
-#   2. South-west network pies bumped from r = 0.22 to r = 0.32 - still a
-#      TUNE value, adjust once you see the render.
-#   3. Added maps for the other 5 marine park networks (North, North-west,
-#      Temperate East, Coral Sea, Indian Ocean Territories). IMPORTANT
-#      CAVEAT: the original network-level function's zone detail (with the
-#      mining-exclusion stripe pattern) comes from the REGIONAL shapefile
-#      ("south-and-western-australia_marine-parks-all.shp"), which per the
-#      script's own original note only covers South-west/WA. There is no
-#      equivalent regional file here for the other networks, so:
-#        - South-west still uses `make_network_pie_map()` (regional file,
-#          full zone/pattern/state-park detail) - UNCHANGED behaviour.
-#        - The other networks use a new, simpler function,
-#          `make_network_pie_map_national()`, built on the NATIONAL CAPAD
-#          layer (`fed_mps_national`, already loaded for the national
-#          plot) filtered to each network's parks. This gets you AMP zone
-#          colour + pies, but NO state-park overlay and NO mining-
-#          exclusion stripe pattern, since those can't be reliably
-#          attributed outside the SW regional file.
-#   4. Map extent (xlim/ylim) for each of the 5 new networks is computed
-#      AUTOMATICALLY from that network's own polygon bounding box (+ pad
-#      degrees), rather than hand-picked - since I don't have real extents
-#      for those regions to hand-tune. CHECK EACH ONE VISUALLY, especially
-#      Indian Ocean Territories: it covers Christmas Island and the Cocos
-#      (Keeling) Islands, ~900km apart over open ocean, so its auto bbox
-#      will likely be a very wide, mostly-empty map - you may want to
-#      override its xlim/ylim manually, or split it into two panels.
-#   5. Network names for the 5 new networks are NOT hardcoded - the loop
-#      in Section 9 just uses whatever network names actually appear in
-#      `network_lookup$network` (minus South-west). I don't have your
-#      CSV's exact spelling for "Coral Sea ..." / "Indian Ocean
-#      Territories ..." to hand, so this avoids guessing wrong.
-#   6. `amp_group_centres` (Section 5b) now sources pie-placement centroids
-#      from the NATIONAL `capad_commonwealth` layer instead of the
-#      regional `marine_parks_amp` layer, since the regional layer has no
-#      polygons at all for parks outside South-west/WA. This should give
-#      identical centroids to before for South-west parks (same geometry,
-#      same name matching) - flagging in case you spot any drift.
-# ------------------------------------------------------------------------
-#
-# ------------------------------------------------------------------------
-# UPDATE 3 (this version):
-#   1. Pie radius is now a MAXIMUM/target, auto-capped in add_pies() so
-#      pies never overlap - see the comment above add_pies() (Section 6).
-#      This means the `r` argument on each make_*() call below can be set
-#      generously high and the function will shrink it (uniformly, for
-#      every pie on that map) only as much as needed to keep pies from
-#      touching. Bumped the requested `r` on all three map functions
-#      accordingly - these are now ceilings, not fixed sizes.
-#   2. Recoloured every method_groups palette (Section 3): colour now
-#      encodes DESIGN ONLY (red = Preferential, green = Representative),
-#      the same two colours across every platform in every group. This
-#      means platform (e.g. stereo-BRUV vs mono-BRUV) is no longer
-#      distinguishable by colour within a pie, only the design split is.
-#      Legend (Section 6) collapsed to 2 entries per group accordingly.
-#      NOTE: red/green together is a common colourblind-unfriendly pairing
-#      (deuteranopia/protanopia) - flagging in case that matters for this
-#      report's audience.
-# ------------------------------------------------------------------------
-#
-# ------------------------------------------------------------------------
-# UPDATE 4 (this version):
-#   Reverted the red/green recolour for bruv, uvc, rov, and drop_camera
-#   back to their ORIGINAL platform-distinguishing colours (hue = platform,
-#   shade = design). Only `boss` keeps red = Preferential / green =
-#   Representative - it's the one group where that 2-colour scheme loses
-#   no information, since it only has a single platform (stereo-BOSS).
-#   add_pies()'s legend logic (Section 6) now auto-detects, per group,
-#   whether the palette resolves to 2 distinct colours (collapsed
-#   "Preferential"/"Representative" legend) or more (full platform.design
-#   legend) - no group-specific special-casing needed.
-# ------------------------------------------------------------------------
-#
-# ------------------------------------------------------------------------
-# UPDATE 5 (this version):
-#   1. Legend labels: dots -> spaces ("stereo-BRUV Preferential" instead
-#      of "stereo-BRUV.Preferential").
-#   2. `fit_dims()` added - derives ggsave() width/height from the true
-#      lon/lat extent (correcting for longitude compression at latitude),
-#      clamped to a sensible min/max, instead of a fixed canvas size
-#      regardless of how stretched a network's extent is.
-#   3. Added a general `manual_centre_overrides` table (was
-#      `swc_manual_centres`) plus a safety-net jitter for any amp_group
-#      centroids that still collide.
-#   4. National match-diagnostics now also writes unmatched rows to CSV
-#      and raises a warning() specifically flagging Indian Ocean
-#      Territories misses.
-#   5. `clean_amp_name()` now also strips "(on shelf)".
-# ------------------------------------------------------------------------
-#
-# ------------------------------------------------------------------------
-# UPDATE 6 (this version):
-#   fit_dims() gained a `legend_allowance` (inches) parameter. coord_sf()
-#   enforces the true geographic aspect ratio on the PANEL itself, but the
-#   width/height fit_dims() previously worked out assumed the whole canvas
-#   was available to the panel - it wasn't, because legend.position =
-#   "left" eats a chunk of that width for the legend. That forced the
-#   panel to shrink to keep its aspect ratio correct, leaving the leftover
-#   space as blank margin (mostly above the panel, since the legend is
-#   top-justified and is often taller than the panel on smaller networks).
-#   Reserving legend_allowance inches up front means the panel gets the
-#   full width/aspect it actually needs. TUNE VALUE - 2.2in is a starting
-#   guess based on how wide the longest legend labels/titles are.
-# ------------------------------------------------------------------------
-#
-# ------------------------------------------------------------------------
-# UPDATE 7 (this version):
-#   ggsave() opens the PNG device before drawing, so a render error
-#   partway through (e.g. "object 'X' not found" during aesthetic
-#   computation) can still leave a blank/partial file on disk once the
-#   device is flushed and closed. Both save blocks now delete that file
-#   and re-raise so the failure still gets caught/logged upstream instead
-#   of silently leaving a bad PNG behind.
-# ------------------------------------------------------------------------
-#
-# ------------------------------------------------------------------------
-# UPDATE 8 (this version):
-#   `safe_pie_layer()` wraps scale_pie_radii() + pie_layer() in a
-#   tryCatch. If pie_data is empty, malformed, or scale_pie_radii()/
-#   pie_layer() error for any reason, this catches it, logs a message, and
-#   returns an EMPTY layer instead of propagating the error - so the
-#   calling make_*() function still builds and saves a map (basemap + zone
-#   polygons), just without a pie layer, instead of crashing outright.
-# ------------------------------------------------------------------------
-#
-# ------------------------------------------------------------------------
-# UPDATE 9 (this version):
-#   1. SWC's pie-size legend was overlapping its own design legend (the
-#      white key box was painting over the front of "Preferential"/
-#      "Representative") because SWC's legend - three stacked groups:
-#      State Marine Parks, Australian Marine Parks (incl. the mining-
-#      exclusion pattern swatch), and Survey design - runs much longer
-#      down the left side than the two-group legend the other five
-#      networks use, and reaches into the default bottom-left corner
-#      where the size key sits. Given `make_network_pie_map()` its own
-#      `legend_pos` override for the SWC call only, moved to the
-#      bottom-right of the panel instead.
-#   2. SWC's xlim/ylim tightened from the old hand-picked c(106, 139) x
-#      c(-40, -24) - noticeably bigger than the actual pie/park footprint,
-#      leaving several degrees of blank ocean above and below every
-#      render - to c(107, 137) x c(-38, -29). CHECK against the actual
-#      northernmost/southernmost SWC pies and adjust further if anything
-#      gets clipped.
-#   3. `pad` for the other five (auto bbox-derived) networks dropped from
-#      the function default of 3 to 1.5, passed explicitly in Section 9 -
-#      3 degrees of padding on every side was reading as a lot of empty
-#      margin, most visibly above the panel, for tightly clustered
-#      networks.
-#   4. Section 7/8/8b theme()s: legend.title bumped to size 11, legend.text
-#      to size 9 (previously default ggplot sizes), for readability at the
-#      report's print size.
-# ------------------------------------------------------------------------
-#
-# ------------------------------------------------------------------------
-# UPDATE 10 (this version):
-#   1. Legend LABEL bug fixed in pie_layer() (Section 6): scale_fill_
-#      manual()'s `labels` was a static, position-dependent vector built
-#      from names(palette). ggplot's actual rendered legend breaks aren't
-#      guaranteed to keep that order once zero-value categories get
-#      dropped (drop = TRUE default), so a legend swatch could end up
-#      captioned with the WRONG category - e.g. a park with only
-#      mono-BRUV data rendering with a "stereo-BRUV" label. Confirmed
-#      against the CSV across 16+ rendered maps. Fix: `labels` is now a
-#      FUNCTION of `breaks` (`labels = function(breaks) gsub("\\.", " ",
-#      breaks)`), so the label is always derived from whatever breaks
-#      ggplot actually uses, regardless of internal ordering/dropped
-#      levels.
-#   2. Pie-SIZE legend fixed to be true-to-scale. It previously lived in a
-#      separate ggplot object stretched into an arbitrary inset box
-#      (patchwork::inset_element()), with no link to the main panel's
-#      actual degrees-per-inch - a "200" reference circle could render
-#      bigger than a real 220-site pie purely because of that mismatch
-#      (caught via the North-west BOSS group: two real pies at 105/220
-#      sites, reference key looked nowhere close to matching). Fix:
-#      `pie_size_legend_layer()` draws the reference circles directly IN
-#      the map's own coord_sf() panel, in the same degree units as the
-#      real pies' `r` - guaranteeing they're always true-to-scale. This
-#      replaces `pie_size_legend()` + `inset_element()` everywhere
-#      (Sections 7, 8, 8b). Tried keeping it inside the ggplot legend
-#      column via a physically-calibrated inset box first, but that
-#      didn't reproduce reliably (see conversation record) - it now lives
-#      on the map itself, in a corner chosen per network to avoid
-#      overlapping real park polygons/pies (`size_anchor` argument).
-# ------------------------------------------------------------------------
-#
-# ------------------------------------------------------------------------
-# UPDATE 11 (this version):
-#   1. Size-key anchor corners retuned per network after checking renders:
-#      North -> bottomleft, North-west -> bottomright, Temperate East ->
-#      bottomright, South-west -> bottomleft (was bottomright), Coral Sea
-#      -> bottomleft, Indian Ocean Territories -> topleft (least certain -
-#      its two island clusters sit at opposite horizontal extremes, so
-#      check this one first).
-#   2. Indian Ocean Territories' bbox padding (`pad`) bumped from the
-#      shared 1.5 default to 4, to open up more clear space around
-#      whichever corner the size key sits in - it's the most spatially
-#      awkward network (Christmas Island + Cocos (Keeling) Islands,
-#      ~900km apart over open ocean).
-#   3. Pie sizes brought down globally, not just for the three previously-
-#      crowded networks: national min_r/max_r 0.5/3 -> 0.4/2.3, SWC and
-#      the default for the other-five-networks 0.25/2 -> 0.2/1.5, uvc/rov
-#      network_size 0.15/0.7 -> 0.12/0.55. North-west, Coral Sea, and
-#      Temperate East (already overridden smaller for crowding) cut
-#      further again, roughly another 20-25%.
-# ------------------------------------------------------------------------
+# If the CSV changes, check:
+#   - name_fixes (Section 2). CSV parks with no CAPAD match are printed and
+#     written to unmatched_amp_names.csv; IOT misses raise a warning.
+#   - Extents for the 5 non-SWC networks are auto-computed from each network's
+#     bounding box + pad. IOT (Christmas + Cocos, ~900 km apart) needs a
+#     larger pad (Section 9).
+#   - Network names in the Section 9 loop come from the CSV, not hardcoded.
+
+# ==============================================================================
+# 0. SETUP
+# ==============================================================================
+
 library(tidyverse)
 library(sf)
 library(scatterpie)
@@ -268,6 +43,7 @@ data_dir <- "data/south-west network"
 audit_root       <- "plots/network/spatial/AMP_audit"
 national_out_dir <- file.path(audit_root, "national")
 network_out_dir  <- file.path(audit_root, "network")
+
 # ==============================================================================
 # 1. LOAD SPATIAL DATA
 # ==============================================================================
@@ -334,6 +110,7 @@ state_mps_national <- capad_raw %>%
   dplyr::mutate(sanctuary = "State Marine Park")
 capad_commonwealth <- capad_raw %>%
   dplyr::filter(epbc == "Commonwealth", type == "Australian Marine Park")
+
 # ── 1b. REGIONAL layer (south-west shapefile) - network-level plot ONLY ─────
 capad_labels_src <- st_read(file.path(data_dir, "spatial/shapefiles/Collaborative_Australian_Protected_Areas_Database_(CAPAD)_2024_-_Marine.shp"))
 marine_parks <- st_read(file.path(data_dir, "spatial/shapefiles/south-and-western-australia_marine-parks-all.shp"))
@@ -380,9 +157,11 @@ marine_parks_state <- marine_parks %>%
       TRUE                                   ~ colour
     )
   )
+
 # ==============================================================================
 # 2. LOAD AND TIDY THE SURVEY-EFFORT SPREADSHEET
 # ==============================================================================
+
 survey_raw <- read_csv(file.path(data_dir, "amp_data_sheet_-_data.csv"))
 survey <- survey_raw %>%
   rename(network = Network, amp = `Australian Marine Park`,
@@ -415,9 +194,11 @@ marine_parks_amp <- marine_parks_amp %>%
   dplyr::mutate(amp_clean = clean_amp_name(name))
 fed_mps_national <- fed_mps_national %>%
   dplyr::mutate(amp_clean = clean_amp_name(park_name_raw))
+
 # ==============================================================================
 # 3. METHOD GROUPINGS (per Tim's comment on Image 2)
 # ==============================================================================
+
 PREF_COLOUR <- "#FFA500"
 REP_COLOUR  <- "#d7191c"
 method_groups <- list(
@@ -464,9 +245,11 @@ method_groups <- list(
     label = "BOSS / horizontal drop camera"
   )
 )
+
 # ==============================================================================
 # 4. BUILD PIE DATA FOR ONE METHOD GROUP AT A GIVEN SPATIAL LEVEL
 # ==============================================================================
+
 build_pie_data <- function(group_name, level = c("network", "amp")) {
   level <- match.arg(level)
   grp <- method_groups[[group_name]]
@@ -485,9 +268,11 @@ build_pie_data <- function(group_name, level = c("network", "amp")) {
   wide %>%
     mutate(total = rowSums(across(all_of(names(grp$palette)))))
 }
+
 # ==============================================================================
 # 5. SPATIAL CENTRES FOR THE PIES
 # ==============================================================================
+
 network_lookup <- survey %>% distinct(network, amp_clean)
 match_diag <- network_lookup %>%
   mutate(matched = amp_clean %in% capad_commonwealth$amp_clean)
@@ -547,9 +332,11 @@ amp_group_centres <- amp_group_centres %>%
     Y = if_else(.dupe_n > 1, Y + .jitter_deg * sin(2 * pi * (.dupe_i - 1) / .dupe_n), Y)
   ) %>%
   select(-.dupe_n, -.dupe_i, -.jitter_deg)
+
 # ==============================================================================
 # 6. PIE LAYER + SIZE LEGEND (shared by all plot levels)
 # ==============================================================================
+
 `%||%` <- function(a, b) if (is.null(a)) b else a
 
 fit_dims <- function(xlim, ylim, target_width = NULL, target_height = NULL,
@@ -629,6 +416,7 @@ pie_layer <- function(pie_data, palette) {
 # what makes them automatically true-to-scale. `anchor` picks which corner
 # of xlim/ylim it sits in - chosen per network in Section 9 to clear real
 # park polygons/pies.
+
 nice_ref_totals <- function(max_total, n = 3) {
   if (!is.finite(max_total) || max_total <= 0) return(numeric(0))
   mag    <- floor(log10(max_total))
@@ -647,7 +435,7 @@ pie_size_legend_layer <- function(scale_info, xlim, ylim, ref_totals = NULL,
   if (scale_info$max_total <= 0) return(list())
 
   if (is.null(ref_totals)) {
-    ref_totals <- nice_ref_totals(scale_info$max_total, n = n_ref)  # <- replaces breaks_extended block
+    ref_totals <- nice_ref_totals(scale_info$max_total, n = n_ref)
   }
 
   ref_r <- radius_for_totals(ref_totals, scale_info)   # same units as the real pie r
@@ -699,9 +487,11 @@ safe_pie_layer <- function(pie_data, palette, min_r, max_r) {
     )
   })
 }
+
 # ==============================================================================
 # 7. NATIONAL PLOT (Image 1 + 2)
 # ==============================================================================
+
 make_national_pie_map <- function(group_name, save_name = NULL,
                                   min_r = 0.4, max_r = 2.3,
                                   size_anchor = "bottomleft",
@@ -753,9 +543,11 @@ make_national_pie_map <- function(group_name, save_name = NULL,
   }
   p
 }
+
 # ==============================================================================
 # 8. NETWORK-LEVEL PLOT (Image 3) - one pie per marine park / arm / split
 # ==============================================================================
+
 make_network_pie_map <- function(group_name, network_name, save_name = NULL,
                                  xlim, ylim, min_r = 0.2, max_r = 1.5,
                                  size_anchor = "bottomleft",
@@ -825,9 +617,11 @@ make_network_pie_map <- function(group_name, network_name, save_name = NULL,
   }
   p
 }
+
 # ==============================================================================
 # 8b. NETWORK-LEVEL PLOT, NATIONAL VERSION - other 5 networks
 # ==============================================================================
+
 make_network_pie_map_national <- function(group_name, network_name, save_name = NULL,
                                           pad = 3, min_r = 0.25, max_r = 2,
                                           size_anchor = "bottomleft",
@@ -884,9 +678,11 @@ make_network_pie_map_national <- function(group_name, network_name, save_name = 
     })
   }
 }
+
 # ==============================================================================
 # 9. GENERATE THE SET
 # ==============================================================================
+
 for (g in names(method_groups)) {
   make_national_pie_map(g, save_name = paste0("national-", g, "-pies"))
 }
