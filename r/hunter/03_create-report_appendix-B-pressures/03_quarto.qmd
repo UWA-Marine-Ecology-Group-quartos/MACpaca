@@ -1,12 +1,12 @@
 ---
-title: "Appendix B - Hunter Marine Park Pressures Report"
+title: "Appendix C - Hunter Marine Park Pressures Report"
 subtitle: "Temperate-east Marine Parks Network"
-figure-number-prefix: "B."
+figure-number-prefix: "C."
 filters:
   - figure-numbering.lua
 format:
   pdf:
-    output-file: "Project 4.21-Hunter-2-Appendix B-q-Pressures.pdf"
+    output-file: "Project 4.21-Hunter-2-Appendix C-q-Pressures.pdf"
     fig-pos: 'H'
     geometry:
       - top=2cm
@@ -21,10 +21,10 @@ format:
         \floatplacement{table}{H}
         \newcounter{metric}
         \counterwithin*{figure}{metric}
-        \renewcommand{\thefigure}{B.\arabic{figure}}
+        \renewcommand{\thefigure}{C.\arabic{figure}}
         \captionsetup{format=plain, indention=0pt}
   html:
-    output-file: "Project 4.21-Hunter-2-Appendix B-q-Pressures.html"
+    output-file: "Project 4.21-Hunter-2-Appendix C-q-Pressures.html"
     fig-dpi: 96
     embed-resources: true
 toc: true

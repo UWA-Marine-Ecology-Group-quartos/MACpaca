@@ -18,7 +18,7 @@ name <- config$name
 park <- config$park
 
 # TODO Change base_name to your quarto output name (no extension)
-base_name <- "Project 4.21-Hunter-2-Appendix B-q-Pressures"
+base_name <- "Project 4.21-Hunter-2-Appendix C-q-Pressures"
 
 # Make sure Australian marine parks is set to working directory
 src_dir  <- paste0("r/", park, "/03_create-report_appendix-B-pressures")

@@ -56,7 +56,7 @@ describe_term <- function(term, model) {
 # One row per factor-level contrast (per-level p-values), for every fish
 # model that carries a year or status term.
 build_fish_term_pvalue_table <- function(models, response_order) {
-  purrr::imap_dfr(models, function(mod, resp) {
+  result <- purrr::imap_dfr(models, function(mod, resp) {
     pv <- gam_term_pvalues(mod)
     if (!nrow(pv)) return(NULL)
     pv %>%
@@ -65,7 +65,15 @@ build_fish_term_pvalue_table <- function(models, response_order) {
         contrast = vapply(term, describe_term, character(1), model = mod),
         .before  = 1
       )
-  }) %>%
+  })
+
+  if (!nrow(result)) {
+    return(tibble(response = character(), contrast = character(),
+                  estimate = double(), se = double(),
+                  statistic = double(), p_value = double()))
+  }
+
+  result %>%
     mutate(response_key = factor(response, levels = response_order)) %>%
     arrange(response_key, term) %>%
     mutate(
@@ -73,17 +81,6 @@ build_fish_term_pvalue_table <- function(models, response_order) {
       response = if_else(duplicated(response_key), "", response)
     ) %>%
     select(response, contrast, estimate, se, statistic, p_value)
-}
-
-format_pvalue_table <- function(df) {
-  df %>%
-    mutate(
-      estimate  = num_fmt(estimate,  3),
-      se        = num_fmt(se,        3),
-      statistic = num_fmt(statistic, 3),
-      p_value   = dplyr::if_else(as.numeric(p_value) < 0.001, "<0.001",
-                                 num_fmt(p_value, 3))
-    )
 }
 
 build_fish_term_pvalue_gt <- function(df) {
@@ -161,7 +158,7 @@ predict_at <- function(model, year_val, status_val, data) {
 }
 
 build_status_by_year_table <- function(models, data_for, response_order) {
-  purrr::imap_dfr(models, function(mod, resp) {
+  result <- purrr::imap_dfr(models, function(mod, resp) {
 
     terms <- gam_predictor_set(mod)
     if (!all(c("year", "status") %in% terms)) return(NULL)
@@ -189,7 +186,13 @@ build_status_by_year_table <- function(models, data_for, response_order) {
         status_p        = status_row$p_value
       )
     })
-  }) %>%
+  })
+
+  if (!nrow(result)) {
+    return(tibble(response = character(), year = character()))
+  }
+
+  result %>%
     mutate(response_key = factor(response, levels = response_order)) %>%
     arrange(response_key, year) %>%
     mutate(

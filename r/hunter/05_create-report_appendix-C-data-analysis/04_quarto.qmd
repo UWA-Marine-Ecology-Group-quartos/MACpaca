@@ -1,11 +1,11 @@
 ---
-title: "Appendix C - [TEMPLATE] Marine Park Data Analysis Report"
-subtitle: "South-west Marine Parks Network"
+title: "Appendix D - Hunter Marine Park Data Analysis Report (stereo-BRUV)"
+subtitle: "Temperate-east Marine Parks Network"
 filters:
-  - appendix-c-numbering.lua
+  - appendix-d-numbering.lua
 format:
   pdf:
-    output-file: "Project 4.21-[TEMPLATE]-3-Appendix C-q-Data analysis.pdf"
+    output-file: "Project 4.21-Hunter-3-Appendix D-q-Data analysis (stereo-BRUV).pdf"
     fig-pos: 'H'
     geometry:
       - top=2cm
@@ -22,11 +22,11 @@ format:
         \floatplacement{table}{H}
         \floatplacement{figure}{H}
         \newcounter{parentfig}
-        \renewcommand{\thefigure}{C.\arabic{figure}}
-        \renewcommand{\thetable}{C.\arabic{table}}
+        \renewcommand{\thefigure}{D.\arabic{figure}}
+        \renewcommand{\thetable}{D.\arabic{table}}
         \captionsetup{format=plain, indention=0pt}
   html:
-    output-file: "Project 4.21-[TEMPLATE]-3-Appendix C-q-Data analysis.html"
+    output-file: "Project 4.21-Hunter-3-Appendix D-q-Data analysis (stereo-BRUV).html"
     fig-dpi: 96
     embed-resources: true
     include-in-header:
@@ -48,8 +48,8 @@ format:
     include-after-body:
       text: |
         <script>
-        // appendix-c-numbering.lua only numbers figures - tables are prefixed
-        // here, flat as C.<n> to match the PDF's \thetable.
+        // appendix-d-numbering.lua only numbers figures - tables are prefixed
+        // here, flat as D.<n> to match the PDF's \thetable.
         (function () {
           var tbl = 0;
           document.querySelectorAll("#quarto-document-content figcaption.quarto-float-tbl").forEach(function (el) {
@@ -59,7 +59,7 @@ format:
             // does not match it - match either form here.
             el.innerHTML = el.innerHTML.replace(
               /^(\s*Table(?:\s|&nbsp;)+)\d+/,
-              "$1C." + tbl
+              "$1D." + tbl
             );
           });
         })();
@@ -234,11 +234,19 @@ knitr::include_graphics(fig("fish-importance.png"))
 
 {{< pagebreak >}}
 
+<!--
+TODO If a final fish model uses by = year (check the "year-varying smooths"
+message from 03_create-figures.R), its curve shape differs by year and needs
+the same per-year split as habitat above - reuse the sub-numbering block from
+the habitat section and add one figure chunk per survey year in curve_years.
+If no fish model uses by = year, the single chunk below is already correct.
+-->
+
 ```{r}
 #| out-width: "80%"
 #| fig-align: center
 #| fig-cap: !expr paste0('Plots of the best model found to predict the probability of occurrence of key fish groups. Individual panes display the predicted relationships between model covariates and each demersal fish metric. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value, with year held at ', curve_year, ' and zone status held at areas ', curve_status, '.', curve_hold_note, ' Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data from all survey years and zones. \\*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays.')
-knitr::include_graphics(fig("fish-response-curves.png"))
+knitr::include_graphics(fig(paste0("fish-response-curves_", curve_year, ".png"))) # TODO one chunk per survey year if any final fish model uses by = year
 ```
 
 {{< pagebreak >}}
@@ -248,11 +256,19 @@ knitr::include_graphics(fig("fish-response-curves.png"))
 ```{r}
 #| label: tbl-c3-1
 #| tbl-cap: 'Significance of the year and zone status terms in each demersal fish GAMM. Estimate, standard error (SE), test statistic and p-value are taken from the parametric coefficient table of each model summary, one row per factor-level contrast (e.g. a survey year against the reference year, or No-Take against Fished).'
-build_fish_term_pvalue_report(pvalue_table)
+if (nrow(pvalue_table) > 0) {
+  build_fish_term_pvalue_report(pvalue_table)
+} else {
+  cat("No year or zone status terms were retained in any fish model.")
+}
 ```
 
 ```{r}
 #| label: tbl-c3-2
 #| tbl-cap: 'Zone status test for each demersal fish metric, laid out by survey year. Zone status (No-Take vs Fished) is fitted as a single term across all years (no year by status interaction), so the status estimate, SE and p-value are the same in every row for a given metric; predicted values and their SE are shown per year, with other model covariates held at their mean.'
-build_status_by_year_report(status_year_table)
+if (nrow(status_year_table) > 0) {
+  build_status_by_year_report(status_year_table)
+} else {
+  cat("No demersal fish metrics retained both year and zone status terms.")
+}
 ```

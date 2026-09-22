@@ -1,5 +1,5 @@
 ---
-title: "Appendix A - Hunter Marine Park Natural Values Report"
+title: "Appendix A - Hunter Marine Park Natural Values Report (stereo-BRUV)"
 subtitle: "Temperate East Marine Parks Network"
 filters:
   - figure-numbering.lua
@@ -92,16 +92,18 @@ park <- "hunter"
 name <- "HunterAMP"
 ```
 
+{{< pagebreak >}}
 
 # Natural Values
 
 Understanding of natural values
-
+<!--
 {{< pagebreak >}}
 
 ## Sampling summary
 
 ```{r}
+#| eval: false
 #| label: tbl-sampling-effort
 #| tbl-cap: "Summary of monitoring campaigns in the study area, showing the survey dates, sampling method, management zones sampled, and the number of samples with each data type."
 
@@ -152,8 +154,7 @@ sampling_summary %>%
               table.border.top.style    = "none",
               table_body.hlines.style   = "none")
 ```
-
-{{< pagebreak >}}
+--->
 
 ## Benthic ecosystem extent
 ### Observations
@@ -161,7 +162,7 @@ sampling_summary %>%
 ```{r}
 #| fig-width: 8
 #| fig-height: 4
-#| fig-cap: "Habitat classes observed in spatially balanced stereo-BRUV and drop-camera imagery visualised as spatial pie charts. Commonwealth and State marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30, 70 and 200 m is shown."
+#| fig-cap: "Habitat classes observed in spatially balanced stereo-BRUV and drop-camera imagery visualised as spatial pie charts. Commonwealth and State marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contours at 30, 70 and 200 m are shown."
 img <- png::readPNG(here("plots/hunter/habitat/HunterAMP_scatterpie_NA.png"))
 grid::grid.raster(img)
 ```
@@ -173,7 +174,7 @@ grid::grid.raster(img)
 ```{r}
 #| fig-width: 8
 #| fig-height: 5
-#| fig-cap: "Predicted dominant habitat type from stereo-BRUV groundtruthing. Commonwealth and State marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30, 70 and 200 m is shown."
+#| fig-cap: "Predicted dominant habitat type from stereo-BRUV groundtruthing. Commonwealth and State marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contours at 30, 70 and 200 m are shown."
 p_cat <- readRDS(here("plots/hunter/habitat/HunterAMP_predicted-habitat-categorical_2025.rds"))
 p_cat
 ```
@@ -185,7 +186,7 @@ p_cat
 ```{r}
 #| fig-width: 8
 #| fig-height: 7
-#| fig-cap: "Predicted habitat distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth and State marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30, 70 and 200 m is shown."
+#| fig-cap: "Predicted habitat distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth and State marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contours at 30, 70 and 200 m are shown."
 img_path <- here("plots/hunter/habitat/HunterAMP_predicted-dominant-benthos-and-combined-se_2025.png")
 img <- png::readPNG(img_path)
 grid::grid.raster(img)
@@ -240,7 +241,7 @@ p_control
 ```{r}
 #| fig-width: 8
 #| fig-height: 5.5
-#| fig-cap: "Sediment: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30, 70 and 200 m is shown."
+#| fig-cap: "Sediment: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contours at 30, 70 and 200 m are shown."
 img <- png::readPNG(here("plots/hunter/habitat/HunterAMP_predicted-individual-habitat_sediment_2025.png"))
 grid::grid.raster(img)
 ```
@@ -295,7 +296,7 @@ p_control
 ```{r}
 #| fig-width: 8
 #| fig-height: 5.5
-#| fig-cap: "Sessile invertebrates: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth and State marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30, 70 and 200 m is shown."
+#| fig-cap: "Sessile invertebrates: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth and State marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contours at 30, 70 and 200 m are shown."
 img <- png::readPNG(here("plots/hunter/habitat/HunterAMP_predicted-individual-habitat_sessile-invertebrates_2025.png"))
 grid::grid.raster(img)
 ```
@@ -358,7 +359,7 @@ p_bar
 ```{r}
 #| fig-width: 7
 #| fig-height: 4
-#| fig-cap: "Demersal fish - Species richness: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth and State marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30, 70 and 200 m is shown."
+#| fig-cap: "Demersal fish - Species richness: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth and State marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contours at 30, 70 and 200 m are shown."
 img <- png::readPNG(here(paste0("plots/hunter/fish/HunterAMP_predicted-individual-fish-metric_whole-assemblage_", yr_suffix, ".png")))
 grid::grid.raster(img)
 ```
@@ -398,7 +399,7 @@ p_bar
 ```{r}
 #| fig-width: 7
 #| fig-height: 4
-#| fig-cap: "Demersal fish - Total abundance: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth and State marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30, 70 and 200 m is shown."
+#| fig-cap: "Demersal fish - Total abundance: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth and State marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contours at 30, 70 and 200 m are shown."
 img <- png::readPNG(here(paste0("plots/hunter/fish/HunterAMP_predicted-individual-fish-metric_total-abundance_", yr_suffix, ".png")))
 grid::grid.raster(img)
 ```
@@ -438,7 +439,7 @@ p_bar
 ```{r}
 #| fig-width: 7
 #| fig-height: 4
-#| fig-cap: "Demersal fish - Large Reef Fish Index\\*: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth and State marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30, 70 and 200 m is shown."
+#| fig-cap: "Demersal fish - Large Reef Fish Index\\*: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth and State marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contours at 30, 70 and 200 m are shown."
 img <- png::readPNG(here(paste0("plots/hunter/fish/HunterAMP_predicted-individual-fish-metric_large-reef-fish-index_", yr_suffix, ".png")))
 grid::grid.raster(img)
 ```
@@ -478,7 +479,7 @@ p_bar
 ```{r}
 #| fig-width: 7
 #| fig-height: 4
-#| fig-cap: "Demersal fish - Reef Fish Thermal Index: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth and State marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30, 70 and 200 m is shown."
+#| fig-cap: "Demersal fish - Reef Fish Thermal Index: spatial plots of distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth and State marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contours at 30, 70 and 200 m are shown."
 img <- png::readPNG(here(paste0("plots/hunter/fish/HunterAMP_predicted-individual-fish-metric_cti_", yr_suffix, ".png")))
 grid::grid.raster(img)
 ```
