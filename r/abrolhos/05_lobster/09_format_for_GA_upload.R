@@ -9,7 +9,7 @@
 # For each year this produces two files:
 #
 # 1. <campaign-prefix>_Points.csv
-#    opcode, date_time, longitude_dd, latitude_dd, depth_m, successful, status
+#    campaignid, opcode, date_time, longitude_dd, latitude_dd, depth_m, successful, status
 #    - Every pot deployment gets an opcode now, successful or not (an
 #      unsuccessful pot's overall catch count isn't trusted, but individual
 #      lobsters can still have been measured from it -- see build_opcode_lookup).
@@ -18,9 +18,12 @@
 #      date, no time-of-day).
 #    - status is Fished / No-take, derived from zone_type ("National Park
 #      Zone" -> No-take, anything else -> Fished).
+#    - depth_m is filled from missing_depth_overrides for any row missing a
+#      recorded depth, using values looked up by hand from the AusBathyTopo
+#      raster (see the BATHY section at the bottom of this script).
 #
 # 2. <campaign-prefix>_count.csv
-#    opcode, stage, count, family, genus, species, code
+#    campaignid, opcode, stage, count, family, genus, species, code
 #    (long format: one row per opcode per stage that was actually present)
 #    - Includes both successful and unsuccessful pot deployments -- an
 #      unsuccessful pot's overall catch count wasn't trusted in the field,
@@ -47,7 +50,7 @@
 #      below.
 #
 # 3. <campaign-prefix>_length.csv
-#    opcode, family, genus, species, code, stage, count, length_mm,
+#    campaignid, opcode, family, genus, species, code, stage, count, length_mm,
 #    precision_mm, range_mm, rms_mm
 #    - One row per distinct (opcode, stage, length_mm) combination -- almost
 #      always one row per individual lobster (count = 1), but two lobsters
@@ -90,6 +93,7 @@ rm(list = ls())
 
 library(tidyverse)
 library(lubridate)
+library(sf)
 
 clean_names_ <- function(df) {
   # Small local stand-in for janitor::clean_names() (lower_snake_case column
@@ -147,6 +151,17 @@ missing_date_overrides <- tribble(
   # set-time is the reliable signal.)
   2025,  "15",         "2025-04-11",  # date_time_set for this row is 2025-04-10 10:04:01
   # local, so +1 day = 2025-04-11.
+)
+
+# Manual fixes for rows where depth_m is blank in the tidied pots CSV.
+# Filled by hand from the AusBathyTopo bathymetry raster (see the BATHY
+# section at the bottom of this script) rather than automatically, since
+# the bathymetry lookup there is a one-off check, not wired into the
+# metadata CSV build -- add a row here for each opcode you've confirmed a
+# depth for.
+missing_depth_overrides <- tribble(
+  ~year, ~opcode, ~depth_m,
+  2025,  "46.2",  34.5,  # no depth recorded in the field; AusBathyTopo 250m raster gives 34.5m at this position
 )
 
 # Every record in the count/length files is Western Rock Lobster -- these
@@ -362,7 +377,7 @@ build_opcode_lookup <- function(pots) {
 # Points CSV
 # ---------------------------------------------------------------------------
 
-build_points_csv <- function(year, cfg, zone_lookup, overrides) {
+build_points_csv <- function(year, cfg, zone_lookup, overrides, depth_overrides) {
   pots <- load_and_prepare_pots(cfg, year, overrides)
   opcode_lookup <- build_opcode_lookup(pots)
   pots <- pots %>% left_join(opcode_lookup, by = c("pot_number", "date_retrieved"))
@@ -383,10 +398,14 @@ build_points_csv <- function(year, cfg, zone_lookup, overrides) {
       date_time = paste0(date_retrieved, "T", time_str, "+08:00"),
       zone_type = zone_lookup,
       status = zone_to_status(zone_type)
-    )
+    ) %>%
+    left_join(depth_overrides %>% filter(year == !!year) %>% select(opcode, depth_override = depth_m),
+              by = "opcode") %>%
+    mutate(depth_m = if_else(is.na(depth_m), depth_override, depth_m))
 
   merged %>%
     transmute(
+      campaignid = campaign,
       opcode,
       date_time,
       longitude_dd = longitude,
@@ -453,7 +472,7 @@ build_count_csv <- function(year, cfg, overrides) {
     left_join(counts %>% select(pot_number, date_retrieved, all_of(stages)),
               by = c("pot_number", "date_retrieved")) %>%
     mutate(across(all_of(stages), ~ replace_na(.x, 0))) %>%
-    transmute(opcode, pot_number, date_retrieved,
+    transmute(campaignid = campaign, opcode, pot_number, date_retrieved,
               F = F, M = M, AD = AD, J = J) %>%
     arrange(suppressWarnings(as.numeric(pot_number)), pot_number, date_retrieved)
 
@@ -470,7 +489,7 @@ build_count_csv <- function(year, cfg, overrides) {
     arrange(suppressWarnings(as.numeric(pot_number)), pot_number, date_retrieved, stage) %>%
     mutate(family = lobster_taxon$family, genus = lobster_taxon$genus,
            species = lobster_taxon$species, code = lobster_caab) %>%
-    select(opcode, stage, count, family, genus, species, code)
+    select(campaignid, opcode, stage, count, family, genus, species, code)
 }
 
 
@@ -499,6 +518,7 @@ build_length_csv <- function(year, cfg, overrides) {
   meas %>%
     mutate(stage = assign_stage(sex, carapace_length_mm)) %>%
     transmute(
+      campaignid = campaign,
       opcode,
       family = lobster_taxon$family,
       genus = lobster_taxon$genus,
@@ -513,10 +533,10 @@ build_length_csv <- function(year, cfg, overrides) {
     # one row per distinct (opcode, stage, length_mm) combination, with count
     # = how many individual lobsters share that exact combination -- almost
     # always 1, but collapses genuine duplicates within the same opcode.
-    count(opcode, family, genus, species, code, stage, length_mm,
+    count(campaignid, opcode, family, genus, species, code, stage, length_mm,
           precision_mm, range_mm, rms_mm, name = "count") %>%
     arrange(suppressWarnings(as.numeric(str_extract(opcode, "^[^.]+"))), opcode) %>%
-    select(opcode, family, genus, species, code, stage, count,
+    select(campaignid, opcode, family, genus, species, code, stage, count,
            length_mm, precision_mm, range_mm, rms_mm)
 }
 
@@ -525,7 +545,7 @@ build_length_csv <- function(year, cfg, overrides) {
 # Bycatch CSVs -- one build_bycatch_YYYY() function per year's raw source
 # format, since these aren't standardised the way the lobster pot exports
 # are. Each ends by calling finalise_bycatch(), which does the shared
-# aggregation into the opcode/stage/count/family/genus/species/
+# aggregation into the campaignid/opcode/stage/count/family/genus/species/
 # code/comment shape.
 # ---------------------------------------------------------------------------
 
@@ -542,15 +562,15 @@ taxon_from_comment <- function(comment) {
   NULL
 }
 
-finalise_bycatch <- function(records) {
+finalise_bycatch <- function(records, campaign) {
   # records: a data frame with one row per animal, columns opcode, family,
   # genus, species, code, comment. Aggregates to one row per
   # opcode+family+genus+species+code+comment, in the same column shape
   # as the count CSVs (plus comment).
   records %>%
     count(opcode, family, genus, species, code, comment, name = "count") %>%
-    mutate(stage = NA_character_) %>%
-    select(opcode, stage, count, family, genus, species, code, comment) %>%
+    mutate(campaignid = campaign, stage = NA_character_) %>%
+    select(campaignid, opcode, stage, count, family, genus, species, code, comment) %>%
     arrange(suppressWarnings(as.numeric(str_extract(opcode, "^[^.]+"))), opcode)
 }
 
@@ -658,7 +678,8 @@ build_bycatch_2026 <- function(year, cfg, bycfg, overrides) {
     }
   }
 
-  finalise_bycatch(records)
+  campaign <- read_csv(cfg$pots_csv, show_col_types = FALSE) %>% pull(campaign) %>% first()
+  finalise_bycatch(records, campaign)
 }
 
 bycatch_builders <- list("2026" = build_bycatch_2026)
@@ -695,7 +716,7 @@ for (year_key in names(years_cfg)) {
     input_paths <- c(input_paths, unlist(bycatch_cfg[[year_key]]))
   }
 
-  points <- build_points_csv(year, cfg, zone_lookup, missing_date_overrides)
+  points <- build_points_csv(year, cfg, zone_lookup, missing_date_overrides, missing_depth_overrides)
   points_path <- file.path(output_dir, sprintf("abrolhosAMP_lobster-pots_%d_metadata.csv", year))
   write_csv_safe(points, points_path, input_paths)
   message(sprintf("%d: wrote %s (%d rows, %d nulls)",
@@ -721,3 +742,71 @@ for (year_key in names(years_cfg)) {
   }
 }
 
+
+
+#_______________________________________________________________________________
+#BATHY
+#_______________________________________________________________________________
+points_2025 <- read_csv(
+  file.path(output_dir, "abrolhosAMP_lobster-pots_2025_metadata.csv"),
+  show_col_types = FALSE
+)
+# Read in AusBathyTopo bathymetry
+
+bathy <- terra::rast(
+
+  "data/abrolhos/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif"
+
+)
+
+names(bathy) <- "bathy_depth_m"
+
+# Convert metadata to spatial points
+
+metadata_sf <- st_as_sf(
+
+  points_2025,
+
+  coords = c("longitude_dd", "latitude_dd"),
+
+  crs = 4326,
+
+  remove = FALSE
+
+)
+
+# Reproject points to bathymetry CRS if needed
+
+metadata_vect <- terra::vect(metadata_sf)
+
+if (!terra::same.crs(metadata_vect, bathy)) {
+
+  metadata_vect <- terra::project(metadata_vect, terra::crs(bathy))
+
+}
+
+# Extract bathymetry value
+
+bathy_values <- terra::extract(bathy, metadata_vect) %>%
+
+  dplyr::select(bathy_depth_m)
+
+# Combine with metadata and replace missing depth_m
+
+metadata_bathy <- bind_cols(points_2025, bathy_values) %>%
+
+  mutate(
+
+    depth_m_original = depth_m,
+
+    depth_m = if_else(
+
+      is.na(depth_m) | depth_m == "",
+
+      as.character(bathy_depth_m),
+
+      as.character(depth_m)
+
+    ))
+
+glimpse(metadata_bathy)
