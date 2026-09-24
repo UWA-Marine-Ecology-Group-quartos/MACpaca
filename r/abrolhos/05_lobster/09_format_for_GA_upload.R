@@ -23,7 +23,7 @@
 #      raster (see the BATHY section at the bottom of this script).
 #
 # 2. <campaign-prefix>_count.csv
-#    campaignid, opcode, stage, count, family, genus, species, code
+#    campaignid, opcode, stage, count, family, genus, species, caab_code
 #    (long format: one row per opcode per stage that was actually present)
 #    - Includes both successful and unsuccessful pot deployments -- an
 #      unsuccessful pot's overall catch count wasn't trusted in the field,
@@ -45,12 +45,12 @@
 #      all won't appear in this file. If you need every opcode represented
 #      even at zero catch, join against the metadata file's opcode list
 #      instead of relying on this file alone.
-#    - family/genus/species/code are constant for this file (every
+#    - family/genus/species/caab_code are constant for this file (every
 #      record is Western Rock Lobster) -- see lobster_taxon/lobster_caab
 #      below.
 #
 # 3. <campaign-prefix>_length.csv
-#    campaignid, opcode, family, genus, species, code, stage, count, length_mm,
+#    campaignid, opcode, family, genus, species, caab_code, stage, count, length_mm,
 #    precision_mm, range_mm, rms_mm
 #    - One row per distinct (opcode, stage, length_mm) combination -- almost
 #      always one row per individual lobster (count = 1), but two lobsters
@@ -185,10 +185,10 @@ bycatch_cfg <- list(
 )
 
 # Species identifications, from field comments, agreed by hand (see the
-# taxon_from_comment() helper for how these get matched). code is
+# taxon_from_comment() helper for how these get matched). caab_code is
 # left NA where none was given (e.g. hermit crab, unidentified to family).
 bycatch_taxa <- tribble(
-  ~keyword,     ~family,          ~genus,        ~species,       ~code,
+  ~keyword,     ~family,          ~genus,        ~species,       ~caab_code,
   "red throat", "Lethrinidae",    "Lethrinus",   "miniatus",     "37351009",
   "redthroat",  "Lethrinidae",    "Lethrinus",   "miniatus",     "37351009",
   "chromis",    "Pomacentridae",  "Chromis",     "spp",          "37372907",
@@ -196,7 +196,7 @@ bycatch_taxa <- tribble(
   "leather",    "Monacanthidae",  "Meuschenia",  "hippocrepis",  "37465004",
   "scallop",    "Pectinidae",     "unknown",     "spp",          "23270000",
 )
-octopus_taxon <- list(family = "Octopodidae", genus = "unknown", species = "spp", code = "23659921")
+octopus_taxon <- list(family = "Octopodidae", genus = "unknown", species = "spp", caab_code = "23659921")
 
 
 # ---------------------------------------------------------------------------
@@ -313,7 +313,7 @@ load_time_metadata_yamatji <- function(path) {
 
 load_time_metadata_pot_metadata <- function(path) {
   # Format: a large multi-project export. Rows for this campaign have an
-  # opcode starting with 6 digits (a set-date code); everything else (test
+  # opcode starting with 6 digits (a set-date caab_code); everything else (test
   # rows, other projects) is discarded. Join key is pot_number + local
   # retrieval date (this format doesn't need positional ranking -- pot_number
   # + date uniquely identifies every row here).
@@ -488,8 +488,8 @@ build_count_csv <- function(year, cfg, overrides) {
     filter(count > 0) %>%
     arrange(suppressWarnings(as.numeric(pot_number)), pot_number, date_retrieved, stage) %>%
     mutate(family = lobster_taxon$family, genus = lobster_taxon$genus,
-           species = lobster_taxon$species, code = lobster_caab) %>%
-    select(campaignid, opcode, stage, count, family, genus, species, code)
+           species = lobster_taxon$species, caab_code = lobster_caab) %>%
+    select(campaignid, opcode, stage, count, family, genus, species, caab_code)
 }
 
 
@@ -523,7 +523,7 @@ build_length_csv <- function(year, cfg, overrides) {
       family = lobster_taxon$family,
       genus = lobster_taxon$genus,
       species = lobster_taxon$species,
-      code = lobster_caab,
+      caab_code = lobster_caab,
       stage,
       length_mm = carapace_length_mm,
       precision_mm = NA_real_,
@@ -533,10 +533,10 @@ build_length_csv <- function(year, cfg, overrides) {
     # one row per distinct (opcode, stage, length_mm) combination, with count
     # = how many individual lobsters share that exact combination -- almost
     # always 1, but collapses genuine duplicates within the same opcode.
-    count(campaignid, opcode, family, genus, species, code, stage, length_mm,
+    count(campaignid, opcode, family, genus, species, caab_code, stage, length_mm,
           precision_mm, range_mm, rms_mm, name = "count") %>%
     arrange(suppressWarnings(as.numeric(str_extract(opcode, "^[^.]+"))), opcode) %>%
-    select(campaignid, opcode, family, genus, species, code, stage, count,
+    select(campaignid, opcode, family, genus, species, caab_code, stage, count,
            length_mm, precision_mm, range_mm, rms_mm)
 }
 
@@ -546,17 +546,17 @@ build_length_csv <- function(year, cfg, overrides) {
 # format, since these aren't standardised the way the lobster pot exports
 # are. Each ends by calling finalise_bycatch(), which does the shared
 # aggregation into the campaignid/opcode/stage/count/family/genus/species/
-# code/comment shape.
+# caab_code/comment shape.
 # ---------------------------------------------------------------------------
 
 taxon_from_comment <- function(comment) {
   # Matches bycatch_taxa by keyword (case-insensitive) against a comment
-  # string. Returns a one-row tibble of family/genus/species/code, or
+  # string. Returns a one-row tibble of family/genus/species/caab_code, or
   # NULL if nothing matched.
   comment_lower <- tolower(comment)
   for (i in seq_len(nrow(bycatch_taxa))) {
     if (str_detect(comment_lower, fixed(bycatch_taxa$keyword[i]))) {
-      return(bycatch_taxa[i, c("family", "genus", "species", "code")])
+      return(bycatch_taxa[i, c("family", "genus", "species", "caab_code")])
     }
   }
   NULL
@@ -564,13 +564,20 @@ taxon_from_comment <- function(comment) {
 
 finalise_bycatch <- function(records, campaign) {
   # records: a data frame with one row per animal, columns opcode, family,
-  # genus, species, code, comment. Aggregates to one row per
-  # opcode+family+genus+species+code+comment, in the same column shape
+  # genus, species, caab_code, comment. Aggregates to one row per
+  # opcode+family+genus+species+caab_code+comment, in the same column shape
   # as the count CSVs (plus comment).
   records %>%
-    count(opcode, family, genus, species, code, comment, name = "count") %>%
-    mutate(campaignid = campaign, stage = NA_character_) %>%
-    select(campaignid, opcode, stage, count, family, genus, species, code, comment) %>%
+    mutate(caab_code = if_else(family == "unknown" & genus == "unknown" & species == "unknown",
+                               NA_character_, caab_code)) %>%
+    count(opcode, family, genus, species, caab_code, comment, name = "count") %>%
+    mutate(campaignid = campaign, stage = NA_character_,
+           # written out as the literal text "NA", not a blank cell -- this
+           # column's blanks specifically should read as "NA" in the CSV,
+           # unlike blanks elsewhere in this file (comment, stage) which
+           # stay genuinely empty.
+           caab_code = if_else(is.na(caab_code), "NA", caab_code)) %>%
+    select(campaignid, opcode, stage, count, family, genus, species, caab_code, comment) %>%
     arrange(suppressWarnings(as.numeric(str_extract(opcode, "^[^.]+"))), opcode)
 }
 
@@ -652,23 +659,23 @@ build_bycatch_2026 <- function(year, cfg, bycfg, overrides) {
 
     if (species_category == "Octopus") {
       return(tibble(opcode = row$opcode, family = octopus_taxon$family, genus = octopus_taxon$genus,
-                    species = octopus_taxon$species, code = octopus_taxon$code,
+                    species = octopus_taxon$species, caab_code = octopus_taxon$caab_code,
                     comment = if (comment == "") NA_character_ else comment))
     }
     if (str_detect(tolower(comment), "hermit") && !str_detect(tolower(comment), "possibly")) {
       return(tibble(opcode = row$opcode, family = "unknown", genus = "unknown", species = "unknown",
-                    code = NA_character_, comment = "hermit crab"))
+                    caab_code = NA_character_, comment = "hermit crab"))
     }
     taxon <- taxon_from_comment(comment)
     if (!is.null(taxon)) {
       return(tibble(opcode = row$opcode, family = taxon$family, genus = taxon$genus,
-                    species = taxon$species, code = taxon$code, comment = NA_character_))
+                    species = taxon$species, caab_code = taxon$caab_code, comment = NA_character_))
     }
     # Nothing matched -- flag for manual review, write as unknown with
     # whatever text is available.
     flagged[[length(flagged) + 1]] <<- list(row_id = row$row_id, species_category = species_category, comment = comment)
     tibble(opcode = row$opcode, family = "unknown", genus = "unknown", species = "unknown",
-           code = NA_character_, comment = if (comment == "") species_category else comment)
+           caab_code = NA_character_, comment = if (comment == "") species_category else comment)
   })
 
   if (length(flagged) > 0) {
@@ -810,3 +817,4 @@ metadata_bathy <- bind_cols(points_2025, bathy_values) %>%
     ))
 
 glimpse(metadata_bathy)
+
