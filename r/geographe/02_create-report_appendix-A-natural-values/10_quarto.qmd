@@ -407,7 +407,7 @@ p_control
 #| fig-width: 8
 #| fig-height: 3
 #| fig-cap: "Demersal fish - Large Reef Fish Index\\*: top 10 greatest biomass species by status (pooled across deployments) from stereo-BRUV groundtruthing. **Bold** species are unique within the 10 greatest biomass species by year."
-p_bar <- readRDS(here("plots/geographe/fish/GeographeAMP_top_b20_bar_plot_mixed.rds"))
+p_bar <- readRDS(here("plots/geographe/fish/GeographeAMP_top_b20_bar_plot.rds"))
 p_bar
 ```
 
