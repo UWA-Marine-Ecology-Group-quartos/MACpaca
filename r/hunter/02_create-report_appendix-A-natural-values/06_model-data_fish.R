@@ -35,7 +35,7 @@ library(FSSgam)
 library(CheckEM)
 
 tidy_maxn <- readRDS(paste0("data/", park, "/tidy/", name, "_tidy-count.rds")) %>% # TODO check outlier removal
-  dplyr::filter(geoscience_roughness < 7) %>% # Remove outliers in roughness
+  dplyr::filter(geoscience_roughness < 10) %>% # Remove outliers in roughness
   glimpse()
 
 # Re-set the predictors for modeling----
@@ -124,7 +124,7 @@ write.csv(all.var.imp, file = paste(savedir, paste(name, "all.var.imp.csv", sep 
 
 # Do FSS for B20
 tidy_b20 <- readRDS(paste0("data/", park, "/tidy/", name, "_tidy-b20.rds")) %>%
-  dplyr::filter(geoscience_roughness < 7) %>% # TODO check, make same as above
+  dplyr::filter(geoscience_roughness < 10) %>% # TODO check, make same as above
   glimpse()
 
 # # Re-set the predictors for modeling----

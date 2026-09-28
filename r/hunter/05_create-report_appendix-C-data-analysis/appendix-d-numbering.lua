@@ -24,9 +24,9 @@ local sub_mode  = false  -- inside the C.y.z block?
 local function make_label()
   fig = fig + 1
   if sub_mode then
-    return "C." .. tostring(parent) .. "." .. tostring(fig)
+    return "D." .. tostring(parent) .. "." .. tostring(fig)
   else
-    return "C." .. tostring(fig)
+    return "D." .. tostring(fig)
   end
 end
 

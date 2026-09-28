@@ -108,12 +108,12 @@ saveRDS(habi,                 file.path(outdir, paste0(name, "_habitat-data.rds"
 # =============================================================================
 
 tidy_maxn <- readRDS(here("data", park, "tidy", paste0(name, "_tidy-count.rds"))) %>%
-  dplyr::filter(geoscience_roughness < 7) %>%   # TODO matches the outlier filter in 06 - comment out here too if it is commented out there
+  dplyr::filter(geoscience_roughness < 10) %>%   # TODO matches the outlier filter in 06 - comment out here too if it is commented out there
   dplyr::mutate(year = factor(as.character(year), levels = year_levels)) %>%
   glimpse()
 
 tidy_b20 <- readRDS(here("data", park, "tidy", paste0(name, "_tidy-b20.rds"))) %>%
-  dplyr::filter(geoscience_roughness < 7) %>%   # TODO matches the outlier filter in 06 - comment out here too if it is commented out there
+  dplyr::filter(geoscience_roughness < 10) %>%   # TODO matches the outlier filter in 06 - comment out here too if it is commented out there
   dplyr::mutate(year = factor(as.character(year), levels = year_levels)) %>%
   glimpse()
 

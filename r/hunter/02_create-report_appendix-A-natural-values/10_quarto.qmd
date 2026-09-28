@@ -1,6 +1,6 @@
 ---
 title: "Appendix A - Hunter Marine Park Natural Values Report (stereo-BRUV)"
-subtitle: "Temperate East Marine Parks Network"
+subtitle: "Temperate-east Marine Parks Network"
 filters:
   - figure-numbering.lua
 format:
@@ -215,7 +215,7 @@ grid::grid.raster(img)
 % to <metric>.<plot> numbering. `metric` is seeded to the last benthic-extent
 % figure number so the majors carry on sequentially (4, 5, 6, ...).
 \setcounter{metric}{\value{figure}}
-\renewcommand{\thefigure}{\arabic{metric}.\arabic{figure}}
+\renewcommand{\thefigure}{A.\arabic{metric}.\arabic{figure}}
 ```
 
 ### Sediment
@@ -309,7 +309,7 @@ grid::grid.raster(img)
 
 ```{=latex}
 \stepcounter{metric}
-\renewcommand{\thefigure}{\arabic{metric}}
+\renewcommand{\thefigure}{A.\arabic{metric}}
 ```
 
 ```{r}
@@ -323,7 +323,7 @@ p_bubble
 {{< pagebreak >}}
 
 ```{=latex}
-\renewcommand{\thefigure}{\arabic{metric}.\arabic{figure}}
+\renewcommand{\thefigure}{A.\arabic{metric}.\arabic{figure}}
 ```
 
 ### Species richness

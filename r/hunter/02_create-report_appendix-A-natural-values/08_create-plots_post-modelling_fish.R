@@ -537,6 +537,7 @@ ggsave(
 
 # Read in maxn (Commonwealth only)
 maxn <- readRDS(paste0("data/", park, "/raw/_count-with-zeros.RDS")) %>%
+  dplyr::filter(!genus == "Trachurus") %>%
   semi_join(metadata_amp, by = c("campaignid", "sample")) %>%
   mutate(year = year(date_time)) %>%
   left_join(sti, by = c("family", "genus", "species")) %>%

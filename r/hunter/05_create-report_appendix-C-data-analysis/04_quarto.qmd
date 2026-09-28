@@ -199,12 +199,12 @@ chunk per survey year (one readRDS/include_graphics per year in curve_years).
 ```{=latex}
 \setcounter{parentfig}{\numexpr\value{figure}+1\relax}
 \setcounter{figure}{0}
-\renewcommand{\thefigure}{C.\arabic{parentfig}.\arabic{figure}}
+\renewcommand{\thefigure}{D.\arabic{parentfig}.\arabic{figure}}
 ```
 ... the per-year figure chunks ...
 ```{=latex}
 \setcounter{figure}{\value{parentfig}}
-\renewcommand{\thefigure}{C.\arabic{figure}}
+\renewcommand{\thefigure}{D.\arabic{figure}}
 ```
 -->
 
@@ -248,12 +248,13 @@ If no fish model uses by = year, the single chunk below is already correct.
 #| fig-cap: !expr paste0('Plots of the best model found to predict the probability of occurrence of key fish groups. Individual panes display the predicted relationships between model covariates and each demersal fish metric. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value, with year held at ', curve_year, ' and zone status held at areas ', curve_status, '.', curve_hold_note, ' Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data from all survey years and zones. \\*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays.')
 knitr::include_graphics(fig(paste0("fish-response-curves_", curve_year, ".png"))) # TODO one chunk per survey year if any final fish model uses by = year
 ```
-
+<!--
 {{< pagebreak >}}
 
 ## Significance of year and zone status
 
 ```{r}
+#| eval: false
 #| label: tbl-c3-1
 #| tbl-cap: 'Significance of the year and zone status terms in each demersal fish GAMM. Estimate, standard error (SE), test statistic and p-value are taken from the parametric coefficient table of each model summary, one row per factor-level contrast (e.g. a survey year against the reference year, or No-Take against Fished).'
 if (nrow(pvalue_table) > 0) {
@@ -264,6 +265,7 @@ if (nrow(pvalue_table) > 0) {
 ```
 
 ```{r}
+#| eval: false
 #| label: tbl-c3-2
 #| tbl-cap: 'Zone status test for each demersal fish metric, laid out by survey year. Zone status (No-Take vs Fished) is fitted as a single term across all years (no year by status interaction), so the status estimate, SE and p-value are the same in every row for a given metric; predicted values and their SE are shown per year, with other model covariates held at their mean.'
 if (nrow(status_year_table) > 0) {
@@ -272,3 +274,4 @@ if (nrow(status_year_table) > 0) {
   cat("No demersal fish metrics retained both year and zone status terms.")
 }
 ```
+--->
