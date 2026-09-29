@@ -57,13 +57,16 @@ term_labels <- c(
 )
 
 # Axis labels on the figures (sentence case rather than the table shorthand).
-# Continuous terms only - factors never become a response-curve x axis.
+# Continuous terms get a fitted curve panel; year/status get a box plot panel
+# instead, since a factor cannot be a curve x axis.
 term_axis_labels <- c(
   geoscience_detrended = "Detrended",
   geoscience_roughness = "Roughness",
   geoscience_aspect    = "Aspect",
   geoscience_depth     = "Depth",
-  reef                 = "Reef"
+  reef                 = "Reef",
+  year                 = "Year",
+  status               = "Status"
 )
 
 # Column order on the importance heatmaps, and panel order on the curve plots.

@@ -149,7 +149,14 @@ ggsave(file.path(figdir, paste0(name, "_habitat-importance.png")), fig_c1_1,
        width = 7, height = 6, dpi = 300, bg = "white")
 
 # Response curves
-curve_data <- function(model, data, term, obs_y, n = 200, ref = NULL) {
+# Fish models keep `status` as a real, forced term (see 01_fit-final-models.R)
+# - rather than silently holding it at one reference level, curve_panel()
+# below draws one line per status level so both No-Take and Fished are
+# visible on the plot itself, not just in the caption text. Habitat has no
+# status term, so its panels are unaffected and keep a single line as before.
+status_colours <- c(Fished = "#1b9e77", "No-Take" = "#d95f02")
+
+curve_data <- function(model, data, term, n = 200, ref = NULL) {
 
   force(term)
 
@@ -171,24 +178,53 @@ curve_data <- function(model, data, term, obs_y, n = 200, ref = NULL) {
 
   pr <- mgcv::predict.gam(model, newdata = newdat, type = "response", se.fit = TRUE)
 
-  list(
-    pred   = data.frame(x  = as.numeric(newdat[[term]]),
-                        fit = as.numeric(pr$fit),
-                        se  = as.numeric(pr$se.fit)),
-    points = data.frame(x = as.numeric(xs), y = as.numeric(obs_y))
-  )
+  data.frame(x  = as.numeric(newdat[[term]]),
+             fit = as.numeric(pr$fit),
+             se  = as.numeric(pr$se.fit))
 }
 
-curve_panel <- function(cd, x_lab, title = NULL, tag = NULL, ylim = NULL) {
+# Same as curve_data(), but predicted once per level of `by_term` instead of
+# holding it fixed at a single reference level - used for `status` on every
+# fish model here.
+curve_data_by <- function(model, data, term, by_term, n = 200, ref = NULL) {
+  lv <- model$xlevels[[by_term]]
+  purrr::map_dfr(lv, function(l) {
+    ref2 <- ref
+    ref2[by_term] <- l
+    pred <- curve_data(model, data, term, n = n, ref = ref2)
+    pred[[by_term]] <- l
+    pred
+  })
+}
+
+curve_panel <- function(pred, points, x_lab, title = NULL, tag = NULL, ylim = NULL,
+                        group_var = NULL, group_label = NULL, group_colours = NULL) {
 
   p <- ggplot() +
-    geom_point(data = cd$points, aes(x = x, y = y),
-               colour = "grey40", alpha = 0.3, size = 0.9) +
-    geom_line(data = cd$pred, aes(x = x, y = fit), linewidth = 0.5) +
-    geom_line(data = cd$pred, aes(x = x, y = fit + se),
-              linetype = "dashed", linewidth = 0.4) +
-    geom_line(data = cd$pred, aes(x = x, y = fit - se),
-              linetype = "dashed", linewidth = 0.4) +
+    geom_point(data = points, aes(x = x, y = y),
+               colour = "grey40", alpha = 0.3, size = 0.9)
+
+  if (is.null(group_var)) {
+    p <- p +
+      geom_line(data = pred, aes(x = x, y = fit), linewidth = 0.5) +
+      geom_line(data = pred, aes(x = x, y = fit + se),
+                linetype = "dashed", linewidth = 0.4) +
+      geom_line(data = pred, aes(x = x, y = fit - se),
+                linetype = "dashed", linewidth = 0.4)
+  } else {
+    p <- p +
+      geom_line(data = pred, aes(x = x, y = fit, colour = .data[[group_var]]),
+                linewidth = 0.5) +
+      geom_line(data = pred, aes(x = x, y = fit + se, colour = .data[[group_var]]),
+                linetype = "dashed", linewidth = 0.4) +
+      geom_line(data = pred, aes(x = x, y = fit - se, colour = .data[[group_var]]),
+                linetype = "dashed", linewidth = 0.4)
+    if (!is.null(group_colours)) {
+      p <- p + scale_colour_manual(values = group_colours, name = group_label)
+    }
+  }
+
+  p <- p +
     labs(x = x_lab, y = NULL, title = title, tag = tag) +
     theme_classic() +
     theme(
@@ -197,6 +233,8 @@ curve_panel <- function(cd, x_lab, title = NULL, tag = NULL, ylim = NULL) {
       plot.tag.position = c(0, 1),
       axis.title.x    = element_text(size = 8),
       axis.text       = element_text(size = 7),
+      legend.title    = element_text(size = 8),
+      legend.text     = element_text(size = 7),
       plot.margin     = margin(12, 6, 4, 4)
     )
 
@@ -208,8 +246,9 @@ build_curve_grid <- function(models, data_for, obs_for, response_order,
                              term_order, ncol, pad_rows = TRUE,
                              ref = NULL, ylim_for = NULL) {
 
-  panels <- list()
-  tag_i  <- 0
+  panels    <- list()
+  tag_i     <- 0
+  any_group <- FALSE
 
   for (resp in response_order) {
 
@@ -222,18 +261,35 @@ build_curve_grid <- function(models, data_for, obs_for, response_order,
     tms <- smooth_predictor_set(mod, d)
     tms <- tms[order(match(tms, term_order))]
 
-    ylim <- if (is.null(ylim_for)) range(ys, na.rm = TRUE) else ylim_for(resp)
+    ylim       <- if (is.null(ylim_for)) range(ys, na.rm = TRUE) else ylim_for(resp)
+    has_status <- "status" %in% gam_predictor_set(mod)
 
     for (j in seq_along(tms)) {
-      tag_i <- tag_i + 1
-      cd <- curve_data(mod, d, tms[j], ys, ref = ref)
-      panels[[length(panels) + 1]] <- curve_panel(
-        cd,
-        x_lab = unname(term_axis_labels[tms[j]]),
-        title = if (j == 1) unname(response_labels[resp]) else NULL,
-        tag   = letters[tag_i],
-        ylim  = ylim
-      )
+      tag_i  <- tag_i + 1
+      points <- data.frame(x = as.numeric(d[[tms[j]]]), y = as.numeric(ys))
+
+      if (has_status) {
+        any_group <- TRUE
+        pred <- curve_data_by(mod, d, tms[j], by_term = "status", ref = ref)
+        panels[[length(panels) + 1]] <- curve_panel(
+          pred, points,
+          x_lab = unname(term_axis_labels[tms[j]]),
+          title = if (j == 1) unname(response_labels[resp]) else NULL,
+          tag   = letters[tag_i],
+          ylim  = ylim,
+          group_var = "status", group_label = "Zone status",
+          group_colours = status_colours
+        )
+      } else {
+        pred <- curve_data(mod, d, tms[j], ref = ref)
+        panels[[length(panels) + 1]] <- curve_panel(
+          pred, points,
+          x_lab = unname(term_axis_labels[tms[j]]),
+          title = if (j == 1) unname(response_labels[resp]) else NULL,
+          tag   = letters[tag_i],
+          ylim  = ylim
+        )
+      }
     }
 
     if (pad_rows && length(tms) < ncol) {
@@ -243,7 +299,12 @@ build_curve_grid <- function(models, data_for, obs_for, response_order,
     }
   }
 
-  out <- patchwork::wrap_plots(panels, ncol = ncol)
+  out <- if (any_group) {
+    patchwork::wrap_plots(panels, ncol = ncol, guides = "collect") &
+      theme(legend.position = "bottom")
+  } else {
+    patchwork::wrap_plots(panels, ncol = ncol)
+  }
   attr(out, "n_rows") <- ceiling(length(panels) / ncol)
   out
 }
@@ -364,7 +425,7 @@ for (yr in fish_curve_years) {
 
   ggsave(file.path(figdir, paste0(name, "_fish-response-curves_", yr, ".png")),
          fig_yr,
-         width = 2 * fish_ncol, height = row_height_in * attr(fig_yr, "n_rows"),
+         width = 2 * fish_ncol, height = row_height_in * attr(fig_yr, "n_rows") + 0.3,
          dpi = 300, bg = "white")
 }
 
@@ -372,4 +433,5 @@ message("Appendix C figures written to: ", figdir)
 message("Habitat response curves drawn per year: ",
         paste(curve_years, collapse = ", "))
 message("Fish response curves drawn per year: ",
-        paste(fish_curve_years, collapse = ", "))
+        paste(fish_curve_years, collapse = ", "), ". Zone status (Fished vs ",
+        "No-Take) is shown as separate coloured lines within each year's panels.")

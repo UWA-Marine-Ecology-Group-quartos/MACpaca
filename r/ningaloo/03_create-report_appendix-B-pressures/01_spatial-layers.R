@@ -43,8 +43,9 @@ library(tidyverse)
 library(RNetCDF)
 library(rerddap)
 
-# TODO Set the extent of the study
-e <- ext(115.04, 115.60, -33.67, -33.346)
+# Extent of the study - matches the extent used elsewhere for ningaloo (e.g.
+# 09_threatened-species.R in the Appendix A1 folder)
+e <- ext(113.2, 114.4, -23.6, -21.4)
 
 # Oceanography/Pressures
 # ── Sea Surface Temperature ───────────────────────────────────────────────────────────────────────
@@ -185,7 +186,11 @@ time(rast_dhw) <- dates_dhw
 names(rast_dhw) <- dates_dhw
 plot(rast_dhw)
 
-# Highest periods
+# TODO Highest periods - these dates are copied over from another park's
+# script and have not been checked against Ningaloo's own DHW raster yet.
+# Plot rast_dhw above, find Ningaloo's own highest DHW months, and set the
+# year/month pairs below (and in maxyear further down in 02_create-plots_pressures.R)
+# to match.
 dhw.2011 <- subset(rast_dhw, year(time(rast_dhw)) == 2011 & month(time(rast_dhw)) == 5) %>%
   mean(na.rm = T)
 names(dhw.2011) <- "May 2011"

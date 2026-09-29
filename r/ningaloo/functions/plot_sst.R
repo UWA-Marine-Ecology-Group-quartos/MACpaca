@@ -8,6 +8,8 @@ plot_sst <- function(prediction_limits) {
     theme_minimal() +
     # theme(axis.text = element_text(size = 6)) +
     labs(fill = "SST (°C)") +
+    scale_x_continuous(breaks = scales::breaks_width(0.8)) +
+    scale_y_continuous(breaks = scales::breaks_width(0.5)) +
     coord_sf(xlim = c(prediction_limits[1], prediction_limits[2]),
              ylim = c(prediction_limits[3], prediction_limits[4]), crs = 4326)
 }

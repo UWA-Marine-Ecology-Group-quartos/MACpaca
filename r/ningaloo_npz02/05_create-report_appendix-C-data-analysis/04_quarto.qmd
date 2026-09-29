@@ -125,10 +125,10 @@ fish_curve_caption <- function(yr) {
          "metrics in ", yr, ". Individual panes display the predicted relationships ",
          "between model covariates and each fish metric. Solid lines represent ",
          "predicted Generalized Additive Model (GAM) fits with other variables ",
-         "held constant at their mean value, survey year held at ", yr, ", and ",
-         "zone status held at its reference level. Dashed lines represent upper ",
-         "and lower standard error bounds around the prediction, and points ",
-         "represent the observed data for that year.")
+         "held constant at their mean value and survey year held at ", yr, "; ",
+         "line colour represents zone status (No-Take vs Fished). Dashed lines ",
+         "represent upper and lower standard error bounds around each prediction, ",
+         "and points represent the observed data for that year.")
 }
 ```
 

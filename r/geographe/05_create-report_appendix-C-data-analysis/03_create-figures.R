@@ -255,10 +255,34 @@ curve_panel <- function(cd, x_lab, title = NULL, tag = NULL, ylim = NULL) {
   p
 }
 
+# Box plot panel for a factor term (year/status) - shows the observed spread
+# by level rather than a fitted curve, since a factor cannot be a curve x axis.
+factor_panel <- function(x, y, x_lab, title = NULL, tag = NULL, ylim = NULL) {
+
+  df <- data.frame(x = x, y = y)
+
+  p <- ggplot(df, aes(x = x, y = y)) +
+    geom_boxplot(outlier.size = 0.6, linewidth = 0.4, fill = "grey90") +
+    labs(x = x_lab, y = NULL, title = title, tag = tag) +
+    theme_classic() +
+    theme(
+      plot.title      = element_text(size = 9, hjust = 0, margin = margin(b = 2)),
+      plot.tag        = element_text(size = 10, face = "bold"),
+      plot.tag.position = c(0, 1),
+      axis.title.x    = element_text(size = 8),
+      axis.text       = element_text(size = 7),
+      plot.margin     = margin(12, 6, 4, 4)
+    )
+
+  if (!is.null(ylim)) p <- p + coord_cartesian(ylim = ylim)
+  p
+}
+
 # Assemble the response-curve panels.
 build_curve_grid <- function(models, data_for, obs_for, response_order,
                              term_order, ncol, pad_rows = TRUE,
-                             ref = factor_ref, ylim_for = NULL) {
+                             ref = factor_ref, ylim_for = NULL,
+                             factor_terms = c("year", "status")) {
 
   panels <- list()
   tag_i  <- 0
@@ -290,9 +314,25 @@ build_curve_grid <- function(models, data_for, obs_for, response_order,
       )
     }
 
+    # box plot panels for the forced factor terms (year/status), only when
+    # that term is actually in this response's final model
+    fts <- intersect(factor_terms, gam_predictor_set(mod))
+    for (ft in fts) {
+      tag_i <- tag_i + 1
+      panels[[length(panels) + 1]] <- factor_panel(
+        x     = d[[ft]],
+        y     = ys,
+        x_lab = unname(term_axis_labels[ft]),
+        title = if (length(tms) == 0 && ft == fts[1]) unname(response_labels[resp]) else NULL,
+        tag   = letters[tag_i],
+        ylim  = ylim
+      )
+    }
+
     # pad the row out so the next response starts on a fresh line
-    if (pad_rows && length(tms) < ncol) {
-      for (k in seq_len(ncol - length(tms))) {
+    n_used <- length(tms) + length(fts)
+    if (pad_rows && n_used %% ncol != 0) {
+      for (k in seq_len(ncol - (n_used %% ncol))) {
         panels[[length(panels) + 1]] <- patchwork::plot_spacer()
       }
     }
@@ -349,7 +389,10 @@ for (yr in year_levels) {
     ncol           = 3,
     pad_rows       = TRUE,
     ref            = ref_yr,
-    ylim_for       = function(resp) habitat_ylims[[resp]]
+    ylim_for       = function(resp) habitat_ylims[[resp]],
+    # year is already fixed within this figure (one figure per survey year),
+    # so only status varies here and gets a box panel
+    factor_terms   = "status"
   )
 
   f <- file.path(figdir, paste0(name, "_habitat-response-curves_", yr, ".png"))
@@ -370,12 +413,12 @@ fig_c2_2 <- build_curve_grid(
   obs_for       = function(resp) fish_subset(resp)$count,
   response_order = fish_response_order,
   term_order     = fish_term_order,
-  ncol           = 3,
+  ncol           = 5,
   pad_rows       = TRUE
 )
 
 ggsave(file.path(figdir, paste0(name, "_fish-response-curves.png")), fig_c2_2,
-       width = 8, height = 2.1 * attr(fig_c2_2, "n_rows"),
+       width = 12, height = 2.1 * attr(fig_c2_2, "n_rows"),
        dpi = 300, bg = "white")
 
 message("Appendix C figures written to: ", figdir)

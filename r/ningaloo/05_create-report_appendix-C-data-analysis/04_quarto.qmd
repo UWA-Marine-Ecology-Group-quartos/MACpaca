@@ -112,7 +112,6 @@ fig <- function(f) {
 }
 
 curve_years  <- as.character(sort(unlist(config$years)))
-curve_status <- "Fished" # matches factor_ref in 03_create-figures.R
 
 list_and <- function(x) {
   if (!length(x)) return("")
@@ -121,9 +120,9 @@ list_and <- function(x) {
 }
 
 # Model selection will not necessarily keep `status` for every fish metric.
-# The response curves are therefore only conditioned on status where the
-# model contains it, so the caption is assembled from the fitted objects
-# rather than hard-coded.
+# Where it does, the response curve shows one coloured line per status level
+# instead of holding it fixed, so the caption is assembled from the fitted
+# objects rather than hard-coded.
 fish_models <- load_final_models()$fish
 
 # Drop the trailing footnote marker - it only belongs on the first mention.
@@ -136,9 +135,9 @@ no_status <- {
   plain_label(keys)
 }
 
-curve_hold_note <- if (length(no_status)) {
-  paste0(" Zone status is held only where model selection retained it: ",
-         list_and(no_status), ".")
+curve_status_note <- if (length(no_status)) {
+  paste0(" Zone status is not a term in the model for: ", list_and(no_status),
+         ", so those panels show a single line with status held constant.")
 } else ""
 
 # Significance table (end of appendix) - see Gt_stats_tables.R.
@@ -202,7 +201,7 @@ knitr::include_graphics(fig("fish-importance.png"))
 ```{r}
 #| out-width: "80%"
 #| fig-align: center
-#| fig-cap: !expr paste0('Plots of the best model found to predict the probability of occurrence of key fish groups. Individual panes display the predicted relationships between model covariates and each demersal fish metric. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value, with zone status held at ', curve_status, '.', curve_hold_note, ' Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data pooled across all survey years and zones. \\*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays.')
+#| fig-cap: !expr paste0('Plots of the best model found to predict the probability of occurrence of key fish groups. Individual panes display the predicted relationships between model covariates and each demersal fish metric. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value; line colour represents zone status (No-Take vs Fished) where status is a retained model term.', curve_status_note, ' Dashed lines represent upper and lower standard error bounds around each prediction, and points represent the observed data pooled across all survey years and zones. \\*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays.')
 knitr::include_graphics(fig("fish-response-curves.png"))
 ```
 
