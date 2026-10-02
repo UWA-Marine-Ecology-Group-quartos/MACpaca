@@ -79,27 +79,27 @@ stopifnot(!any(is.na(habi$year)))
 # copied verbatim from the bottom of 05_model-data_benthos.R. [TEMPLATE]
 
 final_models_habitat <- list(
-  sand                  =  gam(cbind(sand, total_pts - sand) ~
-                                     year +
-                                     s(geoscience_roughness, k = 3, bs = "cr") +
-                                     s(geoscience_aspect, by = year, k = 3, bs = "cc") +
-                                     s(geoscience_detrended, by = year, k = 3, bs = "cr"),
-                                    data = habi, method = "REML", family = binomial("logit")), # [TEMPLATE]
-
+  sand                  = gam(cbind(sand, total_pts - sand) ~
+                                year +
+                                s(geoscience_roughness, k = 3, bs = "cr") +
+                                s(geoscience_aspect, by = year, k = 3, bs = "cc") +
+                                s(geoscience_detrended, by = year, k = 3, bs = "cr"),
+                              data = habi, method = "REML", family = binomial("logit")), # [TEMPLATE]
+  #macroalgae            = NULL, # [TEMPLATE]
+  #seagrasses            = NULL, # [TEMPLATE]
+  #rock                  = NULL, # [TEMPLATE]
   sessile_invertebrates = gam(cbind(sessile_invertebrates, total_pts - sessile_invertebrates) ~
                                 s(geoscience_roughness, k = 3, bs = "cr") +
                                 s(geoscience_aspect, by = year, k = 3, bs = "cc") +
                                 s(geoscience_detrended, by = year, k = 3, bs = "cr") +
                                 year,
-                              data = habi, method = "REML", family = binomial("logit"))
-  , # [TEMPLATE]
+                              data = habi, method = "REML", family = binomial("logit")), # [TEMPLATE]
   reef                  = gam(cbind(reef, total_pts - reef) ~
                                 s(geoscience_roughness, k = 3, bs = "cr") +
                                 s(geoscience_aspect, by = year, k = 3, bs = "cc") +
                                 s(geoscience_detrended, by = year, k = 3, bs = "cr") +
                                 year,
-                              data = habi, method = "REML", family = binomial("logit"))
-  # [TEMPLATE]
+                              data = habi, method = "REML", family = binomial("logit"))  # [TEMPLATE]
 )
 
 saveRDS(final_models_habitat, file.path(outdir, paste0(name, "_final-models_habitat.rds")))
@@ -139,29 +139,30 @@ stopifnot(all(c("reef") %in% names(tidy_b20)))
 
 final_models_fish <- list(
   species_richness = gam(count ~ year + status +
-                           s(geoscience_detrended, k = 3, bs = "cr") +
-                           s(reef, k = 3, bs = "cr") +
+                           s(geoscience_detrended, k = 3, bs = "cr") + s(reef, k = 3, bs = "cr") +
                            s(geoscience_aspect, by = year, k = 3, bs = "cc") +
                            s(geoscience_depth, by = year, k = 3, bs = "cr"),
                          data = fabund %>% dplyr::filter(response %in% "species_richness"),
                          family = poisson()), # [TEMPLATE]
-  total_abundance  =  gam(count ~ year + status +
-                            s(geoscience_roughness, k = 3, bs = "cr") +
+  total_abundance  = gam(count ~  year + status +
+                           s(geoscience_depth, by = year, k = 3, bs = "cr") +
+                           s(geoscience_detrended, by = year, k = 3, bs = "cr") +
+                           s(reef, by = year, k = 3, bs = "cr"),
+                         data = fabund %>% dplyr::filter(response %in% "total_abundance"),
+                         family = tw()), # [TEMPLATE]
+  b20              =  gam(count ~ year + status +
+                            s(geoscience_aspect, k = 3, bs = "cc") +
+                            s(reef, k = 3, bs = "cr") +
+                            s(geoscience_depth, by = year, k = 3, bs = "cr") +
+                            s(geoscience_roughness, by = year, k = 3, bs = "cr"),
+                          data = fabund %>% dplyr::filter(response %in% "b20"),
+                          family = tw()), # [TEMPLATE]
+  cti              =  gam(count ~ year + status +
+                            s(geoscience_aspect, by = year, k = 3, bs = "cc") +
                             s(geoscience_depth, by = year, k = 3, bs = "cr") +
                             s(reef, by = year, k = 3, bs = "cr"),
-                          data = fabund %>% dplyr::filter(response %in% "total_abundance"),
-                          family = tw()), # [TEMPLATE]
-  b20              = gam(count ~ year + status +
-                           s(geoscience_depth, by = year, k = 3, bs = "cr") +
-                           s(geoscience_detrended, by = year, k = 3, bs = "cr"),
-                         data = fabund %>% dplyr::filter(response %in% "b20"),
-                         family = tw()), # [TEMPLATE]
-  cti              = gam(count ~ year + status +
-                          s(geoscience_aspect, by = year, k = 3, bs = "cc") +
-                          s(geoscience_depth, by = year, k = 3, bs = "cr") +
-                          s(reef, by = year, k = 3, bs = "cr"),
-                        data = fabund %>% dplyr::filter(response %in% "cti"),
-                        family = gaussian(link = "identity"))  # [TEMPLATE]
+                          data = fabund %>% dplyr::filter(response %in% "cti"),
+                          family = gaussian(link = "identity"))  # [TEMPLATE]
 )
 
 saveRDS(final_models_fish, file.path(outdir, paste0(name, "_final-models_fish.rds")))

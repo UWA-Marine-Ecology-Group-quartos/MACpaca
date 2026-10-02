@@ -84,6 +84,7 @@ for(i in 1:length(resp.vars)){
                                   cyclic.vars = "geoscience_aspect",
                                   k = 3, # TODO check this, maybe add cov.cutoff
                                   factor.smooth.interactions = "year", # TODO check this
+                                  factor.factor.interactions = c("status", "year"), # TODO check this
                                   max.predictors = 5 # TODO check this
   )
   out.list <- fit.model.set(model.set,
@@ -169,6 +170,7 @@ for(i in 1:length(resp.vars)){
                                   cyclic.vars = "geoscience_aspect",
                                   k = 3, # TODO check this, maybe add cov.cutoff
                                   factor.smooth.interactions = "year", # TODO check this
+                                  factor.factor.interactions = c("status", "year"), # TODO check this
                                   max.predictors = 5 # TODO check this
   )
   out.list=fit.model.set(model.set,
@@ -216,9 +218,9 @@ fabund <- bind_rows(tidy_maxn, tidy_b20) %>%
 # predictor variables, factor variables, k and bs
 
 #Total abundance
-m_abundance <- gam(count ~ year + status +
-                     s(geoscience_roughness, k = 3, bs = "cr") +
+m_abundance <- gam(count ~  year + status +
                      s(geoscience_depth, by = year, k = 3, bs = "cr") +
+                     s(geoscience_detrended, by = year, k = 3, bs = "cr") +
                      s(reef, by = year, k = 3, bs = "cr"),
                   data = fabund %>% dplyr::filter(response %in% "total_abundance"),
                   family = tw())
@@ -227,8 +229,7 @@ summary(m_abundance)
 
 # Species richness
 m_richness <- gam(count ~ year + status +
-                    s(geoscience_detrended, k = 3, bs = "cr") +
-                    s(reef, k = 3, bs = "cr") +
+                    s(geoscience_detrended, k = 3, bs = "cr") + s(reef, k = 3, bs = "cr") +
                     s(geoscience_aspect, by = year, k = 3, bs = "cc") +
                     s(geoscience_depth, by = year, k = 3, bs = "cr"),
                   data = fabund %>% dplyr::filter(response %in% "species_richness"),
@@ -241,15 +242,17 @@ m_cti <- gam(count ~ year + status +
                s(geoscience_aspect, by = year, k = 3, bs = "cc") +
                s(geoscience_depth, by = year, k = 3, bs = "cr") +
                s(reef, by = year, k = 3, bs = "cr"),
-             data = fabund %>% dplyr::filter(response %in% "cti"),
+               data = fabund %>% dplyr::filter(response %in% "cti"),
              family = gaussian(link = "identity"))
 summary(m_cti)
 # plot(m_cti)
 
 # B20
 m_b20 <- gam(count ~ year + status +
+               s(geoscience_aspect, k = 3, bs = "cc") +
+               s(reef, k = 3, bs = "cr") +
                s(geoscience_depth, by = year, k = 3, bs = "cr") +
-               s(geoscience_detrended, by = year, k = 3, bs = "cr"),
+               s(geoscience_roughness, by = year, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "b20"),
              family = tw())
 summary(m_b20)

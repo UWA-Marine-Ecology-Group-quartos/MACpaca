@@ -80,8 +80,8 @@ fish_term_order    <- c("geoscience_detrended", "geoscience_roughness",
 # TODO Drop any response your park does not model from these two vectors.
 # Note `seagrasses` is plural - it must match the response string used by
 # 03_create-metrics_benthos.R and the FSS loop in 05.
-habitat_response_order <- c(#"macroalgae",  "seagrasses", "rock",
-                            "sand", "sessile_invertebrates", "reef")
+habitat_response_order <- c( "sand", #"seagrasses", "rock","macroalgae",
+                            "sessile_invertebrates", "reef")
 fish_response_order    <- c("species_richness", "total_abundance", "b20", "cti")
 
 response_labels <- c(

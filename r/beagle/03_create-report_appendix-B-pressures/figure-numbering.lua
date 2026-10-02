@@ -11,7 +11,7 @@
 # To add a letter prefix (e.g. Appendix B -> B1, B5.1) set this in the YAML
 # header of the .qmd:
 #
-#   figure-number-prefix: "B"
+#   figure-number-prefix: "C"
 #
 # Leave it out (as Appendix A does) for plain 1, 2, 5.1 numbering.
 --]]

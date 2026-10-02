@@ -5,4 +5,4 @@ combine_benthos: false             # must match the Appendix A config
 
 # Appendix C output name. Must match the `output-file:` in 04_quarto.qmd,
 # minus the extension.
-report_name:     "Project 4.21- Beagle-3-Appendix C-q-Data analysis" # TODO
+report_name:     "Project 4.21- Beagle-3-Appendix D-q-Data analysis (stereo BRUV)" # TODO
