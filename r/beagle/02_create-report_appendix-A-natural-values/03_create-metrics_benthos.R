@@ -25,10 +25,13 @@ park <- config$park
 benthos <- readRDS(paste0("data/", park, "/raw/", name, "_benthos.RDS")) %>%
   dplyr::select(campaignid, sample, year, status, macroalgae, #seagrasses,
                 sand = unconsolidated, #rock = consolidated,
-                sessile_invertebrates, total_pts = total_points_annotated) %>%
-  dplyr::mutate(reef = macroalgae + sessile_invertebrates) %>%
+                sessile_invertebrates, molluscs, total_pts = total_points_annotated) %>%
+  dplyr::mutate(sessile_invertebrates = sessile_invertebrates + molluscs) %>%
+    dplyr::mutate(reef = macroalgae + sessile_invertebrates) %>%
+  dplyr::select(-molluscs) %>%
   glimpse()
 
 length(unique(benthos$sample))
 
 saveRDS(benthos, paste0("data/", park, "/tidy/", name, "_benthos-count.RDS"))
+
