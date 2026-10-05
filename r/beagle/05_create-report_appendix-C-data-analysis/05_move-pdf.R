@@ -19,7 +19,7 @@ park <- config$park
 # `output-file:` values in 04_quarto.qmd minus their extensions.
 pdf_name  <- paste0(config$report_name, ".pdf")
 html_name <- paste0(config$report_name, ".html")
-html_files_dir <- "04_quarto_files" # supporting folder Quarto generates alongside the HTML
+html_files_dir <- "figures" # supporting folder Quarto generates alongside the HTML
 
 # TODO Check the drive letter and the appendix-C folder name match your machine
 source_dir <- paste0(

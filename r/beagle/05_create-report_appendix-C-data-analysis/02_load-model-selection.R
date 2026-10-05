@@ -105,34 +105,240 @@ response_labels <- c(
 # s(x, by = year) reports `x` as term[1] and `year` as the by variable; the by
 # variable is picked up separately from the parametric terms, which matters
 # where `year` is also a main effect in the model.
+
+# =============================================================================
+# MODEL TERM MATCHING
+# =============================================================================
+
+# Return the predictors actually represented in a fitted GAM.
+#
+# For example:
+#   s(geoscience_aspect, by = year)
+# is represented as:
+#   geoscience_aspect
+#
+# The `year` by-variable is handled separately by
+# predictor_struct_from_model().
 gam_predictor_set <- function(model) {
+
   smooth_terms <- if (length(model$smooth) > 0) {
-    vapply(model$smooth, function(s) s$term[1], character(1))
-  } else character()
+    vapply(
+      model$smooth,
+      function(s) s$term[1],
+      character(1)
+    )
+  } else {
+    character()
+  }
+
   parametric <- attr(terms(model), "term.labels")
+
+  # Do not treat s(...) as a parametric term.
   parametric <- parametric[!grepl("^s\\(", parametric)]
+
   sort(unique(c(smooth_terms, parametric)))
 }
 
-# Same, but numeric terms only - factor terms cannot be a response-curve x axis
+
+# Same as above, but only return numeric predictors.
+# Used by the response-curve code.
 smooth_predictor_set <- function(model, data) {
+
   tms <- gam_predictor_set(model)
-  tms[vapply(tms, function(t) is.numeric(data[[t]]), logical(1))]
+
+  tms[
+    vapply(
+      tms,
+      function(t) {
+        t %in% names(data) && is.numeric(data[[t]])
+      },
+      logical(1)
+    )
+  ]
 }
 
-# FSS modname strings are pred.vars joined by "+"
-predictor_set_from_modname <- function(modname) {
-  tms <- str_split(as.character(modname), "\\+")[[1]] %>% str_trim()
-  tms <- tms[nzchar(tms) & tms != "null"]
-  sort(unique(tms))
+
+predictor_struct_from_modname <- function(modname) {
+  x <- as.character(modname)
+  if (length(x) != 1 || is.na(x) || !nzchar(trimws(x))) {
+    return(setNames(logical(0), character(0)))
+  }
+
+  x <- trimws(x)
+  x <- gsub("[\r\n]+", " ", x)
+  x <- gsub("\\s+", " ", x)
+
+  if (!grepl("s\\s*\\(", x)) {
+    tms <- stringr::str_split(x, "\\+")[[1]]
+    tms <- trimws(tms)
+    tms <- tms[nzchar(tms)]
+    by_year <- grepl("\\.by\\.year$", tms)
+    base <- sub("\\.by\\.year$", "", tms)
+    out <- tapply(by_year, base, any)
+    out <- as.logical(out)
+    names(out) <- names(tapply(by_year, base, any))
+    return(out[order(names(out))])
+  }
+
+  smooth_matches <- stringr::str_extract_all(x, "s\\([^)]*\\)")[[1]]
+  smooth_info <- list()
+
+  for (sm in smooth_matches) {
+    predictor <- stringr::str_match(
+      sm,
+      "^s\\s*\\(\\s*([^,\\)]+)"
+    )[, 2]
+    predictor <- trimws(predictor)
+    if (!nzchar(predictor)) next
+
+    by_year <- grepl("by\\s*=\\s*year\\b", sm)
+    smooth_info[[predictor]] <- by_year
+  }
+
+  remaining <- stringr::str_replace_all(x, "s\\([^)]*\\)", "")
+  remaining <- gsub("~", "", remaining)
+  remaining <- gsub("\\+", " ", remaining)
+  remaining <- trimws(remaining)
+
+  parametric <- stringr::str_split(remaining, "\\s+")[[1]]
+  parametric <- parametric[nzchar(parametric)]
+  parametric <- parametric[!parametric %in% c("", "~", "+", "-")]
+
+  parametric_info <- setNames(
+    rep(FALSE, length(parametric)),
+    parametric
+  )
+
+  smooth_info <- unlist(smooth_info, use.names = TRUE)
+  combined <- c(smooth_info, parametric_info)
+  combined <- combined[!duplicated(names(combined))]
+
+  combined[order(names(combined))]
+}
+
+predictor_struct_from_model <- function(model) {
+  rhs <- paste(
+    deparse(formula(model)[[3]]),
+    collapse = " "
+  )
+  predictor_struct_from_modname(rhs)
+}
+
+model_terms_match <- function(candidate_modname, final_model) {
+  identical(
+    predictor_struct_from_modname(candidate_modname),
+    predictor_struct_from_model(final_model)
+  )
+}
+
+mark_selected <- function(candidates, models) {
+  candidates %>%
+    mutate(
+      selected = purrr::map_lgl(
+        modname,
+        ~ purrr::some(
+          models,
+          ~ model_terms_match(.x, .y)
+        )
+      )
+    )
+}
+
+predictor_struct_from_model <- function(model) {
+
+  # Smooth terms
+  smooth_info <- if (length(model$smooth) > 0) {
+
+    smooth_names <- vapply(
+      model$smooth,
+      function(s) s$term[1],
+      character(1)
+    )
+
+    smooth_by_year <- vapply(
+      model$smooth,
+      function(s) identical(s$by, "year"),
+      logical(1)
+    )
+
+    setNames(
+      smooth_by_year,
+      smooth_names
+    )
+
+  } else {
+    setNames(logical(0), character(0))
+  }
+
+
+  # Parametric terms such as:
+  #   year
+  #   status
+  #   reef
+  parametric <- attr(
+    terms(model),
+    "term.labels"
+  )
+
+  parametric <- parametric[
+    !grepl("^s\\(", parametric)
+  ]
+
+  parametric_info <- setNames(
+    rep(FALSE, length(parametric)),
+    parametric
+  )
+
+
+  # Combine the two representations.
+  #
+  # If a predictor appears as both a smooth and a parametric term, the
+  # smooth representation takes precedence.
+  combined <- c(
+    smooth_info,
+    parametric_info
+  )
+
+  combined <- combined[
+    !duplicated(names(combined))
+  ]
+
+  combined[order(names(combined))]
+}
+
+
+# -----------------------------------------------------------------------------
+# Compare an FSS candidate against a fitted final model.
+# -----------------------------------------------------------------------------
+
+model_terms_match <- function(candidate_modname, final_model) {
+
+  candidate <- predictor_struct_from_modname(candidate_modname)
+  final     <- predictor_struct_from_model(final_model)
+
+  identical(
+    candidate,
+    final
+  )
 }
 
 # Pretty "detrended+aspect+Z+year" string for the Model column
 label_model <- function(modname) {
-  tms <- predictor_set_from_modname(modname)
-  if (!length(tms)) return("null")
-  tms <- tms[order(match(tms, names(term_labels)))]
-  paste(dplyr::coalesce(unname(term_labels[tms]), tms), collapse = "+")
+  tms_raw <- str_split(as.character(modname), "\\+")[[1]] %>% str_trim()
+  tms_raw <- tms_raw[nzchar(tms_raw) & tms_raw != "null"]
+  if (!length(tms_raw)) return("null")
+
+  by_year  <- grepl("\\.by\\.year$", tms_raw)
+  tms_base <- sub("\\.by\\.year$", "", tms_raw)
+
+  ord      <- order(match(tms_base, names(term_labels)))
+  tms_base <- tms_base[ord]
+  by_year  <- by_year[ord]
+
+  labs <- dplyr::coalesce(unname(term_labels[tms_base]), tms_base)
+  labs <- ifelse(by_year, paste0(labs, "(year)"), labs)
+
+  paste(labs, collapse = "+")
 }
 
 # Column names vary a little between FSSgam versions - find the first that fits
@@ -160,34 +366,22 @@ tidy_fss_csv <- function(path, response_in_column, expected = NULL) {
   raw <- read.csv(path, stringsAsFactors = FALSE, check.names = FALSE)
   message("Read ", basename(path), " - columns: ", paste(names(raw), collapse = ", "))
 
-  # write.csv dumps row names into an unnamed first column
   if (names(raw)[1] %in% c("", "X")) names(raw)[1] <- ".rowname"
 
-  # The FSS loop's output shape (do.call("rbind", ...) vs list_rbind()) decides
-  # which of `modname` or `formula` survives on the way out - take modname when
-  # it is there and rebuild it from the formula when it is not.
   mod_col <- pick_col(raw, c("modname", "model", "mod.name"), required = FALSE)
 
   if (!is.null(mod_col)) {
     modname <- as.character(raw[[mod_col]])
   } else {
     form_col <- pick_col(raw, c("formula", "form"), what = "modname or formula")
-    known <- intersect(names(raw), names(term_labels))   # one column per predictor
-    modname <- vapply(as.character(raw[[form_col]]), function(f) {
-      hit <- known[vapply(known, function(k) grepl(k, f, fixed = TRUE), logical(1))]
-      if (!length(hit)) "null" else paste(hit, collapse = "+")
-    }, character(1), USE.NAMES = FALSE)
-    message("  no modname column - model names rebuilt from `formula`")
+    modname <- as.character(raw[[form_col]])
+    message("  no modname column - using `formula` directly for model matching")
   }
 
   resp <- if (response_in_column) {
     resp_col <- pick_col(raw, c("response", "resp", "taxa"), what = "response")
     as.character(raw[[resp_col]])
   } else {
-    # do.call("rbind", out.all) on a named list builds row names as
-    # "<response>.<original rowname>". Those trailing row names are NOT always
-    # numeric - FSSgam often carries the model name through - so match the
-    # known response names by prefix rather than stripping a numeric suffix.
     rn <- as.character(raw$.rowname)
     if (is.null(expected)) {
       sub("\\..*$", "", rn)
@@ -227,49 +421,104 @@ tidy_fss_csv <- function(path, response_in_column, expected = NULL) {
 
 # Flag which candidate row is the model actually carried forward, and backfill
 # R2/EDF from the fitted object where the CSV did not carry them
+
+# =============================================================================
+# FLAG THE FINAL SELECTED MODEL
+# =============================================================================
+
 mark_selected <- function(candidates, final_models) {
 
   gam_stats <- function(model) {
+
     s <- summary(model)
+
     list(
-      r2  = unname(s$dev.expl),
-      edf = if (!is.null(s$s.table)) sum(s$s.table[, "edf"]) else NA_real_
+      r2 = unname(s$dev.expl),
+
+      edf = if (!is.null(s$s.table)) {
+        sum(s$s.table[, "edf"])
+      } else {
+        NA_real_
+      }
     )
   }
 
-  purrr::imap_dfr(final_models, function(mod, resp) {
 
-    final_set <- gam_predictor_set(mod)
-    stats     <- gam_stats(mod)
+  purrr::imap_dfr(
+    final_models,
+    function(mod, resp) {
 
-    rows <- candidates %>%
-      dplyr::filter(response == resp) %>%
-      dplyr::mutate(
-        selected = purrr::map_lgl(modname,
-                                  ~ identical(predictor_set_from_modname(.x), final_set))
-      )
+      stats <- gam_stats(mod)
 
-    if (nrow(rows) == 0) {
-      stop("No FSS candidate rows found for '", resp, "'.\n",
-           "Responses present in the CSV: ",
-           paste(sort(unique(candidates$response)), collapse = ", "),
-           "\nThese must match the names of the model list in ",
-           "01_fit-final-models.R.")
+      final_struct <- predictor_struct_from_model(mod)
+
+
+      rows <- candidates %>%
+        dplyr::filter(response == resp) %>%
+        dplyr::mutate(
+          selected = purrr::map_lgl(
+            modname,
+            ~ identical(
+              predictor_struct_from_modname(.x),
+              final_struct
+            )
+          )
+        )
+
+
+      if (nrow(rows) == 0) {
+
+        stop(
+          "No FSS candidate rows found for '",
+          resp,
+          "'.\n",
+          "Responses present in the CSV: ",
+          paste(
+            sort(unique(candidates$response)),
+            collapse = ", "
+          ),
+          "\nThese must match the names of the model list in ",
+          "01_fit-final-models.R."
+        )
+      }
+
+
+      if (!any(rows$selected)) {
+
+        warning(
+          "The final model for '",
+          resp,
+          "' could not be matched to an FSS candidate.\n",
+          "Final fitted-model structure: ",
+          paste(
+            names(final_struct),
+            ifelse(final_struct, ".by.year", ""),
+            collapse = " + "
+          ),
+          "\nCandidate model structures were not identical. ",
+          "Check the FSS modname and fitted model terms."
+        )
+      }
+
+
+      rows %>%
+        dplyr::mutate(
+          r2 = dplyr::if_else(
+            selected & is.na(r2),
+            stats$r2,
+            r2
+          ),
+
+          edf = dplyr::if_else(
+            selected & is.na(edf),
+            stats$edf,
+            edf
+          )
+        )
     }
-    if (!any(rows$selected)) {
-      warning("The final model for '", resp, "' (", paste(final_set, collapse = "+"),
-              ") does not match any FSS candidate row within delta AICc <= 2. ",
-              "Check that 01_fit-final-models.R still matches 05/06, and that ",
-              "the factor terms (year/status) appear in the FSS modnames.")
-    }
-
-    rows %>%
-      dplyr::mutate(
-        r2  = dplyr::if_else(selected & is.na(r2),  stats$r2,  r2),
-        edf = dplyr::if_else(selected & is.na(edf), stats$edf, edf)
-      )
-  })
+  )
 }
+
 
 # Final shaping for gt: pretty labels, ordering, response shown once per group
 format_report_table <- function(df, response_order) {
@@ -338,7 +587,7 @@ get_fish_report_table <- function(models = NULL) {
   # year and status are forced into every fish candidate via null.terms in 06
   # (see the TODO added there) - if you did not force them, drop this mutate.
   candidates <- dplyr::bind_rows(maxn, b20) %>%
-    dplyr::mutate(modname = paste0(modname, "+year+status"))
+    dplyr::mutate(modname = paste0(modname, "+status"))
 
   mark_selected(candidates, models) %>%
     format_report_table(fish_response_order)
