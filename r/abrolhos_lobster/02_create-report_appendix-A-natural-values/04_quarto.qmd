@@ -1,0 +1,143 @@
+---
+title: "Appendix A - Abrolhos Marine Park Western Rock Lobster Natural Values Report"
+subtitle: "North-west Marine Parks Network"
+filters:
+  - figure-numbering.lua
+format:
+  pdf:
+    output-file: "Project 4.21-Abrolhos-Lobster-Appendix A-q-Natural values.pdf"
+    fig-pos: 'H'
+    geometry:
+      - top=2cm
+      - bottom=2.5cm
+      - left=2cm
+      - right=2cm
+    include-in-header:
+      text: |
+        \usepackage{caption}
+        \usepackage{float}
+        \usepackage{chngcntr}
+        \floatplacement{table}{H}
+        \newcounter{metric}
+        \counterwithin*{figure}{metric}
+        \captionsetup{format=plain, indention=0pt}
+  html:
+    output-file: "Project 4.21-Abrolhos-Lobster-Appendix A-q-Natural values.html"
+    fig-dpi: 96
+    include-in-header:
+      text: |
+        <style>
+          caption,
+          .gt_caption,
+          .table-caption,
+          figcaption,
+          .figure-caption,
+          .quarto-float-caption,
+          .quarto-float-caption-top,
+          .quarto-float-tbl figcaption {
+            text-align: justify !important;
+            text-justify: inter-word;
+            hyphens: auto;
+          }
+        </style>
+toc: true
+execute:
+  echo: false
+  warning: false
+  message: false
+post-render: 05_move-pdf.R
+---
+
+```{r}
+#| include: false
+library(here)
+library(ggplot2)
+library(knitr)
+library(dplyr)
+
+# Quarto sets the working directory to this folder
+config <- yaml::read_yaml("00_config.yml")
+park <- config$park
+name <- config$name
+
+# Helper path
+lob <- function(f) here("plots", park, paste0(name, f))
+```
+
+# Natural Values
+
+Understanding of natural values
+
+{{< pagebreak >}}
+
+## Sampling summary
+
+```{r}
+#| tbl-cap: "Summary of western rock lobster pot sampling on Yamatji Shallow Bank, showing the number of pots deployed, the number of pots that fished successfully and were counted, and the number of lobster measured in each year and zone status. No-Take = National Park Zone, Fished = Special Purpose Zone."
+readRDS(here("data", park, "tidy", paste0(name, "_sampling-summary.rds"))) %>%
+  kable(col.names = c("Year", "Status", "Pots deployed", "Pots counted", "Lobster measured"))
+```
+
+{{< pagebreak >}}
+
+## Spatial distribution
+
+```{r}
+#| fig-width: 10
+#| fig-height: 6
+#| fig-cap: "Spatial distribution of western rock lobster abundance per pot, shown separately for each survey year. Symbol size is scaled to the number of lobster caught and crosses mark pots that caught no lobster. Commonwealth marine park zones and 10 m depth contours are shown."
+readRDS(lob("_bubble-plot.rds"))
+```
+
+{{< pagebreak >}}
+
+## Size structure
+
+```{r}
+#| fig-width: 8
+#| fig-height: 6
+#| fig-cap: !expr 'paste0("Carapace length frequency distribution of western rock lobster by zone status (columns) and survey year (rows). Bars are counts of lobster in 5 mm length bins. The dashed red line shows the ", config$maturity_mm, " mm carapace length size of maturity.")'
+readRDS(lob("_size-histogram.rds"))
+```
+
+{{< pagebreak >}}
+
+## Abundance by status and year
+
+### All lobster
+
+```{r}
+#| fig-width: 4
+#| fig-height: 3
+#| fig-cap: "All western rock lobster: mean number of lobster per pot (± SE) by zone status and survey year. Pots that caught no lobster are included as zeros."
+readRDS(lob("_metric-plot_all.rds"))
+```
+
+### Sub-size of maturity
+
+```{r}
+#| fig-width: 4
+#| fig-height: 3
+#| fig-cap: !expr 'paste0("Sub-size of maturity western rock lobster (<", config$maturity_mm, " mm carapace length): mean number of lobster per pot (± SE) by zone status and survey year. Pots that caught no lobster are included as zeros.")'
+readRDS(lob("_metric-plot_sub-maturity.rds"))
+```
+
+{{< pagebreak >}}
+
+### Greater than size of maturity
+
+```{r}
+#| fig-width: 7
+#| fig-height: 3
+#| fig-cap: !expr 'paste0("Western rock lobster greater than size of maturity (≥", config$maturity_mm, " mm carapace length) by sex: mean number of lobster per pot (± SE) by zone status and survey year. Lobster without a recorded sex are excluded. Pots that caught no lobster are included as zeros.")'
+readRDS(lob("_metric-plot_mature-by-sex.rds"))
+```
+
+### 30% greater than size of maturity
+
+```{r}
+#| fig-width: 7
+#| fig-height: 3
+#| fig-cap: !expr 'paste0("Western rock lobster 30% greater than size of maturity (≥", config$large_mm, " mm carapace length) by sex: mean number of lobster per pot (± SE) by zone status and survey year. Lobster without a recorded sex are excluded. Pots that caught no lobster are included as zeros.")'
+readRDS(lob("_metric-plot_large-by-sex.rds"))
+```

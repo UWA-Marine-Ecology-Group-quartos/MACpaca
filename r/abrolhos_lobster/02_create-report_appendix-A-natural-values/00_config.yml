@@ -1,0 +1,5 @@
+name:        "Abrolhos-lobster"
+park:        "abrolhos_lobster"
+years:       [2025, 2026]   # EVERY survey year
+maturity_mm: 75             # size of maturity (carapace length)
+large_mm:    100            # ~30% greater than size of maturity

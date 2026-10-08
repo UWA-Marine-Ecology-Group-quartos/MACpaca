@@ -1,0 +1,157 @@
+---
+title: "Appendix C - Abrolhos Marine Park Western Rock Lobster Data Analysis Report"
+subtitle: "North-west Marine Parks Network"
+filters:
+  - appendix-c-numbering.lua
+format:
+  pdf:
+    output-file: "Project 4.21-Abrolhos-Lobster-Appendix C-q-Data analysis.pdf"
+    fig-pos: 'H'
+    geometry:
+      - top=2cm
+      - bottom=2.5cm
+      - left=2cm
+      - right=2cm
+    include-in-header:
+      text: |
+        \usepackage{caption}
+        \usepackage{float}
+        \usepackage{chngcntr}
+        \renewcommand{\arraystretch}{1.35}
+        \floatplacement{table}{H}
+        \floatplacement{figure}{H}
+        \newcounter{parentfig}
+        \renewcommand{\thefigure}{C.\arabic{figure}}
+        \renewcommand{\thetable}{C.\arabic{table}}
+        \captionsetup{format=plain, indention=0pt}
+  html:
+    output-file: "Project 4.21-Abrolhos-Lobster-Appendix C-q-Data analysis.html"
+    fig-dpi: 96
+    embed-resources: true
+    include-in-header:
+      text: |
+        <style>
+          caption,
+          .gt_caption,
+          .table-caption,
+          figcaption,
+          .figure-caption,
+          .quarto-float-caption,
+          .quarto-float-caption-top,
+          .quarto-float-tbl figcaption {
+            text-align: justify !important;
+            text-justify: inter-word;
+            hyphens: auto;
+          }
+        </style>
+    include-after-body:
+      text: |
+        <script>
+        // appendix-c-numbering.lua only numbers figures - tables are prefixed
+        // here, flat as C.<n> to match the PDF's \thetable.
+        (function () {
+          var tbl = 0;
+          document.querySelectorAll("#quarto-document-content figcaption.quarto-float-tbl").forEach(function (el) {
+            tbl += 1;
+            el.innerHTML = el.innerHTML.replace(
+              /^(\s*Table(?:\s|&nbsp;)+)\d+/,
+              "$1C." + tbl
+            );
+          });
+        })();
+        </script>
+toc: true
+execute:
+  echo: false
+  warning: false
+  message: false
+post-render: 03_move-pdf.R
+---
+
+```{r}
+#| include: false
+library(here)
+library(knitr)
+library(dplyr)
+
+# Quarto sets the working directory to this folder
+config <- yaml::read_yaml("00_config.yml")
+park <- config$park
+name <- config$name
+
+out <- function(f) here("output", "model-output", park, paste0(name, f))
+
+fmt_p <- function(p) if_else(p < 0.001, "<0.001", formatC(p, format = "f", digits = 3))
+```
+
+# Data Analysis
+
+Statistical methods and test results underpinning the western rock lobster
+natural values reported in Appendix A.
+
+Lobster per pot was modelled for each metric with a negative binomial
+generalised linear mixed model (log link) in `glmmTMB`:
+
+`count ~ status * year + depth + (1 | string)`
+
+where `status` is No-Take (National Park Zone) or Fished (Special Purpose Zone),
+`year` is the survey year, `depth` is standardised pot depth and `string` is the
+line of pots each pot was set in. The same strings were fished in each year.
+Pots that caught no lobster are included as zeros.
+
+{{< pagebreak >}}
+
+## Status by year interaction
+
+```{r}
+#| tbl-cap: "Likelihood ratio test of the status by year interaction for each western rock lobster metric, comparing the full model with a model without the interaction. A significant result indicates the difference between No-Take and Fished changed between survey years."
+read.csv(out("_interaction-tests.csv")) %>%
+  transmute(Metric = response, Pots = n_pots,
+            `Chi squared` = round(chisq, 2), df = df,
+            p = fmt_p(p)) %>%
+  kable()
+```
+
+## Status within each year
+
+```{r}
+#| tbl-cap: "Test of zone status within each survey year for each western rock lobster metric. The ratio is predicted lobster per pot in No-Take divided by Fished, with depth held at its mean, so a ratio above 1 indicates more lobster in No-Take."
+read.csv(out("_status-tests.csv")) %>%
+  transmute(Metric = response, Year = year,
+            Ratio = round(ratio, 2), SE = round(SE, 2),
+            z = round(z.ratio, 2), p = fmt_p(p.value)) %>%
+  kable()
+```
+
+{{< pagebreak >}}
+
+## Predicted values
+
+```{r}
+#| fig-width: 7
+#| fig-height: 7
+#| fig-cap: "Predicted western rock lobster per pot (± SE) by zone status and survey year for each metric, from the negative binomial generalised linear mixed models, with depth held at its mean. Note each panel has its own y axis scale."
+readRDS(here("plots", park, paste0(name, "_predicted-metric-plot.rds")))
+```
+
+```{r}
+#| tbl-cap: "Predicted western rock lobster per pot by metric, zone status and survey year, with standard errors and asymptotic 95% confidence limits. Depth is held at its mean."
+read.csv(out("_predictions.csv")) %>%
+  transmute(Metric = response, Status = status, Year = year,
+            `Per pot` = round(mean, 2), SE = round(se, 2),
+            `Lower CL` = round(asymp.LCL, 2), `Upper CL` = round(asymp.UCL, 2)) %>%
+  kable()
+```
+
+{{< pagebreak >}}
+
+## Model coefficients
+
+```{r}
+#| tbl-cap: "Coefficients of the negative binomial generalised linear mixed models of western rock lobster per pot, on the log scale. Reference levels are Fished in the first survey year, so the status term is the effect of protection in that year and the interaction term is the change in that effect in the later year."
+read.csv(out("_coefficients.csv")) %>%
+  transmute(Metric = response, Term = term,
+            Estimate = round(estimate, 3), SE = round(se, 3),
+            z = round(z, 2), p = fmt_p(p)) %>%
+  kable()
+```

@@ -1,0 +1,9 @@
+name:        "Abrolhos-lobster"
+park:        "abrolhos_lobster"
+years:       [2025, 2026]   # EVERY survey year, must match Appendix A config
+maturity_mm: 75             # must match Appendix A config
+large_mm:    100            # must match Appendix A config
+
+# Appendix C output name. Must match the `output-file:` in 02_quarto.qmd,
+# minus the extension.
+report_name: "Project 4.21-Abrolhos-Lobster-Appendix C-q-Data analysis"
