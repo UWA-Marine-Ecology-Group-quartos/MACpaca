@@ -5,7 +5,6 @@
 # Author:  Claude Spencer & Henry Evans
 # Date:    July 2026
 ###
-
 rm(list = ls())
 
 # Set the study name
@@ -218,7 +217,7 @@ fabund <- bind_rows(tidy_maxn, tidy_b20) %>%
 # predictor variables, factor variables, k and bs
 
 #Total abundance
-m_abundance <- gam(count ~  year + status +
+m_abundance <- gam(count ~  year +
                      s(geoscience_depth, by = year, k = 3, bs = "cr") +
                      s(geoscience_detrended, by = year, k = 3, bs = "cr") +
                      s(reef, by = year, k = 3, bs = "cr"),
@@ -228,8 +227,9 @@ summary(m_abundance)
 # plot(m_abundance)
 
 # Species richness
-m_richness <- gam(count ~ year + status +
-                    s(geoscience_detrended, k = 3, bs = "cr") + s(reef, k = 3, bs = "cr") +
+m_richness <- gam(count ~ year +
+                    s(geoscience_detrended, k = 3, bs = "cr") +
+                    s(reef, k = 3, bs = "cr") +
                     s(geoscience_aspect, by = year, k = 3, bs = "cc") +
                     s(geoscience_depth, by = year, k = 3, bs = "cr"),
                   data = fabund %>% dplyr::filter(response %in% "species_richness"),
@@ -238,7 +238,7 @@ summary(m_richness)
 # plot(m_richness)
 
 # CTI
-m_cti <- gam(count ~ year + status +
+m_cti <- gam(count ~ year +
                s(geoscience_aspect, by = year, k = 3, bs = "cc") +
                s(geoscience_depth, by = year, k = 3, bs = "cr") +
                s(reef, by = year, k = 3, bs = "cr"),
@@ -248,11 +248,11 @@ summary(m_cti)
 # plot(m_cti)
 
 # B20
-m_b20 <- gam(count ~ year + status +
+m_b20 <- gam(count ~ year +
                s(geoscience_aspect, k = 3, bs = "cc") +
-               s(reef, k = 3, bs = "cr") +
                s(geoscience_depth, by = year, k = 3, bs = "cr") +
-               s(geoscience_roughness, by = year, k = 3, bs = "cr"),
+               s(geoscience_roughness, by = year, k = 3, bs = "cr") +
+               s(reef, by = year, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "b20"),
              family = tw())
 summary(m_b20)
@@ -270,9 +270,9 @@ preddf <- preds %>%
 # Extract status to predict onto (same as habitat script)
 marine_parks <- st_read("data/amp_shapefile/Australian_Marine_Parks_v2.shp") %>%
   dplyr::filter(name %in% c("Beagle", "Kent Group National Park")) %>% # TODO select marine parks in your area
-  #dplyr::filter(zone_type %in% c("Sanctuary Zone (IUCN VI)",
-  #                              "National Park Zone (IUCN II)")) %>%
-  #dplyr::mutate(status = "No-Take") %>%
+  dplyr::filter(zone_type %in% c("Sanctuary Zone (IUCN VI)",
+                              "National Park Zone (IUCN II)")) %>%
+  dplyr::mutate(status = "No-Take") %>%
   vect()
 
 # Points for extraction

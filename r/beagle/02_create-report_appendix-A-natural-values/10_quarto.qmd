@@ -192,12 +192,13 @@ img_path <- here("plots/beagle/habitat/BeagleAMP_predicted-dominant-benthos-and-
 img <- png::readPNG(img_path)
 grid::grid.raster(img)
 ```
-
+<!--
 {{< pagebreak >}}
 
 ### Functional reef distribution and probability
 
 ```{r}
+#| eval: false
 #| fig-width: 8
 #| fig-height: 7
 #| fig-cap: "Predicted reef distribution probability and uncertainty from stereo-BRUV groundtruthing. Commonwealth and State marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contours at 30 and 70 m are shown."
@@ -205,7 +206,7 @@ img_path <- here("plots/beagle/habitat/BeagleAMP_predicted-reef-and-se_2018-2025
 img <- png::readPNG(img_path)
 grid::grid.raster(img)
 ```
-
+--->
 {{< pagebreak >}}
 
 ## Benchmarks of benthic natural values
@@ -350,7 +351,7 @@ p_control
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Demersal fish - Species richness: species accumulation curve by year from stereo-BRUV groundtruthing."
+#| fig-cap: "Demersal fish - Species richness: species accumulation curve by year from stereo-BRUV groundtruthing. No-Take deployments in this curve are from State marine parks."
 p_bar <- readRDS(here("plots/beagle/fish/BeagleAMP_SAC-sample.rds"))
 p_bar
 ```
@@ -428,10 +429,10 @@ p_control
 ```
 
 ```{r}
-#| fig-width: 6
+#| fig-width: 8
 #| fig-height: 3
 #| fig-cap: "Demersal fish - Large Reef Fish Index\\*: top 10 greatest biomass species (pooled across deployments) from stereo-BRUV groundtruthing. **Bold** species are unique within the 10 greatest biomass species by year."
-p_bar <- readRDS(here("plots/beagle/fish/BeagleAMP_top_b20_bar_plot_mixed.rds"))
+p_bar <- readRDS(here("plots/beagle/fish/BeagleAMP_top_b20_bar_plot.rds"))
 p_bar
 ```
 
@@ -468,7 +469,7 @@ p_control
 ```
 
 ```{r}
-#| fig-width: 6
+#| fig-width: 8
 #| fig-height: 3
 #| fig-cap: "Demersal fish - Reef Fish Thermal Index: species thermal niche of top 10 most abundant species (pooled across deployments) from stereo-BRUV groundtruthing. **Bold** species are unique within the 10 greatest biomass species by year."
 p_bar <- readRDS(here("plots/beagle/fish/BeagleAMP_top_maxn_cti_bar_plot.rds"))

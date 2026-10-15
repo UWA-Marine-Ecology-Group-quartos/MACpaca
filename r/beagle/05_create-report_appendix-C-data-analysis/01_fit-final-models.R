@@ -138,26 +138,27 @@ stopifnot(all(c("reef") %in% names(tidy_b20)))
 # verbatim from the bottom of 06_model-data_fish.R. [TEMPLATE]
 
 final_models_fish <- list(
-  species_richness = gam(count ~ year + status +
-                           s(geoscience_detrended, k = 3, bs = "cr") + s(reef, k = 3, bs = "cr") +
+  species_richness = gam(count ~ year +
+                           s(geoscience_detrended, k = 3, bs = "cr") +
+                           s(reef, k = 3, bs = "cr") +
                            s(geoscience_aspect, by = year, k = 3, bs = "cc") +
                            s(geoscience_depth, by = year, k = 3, bs = "cr"),
                          data = fabund %>% dplyr::filter(response %in% "species_richness"),
                          family = poisson()), # [TEMPLATE]
-  total_abundance  = gam(count ~  year + status +
+  total_abundance  = gam(count ~  year +
                            s(geoscience_depth, by = year, k = 3, bs = "cr") +
                            s(geoscience_detrended, by = year, k = 3, bs = "cr") +
                            s(reef, by = year, k = 3, bs = "cr"),
                          data = fabund %>% dplyr::filter(response %in% "total_abundance"),
                          family = tw()), # [TEMPLATE]
-  b20              =  gam(count ~ year + status +
+  b20              =  gam(count ~ year +
                             s(geoscience_aspect, k = 3, bs = "cc") +
-                            s(reef, k = 3, bs = "cr") +
                             s(geoscience_depth, by = year, k = 3, bs = "cr") +
-                            s(geoscience_roughness, by = year, k = 3, bs = "cr"),
+                            s(geoscience_roughness, by = year, k = 3, bs = "cr") +
+                            s(reef, by = year, k = 3, bs = "cr"),
                           data = fabund %>% dplyr::filter(response %in% "b20"),
                           family = tw()), # [TEMPLATE]
-  cti              =  gam(count ~ year + status +
+  cti              =  gam(count ~  year +
                             s(geoscience_aspect, by = year, k = 3, bs = "cc") +
                             s(geoscience_depth, by = year, k = 3, bs = "cr") +
                             s(reef, by = year, k = 3, bs = "cr"),

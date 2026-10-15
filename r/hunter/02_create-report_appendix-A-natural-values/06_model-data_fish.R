@@ -35,7 +35,7 @@ library(FSSgam)
 library(CheckEM)
 
 tidy_maxn <- readRDS(paste0("data/", park, "/tidy/", name, "_tidy-count.rds")) %>% # TODO check outlier removal
-  dplyr::filter(geoscience_roughness < 10) %>% # Remove outliers in roughness
+  dplyr::filter(geoscience_roughness < 7) %>% # Remove outliers in roughness
   glimpse()
 
 # Re-set the predictors for modeling----
@@ -124,7 +124,7 @@ write.csv(all.var.imp, file = paste(savedir, paste(name, "all.var.imp.csv", sep 
 
 # Do FSS for B20
 tidy_b20 <- readRDS(paste0("data/", park, "/tidy/", name, "_tidy-b20.rds")) %>%
-  dplyr::filter(geoscience_roughness < 10) %>% # TODO check, make same as above
+  dplyr::filter(geoscience_roughness < 7) %>% # TODO check, make same as above
   glimpse()
 
 # # Re-set the predictors for modeling----
@@ -226,8 +226,8 @@ summary(m_abundance)
 
 # Species richness
 m_richness <- gam(count ~
-                    s(geoscience_aspect, k = 3, bs = "cc") +
-                    s(geoscience_depth, k = 3, bs = "cr"),
+                    s(geoscience_detrended, k = 3, bs = "cr") +
+                    s(geoscience_roughness, k = 3, bs = "cr"),
                   data = fabund %>% dplyr::filter(response %in% "species_richness"),
                   family = nb)
 summary(m_richness)
@@ -243,8 +243,7 @@ summary(m_cti)
 
 # B20
 m_b20 <- gam(count ~
-               s(geoscience_aspect, k = 3, bs = "cc") +
-               s(geoscience_roughness, k = 3, bs = "cr"),
+               s(geoscience_detrended, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "b20"),
              family = tw())
 summary(m_b20)

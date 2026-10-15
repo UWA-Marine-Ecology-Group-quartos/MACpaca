@@ -378,6 +378,24 @@ theme.larger.text<-theme(
 # read in STI
 sti <- CheckEM::australia_life_history %>%
   clean_names() %>%
+  dplyr::mutate(rls_thermal_niche = dplyr::if_else(caab_code == 37465005, 16.68649, rls_thermal_niche),
+                fb_code = dplyr::if_else(caab_code == 37465005, "13139",fb_code),
+                fb_length_weight_measure = dplyr::if_else(caab_code == 37465005, "TL", fb_length_weight_measure),
+                fb_a = dplyr::if_else(caab_code == 37465005, 0.0556, fb_a),
+                fb_b = dplyr::if_else(caab_code == 37465005, 2.877, fb_b),
+                length_max_cm = dplyr::if_else(caab_code == 37465005, 31, length_max_cm))%>%
+  dplyr::mutate(rls_thermal_niche = dplyr::if_else(caab_code == 37321001, 20.75975, rls_thermal_niche),
+                fb_code = dplyr::if_else(caab_code == 37321001, "7945",fb_code),
+                fb_length_weight_measure = dplyr::if_else(caab_code == 37321001, "TL", fb_length_weight_measure),
+                fb_a = dplyr::if_else(caab_code == 37321001, 0.0134, fb_a),
+                fb_b = dplyr::if_else(caab_code == 37321001, 2.958, fb_b),
+                length_max_cm = dplyr::if_else(caab_code == 37321001, 30, length_max_cm))%>%
+  dplyr::mutate(#rls_thermal_niche = dplyr::if_else(caab_code == 37326001, 20.75975, rls_thermal_niche),
+    fb_code = dplyr::if_else(caab_code == 37326001, "356",fb_code),
+    fb_length_weight_measure = dplyr::if_else(caab_code == 37321001, "SL", fb_length_weight_measure),
+    fb_a = dplyr::if_else(caab_code == 37326001, 0.0251, fb_a),
+    fb_b = dplyr::if_else(caab_code == 37326001, 3.014, fb_b),
+    length_max_cm = dplyr::if_else(caab_code == 37326001, 30, length_max_cm))%>%
   dplyr::select(family, genus, species, rls_thermal_niche) %>%
   mutate(scientific = paste(genus, species, sep = " ")) %>%
   dplyr::distinct() %>%

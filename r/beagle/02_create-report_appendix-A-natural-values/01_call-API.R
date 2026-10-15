@@ -39,9 +39,10 @@ CheckEM::ga_api_all_data(synthesis_id = "80", # TODO change synthesis ID for dif
 
 # Method is set per source so BOSS can be added below. Kept as character until
 # after the optional combine, then converted to a factor with year and status
-metadata <- readRDS(paste0("data/", park, "/raw/metadata.RDS")) %>%
-  mutate(method = "BRUV")
 
+metadata <- readRDS(paste0("data/", park, "/raw/metadata.RDS")) %>%
+  dplyr::mutate(
+    method = "BRUV")
 # TODO BOSS: not every campaign has BOSS (drop-camera) benthos. If this one
 # does, unhash the block below to load it and combine it with the BRUV data.
 # TODO - also please note if BOSS samples spatial extent is very different from
@@ -77,7 +78,6 @@ metadata <- metadata %>%
          status = as.factor(status)) %>%
   mutate(status = if_else(status %in% c("Ia", "II"), "No-Take", status),
          status = if_else(status %in% c("IV", "VI"), "Fished", status)) %>%
-
   glimpse()
 
 saveRDS(metadata, paste0("data/", park, "/raw/metadata.RDS"))

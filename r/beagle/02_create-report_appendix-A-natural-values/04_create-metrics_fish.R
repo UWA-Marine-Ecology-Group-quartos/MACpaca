@@ -56,15 +56,17 @@ spp_list <- count %>%
 write.csv(spp_list, file = paste0("data/", park, "/tidy/", name, "_species_list.csv"))
 
 ta.sr <- count %>%
-  dplyr::select(-c(family, genus, species)) %>%
-  pivot_wider(names_from = "scientific_name", values_from = count) %>%
-  dplyr::mutate(
-    total_abundance = rowSums(across(-c(campaignid, sample)), na.rm = TRUE),
-    species_richness = rowSums(across(-c(campaignid, sample)) > 0)
+  dplyr::group_by(campaignid, sample) %>%
+  dplyr::summarise(
+    total_abundance = sum(count, na.rm = TRUE),
+    species_richness = sum(count > 0, na.rm = TRUE),
+    .groups = "drop"
   ) %>%
-  dplyr::select(campaignid, sample, total_abundance, species_richness) %>%
-  pivot_longer(cols = c("total_abundance", "species_richness"), names_to = "response", values_to = "count") %>%
-  glimpse()
+  tidyr::pivot_longer(
+    cols = c(total_abundance, species_richness),
+    names_to = "response",
+    values_to = "count"
+  )
 
 # -----------------------------
 # Species Accumulation
@@ -177,6 +179,18 @@ b20_length <- readRDS(paste0("data/", park, "/raw/_length-with-zeros.RDS")) %>%
   dplyr::filter(genus != "Trachurus") %>%
   mutate(length_cm = length_mm / 10) %>%
   left_join(CheckEM::australia_life_history) %>%
+  dplyr::mutate(rls_thermal_niche = dplyr::if_else(caab_code == 37465005, 16.68649, rls_thermal_niche),
+                fb_code = dplyr::if_else(caab_code == 37465005, "13139",fb_code),
+                fb_length_weight_measure = dplyr::if_else(caab_code == 37465005, "TL", fb_length_weight_measure),
+                fb_a = dplyr::if_else(caab_code == 37465005, 0.0556, fb_a),
+                fb_b = dplyr::if_else(caab_code == 37465005, 2.877, fb_b),
+                length_max_cm = dplyr::if_else(caab_code == 37465005, 31, length_max_cm))%>%
+  dplyr::mutate(rls_thermal_niche = dplyr::if_else(caab_code == 37296003, 15.1759, rls_thermal_niche),
+                fb_code = dplyr::if_else(caab_code == 37296003, "4873",fb_code),
+                fb_length_weight_measure = dplyr::if_else(caab_code == 37296003, "TL", fb_length_weight_measure),
+                fb_a = dplyr::if_else(caab_code == 37296003, 0.00111, fb_a),
+                fb_b = dplyr::if_else(caab_code == 37296003, 3.511, fb_b),
+                length_max_cm = dplyr::if_else(caab_code == 37296003, 46, length_max_cm))%>%
   dplyr::mutate(scientific_name = paste(genus, species, sep = " ")) %>%
   glimpse()
 
@@ -188,6 +202,8 @@ biomass <- b20_length %>%
       fb_length_weight_measure %in% "FL" ~ length_cm,
       fb_length_weight_measure %in% "TL" & fb_ll_equation_type %in% "FL → TL" ~ (length_cm * fb_b_ll) + fb_a_ll,
       fb_length_weight_measure %in% "TL" & fb_ll_equation_type %in% "TL → FL" ~ (length_cm - fb_a_ll) / fb_b_ll,
+      # Weight equation uses TL and measured length is already TL
+      fb_length_weight_measure %in% "TL" ~ length_cm,  # no length equation, assume FL = TL
       TRUE ~ NA_real_
     ),
     mass_g = case_when(
@@ -216,6 +232,7 @@ b20_mass <- biomass %>%
 
 b20_mass_check <- b20_mass %>%
   select(sample, year, scientific_name, b20_mass_g, length_cm)
+
 
 sp_watercol <- b20_mass %>%
   distinct(scientific_name, rls_water_column)
@@ -307,6 +324,18 @@ b20_length_amp <- readRDS(paste0("data/", park, "/raw/_length-with-zeros.RDS")) 
   dplyr::filter(genus != "Trachurus") %>%
   mutate(length_cm = length_mm / 10) %>%
   left_join(CheckEM::australia_life_history) %>%
+  dplyr::mutate(rls_thermal_niche = dplyr::if_else(caab_code == 37465005, 16.68649, rls_thermal_niche),
+                fb_code = dplyr::if_else(caab_code == 37465005, "13139",fb_code),
+                fb_length_weight_measure = dplyr::if_else(caab_code == 37465005, "TL", fb_length_weight_measure),
+                fb_a = dplyr::if_else(caab_code == 37465005, 0.0556, fb_a),
+                fb_b = dplyr::if_else(caab_code == 37465005, 2.877, fb_b),
+                length_max_cm = dplyr::if_else(caab_code == 37465005, 31, length_max_cm))%>%
+  dplyr::mutate(rls_thermal_niche = dplyr::if_else(caab_code == 37296003, 15.1759, rls_thermal_niche),
+                fb_code = dplyr::if_else(caab_code == 37296003, "4873",fb_code),
+                fb_length_weight_measure = dplyr::if_else(caab_code == 37296003, "TL", fb_length_weight_measure),
+                fb_a = dplyr::if_else(caab_code == 37296003, 0.00111, fb_a),
+                fb_b = dplyr::if_else(caab_code == 37296003, 3.511, fb_b),
+                length_max_cm = dplyr::if_else(caab_code == 37296003, 46, length_max_cm))%>%
   dplyr::mutate(scientific_name = paste(genus, species, sep = " "))
 
 # 1) Calculate mass from lengths
@@ -322,6 +351,8 @@ biomass_amp <- b20_length_amp %>%
       fb_length_weight_measure %in% "FL" ~ length_cm,
       fb_length_weight_measure %in% "TL" & fb_ll_equation_type %in% "FL → TL" ~ (length_cm * fb_b_ll) + fb_a_ll,
       fb_length_weight_measure %in% "TL" & fb_ll_equation_type %in% "TL → FL" ~ (length_cm - fb_a_ll) / fb_b_ll,
+      # Weight equation uses TL and measured length is already TL
+      fb_length_weight_measure %in% "TL" ~ length_cm,  # no length equation, assume FL = TL
       TRUE ~ NA_real_
     ),
     mass_g = case_when(

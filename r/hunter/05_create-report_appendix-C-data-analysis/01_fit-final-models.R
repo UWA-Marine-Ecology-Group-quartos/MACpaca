@@ -108,12 +108,12 @@ saveRDS(habi,                 file.path(outdir, paste0(name, "_habitat-data.rds"
 # =============================================================================
 
 tidy_maxn <- readRDS(here("data", park, "tidy", paste0(name, "_tidy-count.rds"))) %>%
-  dplyr::filter(geoscience_roughness < 10) %>%   # TODO matches the outlier filter in 06 - comment out here too if it is commented out there
+  dplyr::filter(geoscience_roughness < 7) %>%   # TODO matches the outlier filter in 06 - comment out here too if it is commented out there
   dplyr::mutate(year = factor(as.character(year), levels = year_levels)) %>%
   glimpse()
 
 tidy_b20 <- readRDS(here("data", park, "tidy", paste0(name, "_tidy-b20.rds"))) %>%
-  dplyr::filter(geoscience_roughness < 10) %>%   # TODO matches the outlier filter in 06 - comment out here too if it is commented out there
+  dplyr::filter(geoscience_roughness < 7) %>%   # TODO matches the outlier filter in 06 - comment out here too if it is commented out there
   dplyr::mutate(year = factor(as.character(year), levels = year_levels)) %>%
   glimpse()
 
@@ -137,8 +137,8 @@ stopifnot(all(c("reef") %in% names(tidy_b20)))
 
 final_models_fish <- list(
   species_richness = gam(count ~
-                           s(geoscience_aspect, k = 3, bs = "cc") +
-                           s(geoscience_depth, k = 3, bs = "cr"),
+                           s(geoscience_detrended, k = 3, bs = "cr") +
+                           s(geoscience_roughness, k = 3, bs = "cr"),
                          data = fabund %>% dplyr::filter(response %in% "species_richness"),
                          family = nb), # [TEMPLATE]
   total_abundance  = gam(count ~
@@ -147,8 +147,7 @@ final_models_fish <- list(
                          data = fabund %>% dplyr::filter(response %in% "total_abundance"),
                          family = poisson), # [TEMPLATE]
   b20              = gam(count ~
-                           s(geoscience_aspect, k = 3, bs = "cc") +
-                           s(geoscience_roughness, k = 3, bs = "cr"),
+                           s(geoscience_detrended, k = 3, bs = "cr"),
                          data = fabund %>% dplyr::filter(response %in% "b20"),
                          family = tw()), # [TEMPLATE]
   cti              =  gam(count ~

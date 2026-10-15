@@ -380,6 +380,18 @@ theme.larger.text<-theme(
 # read in STI
 sti <- CheckEM::australia_life_history %>%
   clean_names() %>%
+  dplyr::mutate(rls_thermal_niche = dplyr::if_else(caab_code == 37465005, 16.68649, rls_thermal_niche),
+                fb_code = dplyr::if_else(caab_code == 37465005, "13139",fb_code),
+                fb_length_weight_measure = dplyr::if_else(caab_code == 37465005, "TL", fb_length_weight_measure),
+                fb_a = dplyr::if_else(caab_code == 37465005, 0.0556, fb_a),
+                fb_b = dplyr::if_else(caab_code == 37465005, 2.877, fb_b),
+                length_max_cm = dplyr::if_else(caab_code == 37465005, 31, length_max_cm))%>%
+  dplyr::mutate(rls_thermal_niche = dplyr::if_else(caab_code == 37296003, 15.1759, rls_thermal_niche),
+                fb_code = dplyr::if_else(caab_code == 37296003, "4873",fb_code),
+                fb_length_weight_measure = dplyr::if_else(caab_code == 37296003, "TL", fb_length_weight_measure),
+                fb_a = dplyr::if_else(caab_code == 37296003, 0.00111, fb_a),
+                fb_b = dplyr::if_else(caab_code == 37296003, 3.511, fb_b),
+                length_max_cm = dplyr::if_else(caab_code == 37296003, 46, length_max_cm))%>%
   dplyr::select(family, genus, species, rls_thermal_niche) %>%
   mutate(scientific = paste(genus, species, sep = " ")) %>%
   dplyr::distinct() %>%
@@ -696,7 +708,7 @@ bar_cti <- ggplot(
   ) +
   theme_bw() +
   theme_collapse +
-  theme(axis.text.y = element_markdown(),
+  theme(axis.text.y = element_markdown(size = 8),
         panel.grid.major.x = element_line(color = "grey90"))
 
 bar_cti
@@ -776,7 +788,7 @@ plot_b20_bars <- function(plot_data, fill_values, fill_breaks) {
     theme_bw() +
     theme_collapse +
     theme(
-      axis.text.y = element_markdown(),
+      axis.text.y = element_markdown(size= 8),
       panel.grid.major.x = element_line(color = "grey90")
     )
 }
@@ -810,7 +822,9 @@ ggsave(
   units  = "in",
   bg     = "white"
 )
-
+saveRDS(bar_b20,
+        paste0("plots/", park, "/fish/", name, "_top_b20_bar_plot.rds")
+)
 # -------------------------------------------------------------------------
 # Plot 2: 2014 Combined, 2024 split into Fished / No-Take
 # TODO check and edit status

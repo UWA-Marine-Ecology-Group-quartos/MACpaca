@@ -324,8 +324,11 @@ model_terms_match <- function(candidate_modname, final_model) {
 
 # Pretty "detrended+aspect+Z+year" string for the Model column
 label_model <- function(modname) {
+  message("LABEL INPUT: ", modname)
+
   tms_raw <- str_split(as.character(modname), "\\+")[[1]] %>% str_trim()
   tms_raw <- tms_raw[nzchar(tms_raw) & tms_raw != "null"]
+
   if (!length(tms_raw)) return("null")
 
   by_year  <- grepl("\\.by\\.year$", tms_raw)
@@ -338,7 +341,11 @@ label_model <- function(modname) {
   labs <- dplyr::coalesce(unname(term_labels[tms_base]), tms_base)
   labs <- ifelse(by_year, paste0(labs, "(year)"), labs)
 
-  paste(labs, collapse = "+")
+  out <- paste(labs, collapse = "+")
+
+  message("LABEL OUTPUT: ", out)
+
+  out
 }
 
 # Column names vary a little between FSSgam versions - find the first that fits
@@ -586,8 +593,7 @@ get_fish_report_table <- function(models = NULL) {
 
   # year and status are forced into every fish candidate via null.terms in 06
   # (see the TODO added there) - if you did not force them, drop this mutate.
-  candidates <- dplyr::bind_rows(maxn, b20) %>%
-    dplyr::mutate(modname = paste0(modname, "+status"))
+  candidates <- dplyr::bind_rows(maxn, b20)
 
   mark_selected(candidates, models) %>%
     format_report_table(fish_response_order)
