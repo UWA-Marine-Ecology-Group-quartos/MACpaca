@@ -90,8 +90,8 @@ habitat_lookup <- c(
   "Sediment" = "sand",
   #"Macroalgae" = "macro",
   #"Seagrass" = "seagrass",
-  "Sessile invertebrates" = "inverts",
-  "Bare Rock" = "rock"
+  "Sessile invertebrates" = "inverts"
+  #"Bare Rock" = "rock"
 )
 
 # Optional habitat colours for other functions if needed
@@ -99,7 +99,7 @@ hab_cols <- c(
   "Sediment" = "wheat",
   "Macroalgae" = "darkgoldenrod4",
   #"Seagrass" = "forestgreen",
-  "Bare rock" = "grey40",
+  #"Bare rock" = "grey40",
   "Sessile invertebrates" = "plum"
 )
 

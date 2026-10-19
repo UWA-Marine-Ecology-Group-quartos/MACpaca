@@ -30,18 +30,20 @@ controlplot_benthos <- function(data, taxa, amp_abbrv, state_abbrv,
   zone_levels <- c(
     #paste(amp_abbrv, "HPZ"),
     #paste(amp_abbrv, "NPZ (IUCN II)"),
-    paste(amp_abbrv, "other zones"),
-    "Coastal waters"
+    paste(amp_abbrv, "other zones")
+    #"Coastal waters"
   )
 
   plot_dat <- data %>%
-    dplyr::filter(!is.na(.data[[mean_col]])) %>%
+    dplyr::filter(
+      !is.na(.data[[mean_col]]),
+      zone_new %in% zone_levels          # drops "Coastal waters" before it becomes NA
+    ) %>%
     dplyr::mutate(
-      year = as.numeric(as.character(year)),   # <-- add this
+      year = as.numeric(as.character(year)),
       depth_class = factor(depth_class, levels = depth_levels),
       zone_new = factor(zone_new, levels = zone_levels)
     )
-
 
   if (nrow(plot_dat) == 0) {
     message("No data available to plot for ", taxa_label)
@@ -49,12 +51,12 @@ controlplot_benthos <- function(data, taxa, amp_abbrv, state_abbrv,
   }
 
   fill_vals <- setNames(
-    c( "#b9e6fb", "#e8e8e8"), #"#fff8a3", "#7bbc63",
+    c( "#b9e6fb"), #"#fff8a3", "#7bbc63", , "#e8e8e8"
     zone_levels
   )
 
   shape_vals <- setNames(
-    c( 21, 22), #21, 21,
+    c( 21), #21, 21,, 22
     zone_levels
   )
 

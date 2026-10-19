@@ -262,6 +262,8 @@ preddf <- preds %>%
 marine_parks <- st_read("data/amp_shapefile/Australian_Marine_Parks_v2.shp") %>%
   dplyr::filter(name %in% c("Hunter")) %>% # TODO select marine parks in your area
   vect()
+# Hunter Marine Park polygon in the same CRS as the prediction rasters
+park_mask <- terra::project(marine_parks, "epsg:4326")
 
 # Points for extraction
 predv <- vect(preddf, geom = c("x", "y"), crs = "epsg:4326")
@@ -408,7 +410,8 @@ for (y in seq_along(pred.years)) {
               " (", this_year, "). Skipping MESS mask.")
       temppred_m <- temppred
     }
-
+    # Clip predictions to Hunter Marine Park only
+    temppred_m <- terra::mask(temppred_m, park_mask)
     if (i == 1) {
       preddf_m <- temppred_m
     } else {

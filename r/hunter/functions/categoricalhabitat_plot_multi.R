@@ -8,7 +8,7 @@ categoricalhabitat_plot_multi <- function(dat_list, prediction_limits, habitat_l
 
   # All available colours in canonical display order
   all_colours <- c(
-    "Rock"                  = "grey40",
+    "Bare Rock"                  = "grey40",
     "Sessile invertebrates" = "plum",
     "Macroalgae"            = "darkgoldenrod4",
     "Seagrass"              = "forestgreen",
@@ -34,7 +34,7 @@ categoricalhabitat_plot_multi <- function(dat_list, prediction_limits, habitat_l
         dom_tag %in% c("sand", "Sand")                                                        ~ "Sediment",
         dom_tag %in% c("macro", "macroalgae", "Macroalgae")                                   ~ "Macroalgae",
         dom_tag %in% c("seagrass", "seagrasses", "Seagrass", "Seagrasses")                    ~ "Seagrass",
-        dom_tag %in% c("rock", "Rock")                                                        ~ "Rock",
+        dom_tag %in% c("rock", "Rock")                                                        ~ "Bare Rock",
         dom_tag %in% c("sessile invertebrates", "Sessile Invertebrates", "inverts", "Inverts") ~ "Sessile invertebrates",
         TRUE ~ dom_tag
       ),

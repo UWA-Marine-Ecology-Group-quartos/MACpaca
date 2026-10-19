@@ -27,20 +27,22 @@ controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
   # controldata_fish(), so only the Commonwealth SWCMP zones plus that
   # catch-all are ever present here.
   zone_levels <- c(
-    paste(amp_abbrv, "HPZ"),
-    paste(amp_abbrv, "NPZ (IUCN II)"),
-    paste(amp_abbrv, "other zones"),
-    "Coastal waters"
+    #paste(amp_abbrv, "HPZ"),
+    #paste(amp_abbrv, "NPZ (IUCN II)"),
+    paste(amp_abbrv, "other zones")
+    #"Coastal waters"
   )
 
   plot_dat <- data %>%
-    dplyr::filter(!is.na(.data[[mean_col]])) %>%
+    dplyr::filter(
+      !is.na(.data[[mean_col]]),
+      zone_new %in% zone_levels          # drops "Coastal waters" before it becomes NA
+    ) %>%
     dplyr::mutate(
-      year = as.numeric(year),
+      year = as.numeric(as.character(year)),
       depth_class = factor(depth_class, levels = depth_levels),
-      zone_new = droplevels(factor(zone_new, levels = zone_levels))
+      zone_new = factor(zone_new, levels = zone_levels)
     )
-
 
   if (nrow(plot_dat) == 0) {
     message("No data available to plot for ", metric_label)
@@ -51,7 +53,7 @@ controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
   zones_used <- levels(plot_dat$zone_new)
 
   fill_vals <- setNames(
-    c("#fff8a3", "#7bbc63", "#b9e6fb", "#e8e8e8"),
+    c("#b9e6fb","#fff8a3", "#7bbc63",  "#e8e8e8"),
     zone_levels
   )[zones_used]
 
