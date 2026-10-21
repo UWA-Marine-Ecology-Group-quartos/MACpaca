@@ -310,10 +310,10 @@ park_dat.control <- dplyr::bind_rows(
   )
 
 metric_lookup <- c(
-  "richness"  = "Species richness (per BRUV)",
-  "cti"       = "Community Thermal Index (\u00B0C)",
-  "b20"       = "Large reef fish index* (biomass g per BRUV)",
-  "abundance" = "Total abundance (per BRUV)"
+  "richness"  = "Mean Predicted\nSpecies richness (per BRUV)",
+  "cti"       = "Mean Predicted\nCommunity Thermal Index (\u00B0C)",
+  "b20"       = "Mean Predicted\nLarge reef fish index* (biomass g per BRUV)",
+  "abundance" = "Mean Predicted\nTotal abundance (per BRUV)"
 )
 
 for (metric_code in names(metric_lookup)) {

@@ -344,7 +344,7 @@ p_bubble
 #| fig-width: 6
 #| fig-height: 3
 #| fig-cap: "Demersal fish - Species richness: benchmark plots by zone and depth contour from stereo-BRUV groundtruthing. BMP = Beagle Marine Park (Commonwealth)."
-p_control <- readRDS(here("plots/beagle/fish/BeagleAMP_control-plot_species-richness-per-bruv.rds"))
+p_control <- readRDS(here("plots/beagle/fish/BeagleAMP_control-plot_mean-predicted-species-richness-per-bruv.rds"))
 p_control
 ```
 
@@ -384,7 +384,7 @@ grid::grid.raster(img)
 #| fig-width: 6
 #| fig-height: 3
 #| fig-cap: "Demersal fish - Total abundance: benchmark plots by zone and depth contour from stereo-BRUV groundtruthing. BMP = Beagle Marine Park (Commonwealth)."
-p_control <- readRDS(here("plots/beagle/fish/BeagleAMP_control-plot_total-abundance-per-bruv.rds"))
+p_control <- readRDS(here("plots/beagle/fish/BeagleAMP_control-plot_mean-predicted-total-abundance-per-bruv.rds"))
 p_control
 ```
 
@@ -424,7 +424,7 @@ grid::grid.raster(img)
 #| fig-width: 6
 #| fig-height: 3
 #| fig-cap: "Demersal fish - Large Reef Fish Index\\*: benchmark plots by zone and depth contour from stereo-BRUV groundtruthing. BMP = Beagle Marine Park (Commonwealth). \\*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays."
-p_control <- readRDS(here("plots/beagle/fish/BeagleAMP_control-plot_large-reef-fish-index-biomass-g-per-bruv.rds"))
+p_control <- readRDS(here("plots/beagle/fish/BeagleAMP_control-plot_mean-predicted-large-reef-fish-index-biomass-g-per-bruv.rds"))
 p_control
 ```
 
@@ -464,7 +464,7 @@ grid::grid.raster(img)
 #| fig-width: 6
 #| fig-height: 3
 #| fig-cap: "Demersal fish - Reef Fish Thermal Index: benchmark plots by zone and depth contour, with monthly sea surface temperature (black line, grey band = SD) overlaid, from stereo-BRUV groundtruthing. BMP = Beagle Marine Park (Commonwealth)."
-p_control <- readRDS(here("plots/beagle/fish/BeagleAMP_control-plot_community-thermal-index-c.rds"))
+p_control <- readRDS(here("plots/beagle/fish/BeagleAMP_control-plot_mean-predicted-community-thermal-index-c.rds"))
 p_control
 ```
 

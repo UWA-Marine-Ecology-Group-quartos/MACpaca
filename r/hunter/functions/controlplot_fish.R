@@ -9,10 +9,10 @@ controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
 
   if (is.null(metric_label)) {
     metric_label <- dplyr::case_when(
-      metric == "richness"  ~ "Species richness (per BRUV)",
-      metric == "cti"       ~ "Community Thermal Index (\u00B0C)",
-      metric == "b20"       ~ "Large reef fish index* (biomass g per BRUV)",
-      metric == "abundance" ~ "Total abundance (per BRUV)",
+      metric == "richness"  ~ "Mean Predicted\nSpecies richness (per BRUV)",
+      metric == "cti"       ~ "Mean Predicted\nCommunity Thermal Index (\u00B0C)",
+      metric == "b20"       ~ "Mean Predicted\nLarge reef fish index* (biomass g per BRUV)",
+      metric == "abundance" ~ "Mean Predicted\nTotal abundance (per BRUV)",
       TRUE ~ stringr::str_to_title(metric)
     )
   }
