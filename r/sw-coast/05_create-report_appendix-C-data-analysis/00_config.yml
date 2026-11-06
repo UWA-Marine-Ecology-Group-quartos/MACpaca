@@ -1,0 +1,5 @@
+name:            "sw-coast"
+park:            "sw-coast"
+years:           [2014, 2020, 2021, 2022, 2023, 2024, 2025]
+combine_benthos: TRUE
+report_name:     "Project 4.21-sw-coast-3-Appendix C-q-Data analysis"  # TODO

@@ -191,6 +191,7 @@ biomass <- b20_length %>%
       fb_length_weight_measure %in% "FL" ~ length_cm,
       fb_length_weight_measure %in% "TL" & fb_ll_equation_type %in% "FL → TL" ~ (length_cm * fb_b_ll) + fb_a_ll,
       fb_length_weight_measure %in% "TL" & fb_ll_equation_type %in% "TL → FL" ~ (length_cm - fb_a_ll) / fb_b_ll,
+      fb_length_weight_measure %in% "TL" ~ length_cm,  # no length equation, assume FL = TL
       TRUE ~ NA_real_
     ),
     mass_g = case_when(
@@ -323,6 +324,7 @@ biomass_amp <- b20_length_amp %>%
       fb_length_weight_measure %in% "FL" ~ length_cm,
       fb_length_weight_measure %in% "TL" & fb_ll_equation_type %in% "FL → TL" ~ (length_cm * fb_b_ll) + fb_a_ll,
       fb_length_weight_measure %in% "TL" & fb_ll_equation_type %in% "TL → FL" ~ (length_cm - fb_a_ll) / fb_b_ll,
+      fb_length_weight_measure %in% "TL" ~ length_cm,  # no length equation, assume FL = TL
       TRUE ~ NA_real_
     ),
     mass_g = case_when(
