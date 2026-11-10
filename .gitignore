@@ -41,3 +41,6 @@ data/amp_shapefile/capad.shp
 data/beagle/spatial/oceanography/DHW_wide.nc
 beagle_rov/
 hunter_rov/
+
+# sw-coast bathymetry + ocean stack (~100 MB) - regenerate with 02_spatial-layers.R
+data/sw-coast/spatial/rasters/sw-coast_bathymetry-derivatives.rds
