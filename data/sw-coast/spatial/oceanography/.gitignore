@@ -1,2 +1,9 @@
 SST-recent.nc
 sw-coast_SST_raster-recent.rds
+SST.nc
+sw-coast_SST_time-series-recent.rds
+DHW.nc
+SLA.nc
+Acidification.nc
+PROD_GSM.nc
+PROD_OC3.nc

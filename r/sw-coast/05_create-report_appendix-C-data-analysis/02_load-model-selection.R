@@ -51,6 +51,12 @@ term_labels <- c(
   geoscience_roughness = "roughness",
   geoscience_aspect    = "aspect",
   geoscience_depth     = "Z",
+  ocean_sst            = "SST",
+  ocean_sla            = "SLA",
+  ocean_ucur           = "U",
+  ocean_vcur           = "V",
+  ocean_prod_gsm       = "PP(GSM)",
+  ocean_prod_oc3       = "PP(OC3)",
   reef                 = "reef",
   year                 = "year",
   status               = "status"
@@ -63,6 +69,12 @@ term_axis_labels <- c(
   geoscience_roughness = "Roughness",
   geoscience_aspect    = "Aspect",
   geoscience_depth     = "Depth",
+  ocean_sst            = "SST (\u00B0C)",
+  ocean_sla            = "SLA (m)",
+  ocean_ucur           = "Eastward current (m/s)",
+  ocean_vcur           = "Northward current (m/s)",
+  ocean_prod_gsm       = "Primary productivity (GSM)",
+  ocean_prod_oc3       = "Primary productivity (OC3)",
   reef                 = "Reef"
 )
 
@@ -73,9 +85,11 @@ term_axis_labels <- c(
 # want them reported some other way. (Benthos is pooled for this park, so
 # `year` is not in the habitat FSS output at all.)
 habitat_term_order <- c("geoscience_detrended", "geoscience_roughness",
-                        "geoscience_depth")
+                        "geoscience_depth", "ocean_sst", "ocean_sla",
+                        "ocean_ucur", "ocean_vcur", "ocean_prod_oc3")
 fish_term_order    <- c("geoscience_detrended", "geoscience_roughness",
-                        "geoscience_depth", "reef")
+                        "geoscience_depth", "ocean_sst", "ocean_sla",
+                        "ocean_ucur", "ocean_vcur", "ocean_prod_oc3", "reef")
 
 # Row order in Table C1.1 / C1.2 and on the heatmaps. All six benthic classes
 # are modelled here. Note `seagrasses` is plural - it must match the response

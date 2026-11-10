@@ -237,7 +237,7 @@ grid::grid.raster(img)
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Sand: modelled (predicted) probability of occurrence from the final model, by zone and depth contour in 2024, the survey year with the most samples."
+#| fig-cap: "Sand: modelled (predicted) probability of occurrence from the final model, by zone and depth contour. Values are an average across all survey years (2014-2025), plotted at 2025."
 p_control <- readRDS(here("plots/sw-coast/habitat/sw-coast_control-plot_sand.rds"))
 p_control
 ```
@@ -263,7 +263,7 @@ grid::grid.raster(img)
 ```{r}
 #| fig-width: 6
 #| fig-height: 3.1
-#| fig-cap: "Macroalgae: modelled (predicted) probability of occurrence from the final model, by zone and depth contour in 2024, the survey year with the most samples."
+#| fig-cap: "Macroalgae: modelled (predicted) probability of occurrence from the final model, by zone and depth contour. Values are an average across all survey years (2014-2025), plotted at 2025."
 p_control <- readRDS(here("plots/sw-coast/habitat/sw-coast_control-plot_macroalgae.rds"))
 p_control
 ```
@@ -289,7 +289,7 @@ grid::grid.raster(img)
 ```{r}
 #| fig-width: 6
 #| fig-height: 3.1
-#| fig-cap: "Seagrass: modelled (predicted) probability of occurrence from the final model, by zone and depth contour in 2024, the survey year with the most samples."
+#| fig-cap: "Seagrass: modelled (predicted) probability of occurrence from the final model, by zone and depth contour. Values are an average across all survey years (2014-2025), plotted at 2025."
 p_control <- readRDS(here("plots/sw-coast/habitat/sw-coast_control-plot_seagrass.rds"))
 p_control
 ```
@@ -315,7 +315,7 @@ grid::grid.raster(img)
 ```{r}
 #| fig-width: 6
 #| fig-height: 3.1
-#| fig-cap: "Sessile invertebrates: modelled (predicted) probability of occurrence from the final model, by zone and depth contour in 2024, the survey year with the most samples."
+#| fig-cap: "Sessile invertebrates: modelled (predicted) probability of occurrence from the final model, by zone and depth contour. Values are an average across all survey years (2014-2025), plotted at 2025."
 p_control <- readRDS(here("plots/sw-coast/habitat/sw-coast_control-plot_sessile-invertebrates.rds"))
 p_control
 ```
@@ -341,7 +341,7 @@ grid::grid.raster(img)
 ```{r}
 #| fig-width: 6
 #| fig-height: 3.1
-#| fig-cap: "Rock: modelled (predicted) probability of occurrence from the final model, by zone and depth contour in 2024, the survey year with the most samples."
+#| fig-cap: "Rock: modelled (predicted) probability of occurrence from the final model, by zone and depth contour. Values are an average across all survey years (2014-2025), plotted at 2025."
 p_control <- readRDS(here("plots/sw-coast/habitat/sw-coast_control-plot_rock.rds"))
 p_control
 ```
@@ -382,7 +382,7 @@ p_bubble
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Demersal fish - Species richness: modelled (predicted) values from the final model, by zone and depth contour in 2024, the survey year with the most stereo-BRUV deployments."
+#| fig-cap: "Demersal fish - Species richness: modelled (predicted) values from the final model, by zone and depth contour. Values are an average across all survey years (2014-2025), plotted at 2025."
 p_control <- readRDS(here("plots/sw-coast/fish/sw-coast_control-plot_species-richness-per-bruv.rds"))
 p_control
 ```
@@ -422,7 +422,7 @@ grid::grid.raster(img)
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Demersal fish - Total abundance: modelled (predicted) values from the final model, by zone and depth contour in 2024, the survey year with the most stereo-BRUV deployments."
+#| fig-cap: "Demersal fish - Total abundance: modelled (predicted) values from the final model, by zone and depth contour. Values are an average across all survey years (2014-2025), plotted at 2025."
 p_control <- readRDS(here("plots/sw-coast/fish/sw-coast_control-plot_total-abundance-per-bruv.rds"))
 p_control
 ```
@@ -462,7 +462,7 @@ grid::grid.raster(img)
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Demersal fish - Large Reef Fish Index\\*: modelled (predicted) values from the final model, by zone and depth contour in 2024, the survey year with the most stereo-BRUV deployments. \\*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays."
+#| fig-cap: "Demersal fish - Large Reef Fish Index\\*: modelled (predicted) values from the final model, by zone and depth contour. Values are an average across all survey years (2014-2025), plotted at 2025. \\*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays."
 p_control <- readRDS(here("plots/sw-coast/fish/sw-coast_control-plot_large-reef-fish-index-biomass-g-per-bruv.rds"))
 p_control
 ```
@@ -502,7 +502,7 @@ grid::grid.raster(img)
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Demersal fish - Reef Fish Thermal Index: modelled (predicted) values from the final model, by zone and depth contour in 2024, the survey year with the most stereo-BRUV deployments, with sea surface temperature (black line, grey band = SD) overlaid."
+#| fig-cap: "Demersal fish - Reef Fish Thermal Index: modelled (predicted) values from the final model, by zone and depth contour. Values are an average across all survey years (2014-2025), plotted at 2025, with sea surface temperature (black line, grey band = SD) overlaid."
 p_control <- readRDS(here("plots/sw-coast/fish/sw-coast_control-plot_community-thermal-index-c.rds"))
 p_control
 ```
@@ -537,6 +537,10 @@ grid::grid.raster(img)
 \stepcounter{metric}
 ```
 
+```{=latex}
+\renewcommand{\arraystretch}{1.4}
+```
+
 ```{r}
 #| label: tbl-threatened-species
 #| tbl-cap: "Threatened species recorded in stereo-BRUV imagery across all survey years, showing IUCN Red List category, the number of samples each species was recorded in, and the total abundance (MaxN) summed across those samples. *This species is also listed as ‘Conservation dependent’ on the EPBC Act List of Threatened Fauna. ^This species is also listed as ‘Vulnerable’ on the EPBC Act List of Threatened Fauna."
@@ -546,39 +550,42 @@ threatened_species <- readRDS(here("data", park, "tidy",
 
 threatened_species %>%
   dplyr::select(species_label, australian_common_name, family, listing,
-                n_samples, total_maxn, years_seen) %>%
+                n_samples, total_maxn) %>%
   gt() %>%
   cols_label(species_label           = "Species",
              australian_common_name = "Common name",
              family                 = "Family",
              listing                = "IUCN category",
              n_samples              = "Samples",
-             total_maxn             = "Total MaxN",
-             years_seen             = "Years recorded") %>%
+             total_maxn             = "Total MaxN") %>%
   sub_missing(missing_text = "-") %>%
-  cols_width(species_label           ~ pct(21),
-             australian_common_name ~ pct(19),
-             family                 ~ pct(16),
-             listing                ~ pct(14),
-             n_samples              ~ pct(9),
-             total_maxn             ~ pct(10),
-             years_seen             ~ pct(11)) %>%
+  cols_width(species_label           ~ pct(22.8),
+             australian_common_name ~ pct(20.8),
+             family                 ~ pct(17.8),
+             listing                ~ pct(15.8),
+             n_samples              ~ pct(10.9),
+             total_maxn             ~ pct(11.9)) %>%
   cols_align(align = "left",
              columns = c(species_label, australian_common_name, family)) %>%
   cols_align(align = "center",
-             columns = c(listing, n_samples, total_maxn, years_seen)) %>%
+             columns = c(listing, n_samples, total_maxn)) %>%
   tab_style(style = cell_text(style = "italic"),
             locations = cells_body(columns = species_label)) %>%
-  opt_row_striping() %>%
+  tab_style(style = cell_fill(color = "grey90"), # Grey every second row
+            locations = cells_body(rows = seq(2, nrow(threatened_species), by = 2))) %>%
   tab_style(style = cell_text(weight = "bold"),
             locations = cells_column_labels()) %>%
   tab_options(table.width               = pct(100),
               table.font.size           = px(11),
-              data_row.padding          = px(4),
+              data_row.padding          = px(6),
               latex.use_longtable       = TRUE,
               column_labels.border.top.style = "none",
               table.border.top.style    = "none",
               table_body.hlines.style   = "none")
+```
+
+```{=latex}
+\renewcommand{\arraystretch}{1}
 ```
 
 

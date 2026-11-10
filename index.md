@@ -13,6 +13,13 @@
 
 ## Protected Areas
 
+#### South-west Coast (Abrolhos to Eastern Recherche)
+- Data syntheses - BRUV ([Abrolhos](https://dev.globalarchive.org/ui/main/syntheses/71), [Geographe](https://dev.globalarchive.org/ui/main/syntheses/72), [SWC western arm](https://dev.globalarchive.org/ui/main/syntheses/76), [SWC eastern arm](https://dev.globalarchive.org/ui/main/syntheses/69), [Eastern Recherche](https://dev.globalarchive.org/ui/main/syntheses/70)), BOSS ([Abrolhos](https://dev.globalarchive.org/ui/main/syntheses/84/), [Two Rocks](https://dev.globalarchive.org/ui/main/syntheses/86/), [Geographe](https://dev.globalarchive.org/ui/main/syntheses/85/), [SWC western arm](https://dev.globalarchive.org/ui/main/syntheses/87/), [SWC eastern arm](https://dev.globalarchive.org/ui/main/syntheses/78/), [Eastern Recherche](https://dev.globalarchive.org/ui/main/syntheses/77/))
+- Methods - [Data analysis](https://github.com/UWA-Marine-Ecology-Group-quartos/MACpaca/tree/main/r/sw-coast)
+- [Appendix A - Natural Values Report](quartos/sw-coast/Project%204.21-sw-coast-2-Appendix%20A-q-Natural%20values.html)
+- Appendix B - Pressures Report (to add)
+- Appendix C - Data Analysis Report (to add)
+
 #### Geographe Marine Park 
 - Data syntheses - [BRUV](https://dev.globalarchive.org/ui/main/syntheses/72), [BOSS](https://dev.globalarchive.org/ui/main/syntheses/85/)
 - Methods - [Data analysis](https://github.com/UWA-Marine-Ecology-Group-quartos/australian-marine-parks/tree/e6640eaf458e06f89f77bdbee34a0608b85418bb/r/geographe)

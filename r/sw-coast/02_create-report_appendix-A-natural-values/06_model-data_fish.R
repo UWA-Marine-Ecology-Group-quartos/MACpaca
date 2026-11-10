@@ -50,7 +50,9 @@ print(table(tidy_maxn$year, tidy_maxn$status))
 
 # Re-set the predictors for modeling----
 names(tidy_maxn)
-pred.vars <- c("reef", "geoscience_depth", "geoscience_roughness", "geoscience_detrended")
+pred.vars <- c("reef", "geoscience_depth", "geoscience_roughness", "geoscience_detrended",
+               "ocean_sst", "ocean_sla", "ocean_ucur", "ocean_vcur",
+               "ocean_prod_oc3") # GSM productivity left out - OC3 only
 
 # TODO Check for correlation of predictor variables- remove anything highly correlated (>0.95)---
 round(cor(tidy_maxn[ , pred.vars]), 2)
@@ -138,7 +140,9 @@ tidy_b20 <- readRDS(paste0("data/", park, "/tidy/", name, "_tidy-b20.rds")) %>%
 
 # # Re-set the predictors for modeling----
 names(tidy_b20)
-pred.vars <- c("reef", "geoscience_depth", "geoscience_roughness", "geoscience_detrended")
+pred.vars <- c("reef", "geoscience_depth", "geoscience_roughness", "geoscience_detrended",
+               "ocean_sst", "ocean_sla", "ocean_ucur", "ocean_vcur",
+               "ocean_prod_oc3") # GSM productivity left out - OC3 only
 
 # TODO Check for correlation of predictor variables- remove anything highly correlated (>0.95)---
 round(cor(tidy_b20[ , pred.vars]), 2)
@@ -225,9 +229,10 @@ fabund <- bind_rows(tidy_maxn, tidy_b20) %>%
 
 ## TODO Select best models from above
 
-# Total abundance - simplest within delta AICc 2 (roughness dropped, 1.567 behind)
+# Total abundance
 m_abundance <- gam(count ~ status +
                      s(geoscience_depth, k = 3, bs = "cr") +
+                     s(ocean_ucur, k = 3, bs = "cr") +
                      s(reef, k = 3, bs = "cr"),
                    data = fabund %>% dplyr::filter(response %in% "total_abundance"),
                    family = poisson)
@@ -239,6 +244,7 @@ summary(m_abundance)
 m_richness <- gam(count ~ status +
                     s(geoscience_depth, k = 3, bs = "cr") +
                     s(geoscience_roughness, k = 3, bs = "cr") +
+                    s(ocean_ucur, k = 3, bs = "cr") +
                     s(reef, k = 3, bs = "cr"),
                   data = fabund %>% dplyr::filter(response %in% "species_richness"),
                   family = gaussian(link = "identity"))
@@ -247,8 +253,9 @@ summary(m_richness)
 
 # CTI
 m_cti <- gam(count ~ status +
-               s(geoscience_depth, k = 3, bs = "cr") +
-               s(geoscience_detrended, k = 3, bs = "cr"),
+               s(ocean_prod_oc3, k = 3, bs = "cr") +
+               s(ocean_sst, k = 3, bs = "cr") +
+               s(reef, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "cti"),
              family = gaussian(link = "identity"))
 summary(m_cti)
@@ -256,8 +263,8 @@ summary(m_cti)
 
 # B20
 m_b20 <- gam(count ~ status +
-               s(geoscience_depth, k = 3, bs = "cr") +
-               s(geoscience_roughness, k = 3, bs = "cr") +
+               s(ocean_prod_oc3, k = 3, bs = "cr") +
+               s(ocean_sst, k = 3, bs = "cr") +
                s(reef, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "b20"),
              family = tw())
@@ -348,7 +355,7 @@ for (i in seq_along(resp.vars)) {
                   paste0(resp.vars[i], ".se.fit")) %>%
     rast(crs = "epsg:4326")
 
-  geo.vars <- names(mod$model)[startsWith(names(mod$model), "geoscience")]
+  geo.vars <- names(mod$model)[grepl("^(geoscience|ocean)_", names(mod$model))]
 
   if (length(geo.vars) > 0) {
 

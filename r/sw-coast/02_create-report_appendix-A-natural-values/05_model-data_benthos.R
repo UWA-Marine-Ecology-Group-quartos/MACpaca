@@ -63,7 +63,9 @@ model_dat <- habi %>%
   glimpse()
 
 # Set predictor variables---
-pred.vars <- c("geoscience_depth", "geoscience_roughness", "geoscience_detrended")
+pred.vars <- c("geoscience_depth", "geoscience_roughness", "geoscience_detrended",
+               "ocean_sst", "ocean_sla", "ocean_ucur", "ocean_vcur",
+               "ocean_prod_oc3") # GSM productivity left out - OC3 only
 
 # TODO Check for correlation of predictor variables- remove anything highly correlated (>0.95)---
 round(cor(model_dat[ , pred.vars]), 2)
@@ -116,7 +118,7 @@ for(i in 1:length(resp.vars)){
                                   null.terms = "status", # force status
                                   k = 3, # TODO check this
                                   cov.cutoff = 0.7, # TODO need to check - Fisher recommends 0.28
-                                  max.predictors = 3 # TODO check this
+                                  max.predictors = 4 # TODO check this
   )
   out.list <- fit.model.set(model.set,
                             max.models = 600,
@@ -164,17 +166,19 @@ write.csv(all.var.imp,         file = paste0(outdir, name, "_abiotic_all.var.imp
 
 # Sand
 m_sand <- gam(cbind(sand, total_pts - sand) ~ status +
-                s(geoscience_depth, k = 5, bs = "cr") +
                 s(geoscience_detrended, k = 5, bs = "cr") +
-                s(geoscience_roughness, k = 5, bs = "cr"),
+                s(geoscience_roughness, k = 5, bs = "cr") +
+                s(ocean_prod_oc3, k = 5, bs = "cr") +
+                s(ocean_sst, k = 5, bs = "cr"),
               data = habi, method = "REML", family = binomial("logit"))
 summary(m_sand)
 
 # Rock
 m_rock <- gam(cbind(rock, total_pts - rock) ~ status +
                 s(geoscience_depth, k = 5, bs = "cr") +
-                s(geoscience_detrended, k = 5, bs = "cr") +
-                s(geoscience_roughness, k = 5, bs = "cr"),
+                s(ocean_sla, k = 5, bs = "cr") +
+                s(ocean_sst, k = 5, bs = "cr") +
+                s(ocean_ucur, k = 5, bs = "cr"),
               data = habi, method = "REML", family = binomial("logit"))
 summary(m_rock)
 
@@ -182,31 +186,35 @@ summary(m_rock)
 m_macro <- gam(cbind(macroalgae, total_pts - macroalgae) ~ status +
                  s(geoscience_depth, k = 5, bs = "cr") +
                  s(geoscience_detrended, k = 5, bs = "cr") +
-                 s(geoscience_roughness, k = 5, bs = "cr"),
+                 s(ocean_sla, k = 5, bs = "cr") +
+                 s(ocean_vcur, k = 5, bs = "cr"),
                data = habi, method = "REML", family = binomial("logit"))
 summary(m_macro)
 
 # Seagrass
 m_seagrass <- gam(cbind(seagrasses, total_pts - seagrasses) ~ status +
-                    s(geoscience_depth, k = 5, bs = "cr") +
                     s(geoscience_detrended, k = 5, bs = "cr") +
-                    s(geoscience_roughness, k = 5, bs = "cr"),
+                    s(ocean_prod_oc3, k = 5, bs = "cr") +
+                    s(ocean_sla, k = 5, bs = "cr") +
+                    s(ocean_sst, k = 5, bs = "cr"),
                   data = habi, method = "REML", family = binomial("logit"))
 summary(m_seagrass)
 
 # Inverts
 m_inverts <- gam(cbind(sessile_invertebrates, total_pts - sessile_invertebrates) ~ status +
                    s(geoscience_depth, k = 5, bs = "cr") +
-                   s(geoscience_detrended, k = 5, bs = "cr") +
-                   s(geoscience_roughness, k = 5, bs = "cr"),
+                   s(geoscience_roughness, k = 5, bs = "cr") +
+                   s(ocean_sst, k = 5, bs = "cr") +
+                   s(ocean_vcur, k = 5, bs = "cr"),
                  data = habi, method = "REML", family = binomial("logit"))
 summary(m_inverts)
 
 # Reef
 m_reef <- gam(cbind(reef, total_pts - reef) ~ status +
-                s(geoscience_depth, k = 5, bs = "cr") +
                 s(geoscience_detrended, k = 5, bs = "cr") +
-                s(geoscience_roughness, k = 5, bs = "cr"),
+                s(geoscience_roughness, k = 5, bs = "cr") +
+                s(ocean_sst, k = 5, bs = "cr") +
+                s(ocean_ucur, k = 5, bs = "cr"),
               data = habi, method = "REML", family = binomial("logit"))
 summary(m_reef)
 
@@ -354,7 +362,7 @@ for (this_label in pred.labels) {
       ) %>%
       terra::rast(crs = "epsg:4326")
 
-    geo.vars <- names(mod$model)[startsWith(names(mod$model), "geoscience")]
+    geo.vars <- names(mod$model)[grepl("^(geoscience|ocean)_", names(mod$model))]
 
     dat <- terra::extract(terra::subset(preds, geo.vars), xy) %>%
       dplyr::select(-ID)

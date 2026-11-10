@@ -284,8 +284,8 @@ for (habitat_name in names(habitat_lookup)) {
 # -------------------------------------------------------------------
 # PART 4: Control plots by taxa, facetted by depth class
 # -------------------------------------------------------------------
-# Years are pooled, so zones are only shown for the year with the most data (2024)
-control_year <- 2024
+# Years are pooled, so the average of all survey years is plotted at 2025
+control_year <- 2025
 
 {
 

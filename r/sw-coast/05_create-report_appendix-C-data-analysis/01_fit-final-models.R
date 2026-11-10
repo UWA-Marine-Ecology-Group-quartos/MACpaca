@@ -92,44 +92,50 @@ habi <- habi_raw %>%
 
 # Sand
 m_sand <- gam(cbind(sand, total_pts - sand) ~ status +
-                s(geoscience_depth, k = 5, bs = "cr") +
                 s(geoscience_detrended, k = 5, bs = "cr") +
-                s(geoscience_roughness, k = 5, bs = "cr"),
+                s(geoscience_roughness, k = 5, bs = "cr") +
+                s(ocean_prod_oc3, k = 5, bs = "cr") +
+                s(ocean_sst, k = 5, bs = "cr"),
               data = habi, method = "REML", family = binomial("logit"))
 
 # Rock
 m_rock <- gam(cbind(rock, total_pts - rock) ~ status +
                 s(geoscience_depth, k = 5, bs = "cr") +
-                s(geoscience_detrended, k = 5, bs = "cr") +
-                s(geoscience_roughness, k = 5, bs = "cr"),
+                s(ocean_sla, k = 5, bs = "cr") +
+                s(ocean_sst, k = 5, bs = "cr") +
+                s(ocean_ucur, k = 5, bs = "cr"),
               data = habi, method = "REML", family = binomial("logit"))
 
 # Macroalgae
 m_macro <- gam(cbind(macroalgae, total_pts - macroalgae) ~ status +
                  s(geoscience_depth, k = 5, bs = "cr") +
                  s(geoscience_detrended, k = 5, bs = "cr") +
-                 s(geoscience_roughness, k = 5, bs = "cr"),
+                 s(ocean_sla, k = 5, bs = "cr") +
+                 s(ocean_vcur, k = 5, bs = "cr"),
                data = habi, method = "REML", family = binomial("logit"))
 
 # Seagrass
 m_seagrass <- gam(cbind(seagrasses, total_pts - seagrasses) ~ status +
-                    s(geoscience_depth, k = 5, bs = "cr") +
                     s(geoscience_detrended, k = 5, bs = "cr") +
-                    s(geoscience_roughness, k = 5, bs = "cr"),
+                    s(ocean_prod_oc3, k = 5, bs = "cr") +
+                    s(ocean_sla, k = 5, bs = "cr") +
+                    s(ocean_sst, k = 5, bs = "cr"),
                   data = habi, method = "REML", family = binomial("logit"))
 
 # Inverts
 m_inverts <- gam(cbind(sessile_invertebrates, total_pts - sessile_invertebrates) ~ status +
                    s(geoscience_depth, k = 5, bs = "cr") +
-                   s(geoscience_detrended, k = 5, bs = "cr") +
-                   s(geoscience_roughness, k = 5, bs = "cr"),
+                   s(geoscience_roughness, k = 5, bs = "cr") +
+                   s(ocean_sst, k = 5, bs = "cr") +
+                   s(ocean_vcur, k = 5, bs = "cr"),
                  data = habi, method = "REML", family = binomial("logit"))
 
 # Reef
 m_reef <- gam(cbind(reef, total_pts - reef) ~ status +
-                s(geoscience_depth, k = 5, bs = "cr") +
                 s(geoscience_detrended, k = 5, bs = "cr") +
-                s(geoscience_roughness, k = 5, bs = "cr"),
+                s(geoscience_roughness, k = 5, bs = "cr") +
+                s(ocean_sst, k = 5, bs = "cr") +
+                s(ocean_ucur, k = 5, bs = "cr"),
               data = habi, method = "REML", family = binomial("logit"))
 
 # Same guard as the bottom of 05 - a stray year term here would never match an
@@ -193,9 +199,10 @@ stopifnot(all(c("reef") %in% names(tidy_b20)))
 
 # ---- FINAL MODELS (verbatim from 06_model-data_fish.R) ----------------------
 
-# Total abundance - simplest within delta AICc 2 (roughness dropped, 1.567 behind)
+# Total abundance
 m_abundance <- gam(count ~ status +
                      s(geoscience_depth, k = 3, bs = "cr") +
+                     s(ocean_ucur, k = 3, bs = "cr") +
                      s(reef, k = 3, bs = "cr"),
                    data = fabund %>% dplyr::filter(response %in% "total_abundance"),
                    family = poisson)
@@ -204,21 +211,23 @@ m_abundance <- gam(count ~ status +
 m_richness <- gam(count ~ status +
                     s(geoscience_depth, k = 3, bs = "cr") +
                     s(geoscience_roughness, k = 3, bs = "cr") +
+                    s(ocean_ucur, k = 3, bs = "cr") +
                     s(reef, k = 3, bs = "cr"),
                   data = fabund %>% dplyr::filter(response %in% "species_richness"),
                   family = gaussian(link = "identity"))
 
 # CTI
 m_cti <- gam(count ~ status +
-               s(geoscience_depth, k = 3, bs = "cr") +
-               s(geoscience_detrended, k = 3, bs = "cr"),
+               s(ocean_prod_oc3, k = 3, bs = "cr") +
+               s(ocean_sst, k = 3, bs = "cr") +
+               s(reef, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "cti"),
              family = gaussian(link = "identity"))
 
 # B20
 m_b20 <- gam(count ~ status +
-               s(geoscience_depth, k = 3, bs = "cr") +
-               s(geoscience_roughness, k = 3, bs = "cr") +
+               s(ocean_prod_oc3, k = 3, bs = "cr") +
+               s(ocean_sst, k = 3, bs = "cr") +
                s(reef, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "b20"),
              family = tw())

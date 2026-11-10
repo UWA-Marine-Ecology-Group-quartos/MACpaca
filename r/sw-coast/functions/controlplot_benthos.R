@@ -86,7 +86,7 @@ controlplot_benthos <- function(data, taxa, amp_abbrv, state_abbrv,
     theme_classic() +
     scale_x_continuous(breaks = c(2014, 2024)) + # TODO set to your survey years
     scale_y_continuous(expand = expansion(mult = 0.15)) +
-    coord_cartesian(xlim = c(2013, 2025), ylim = c(0, NA), clip = "off") +
+    coord_cartesian(xlim = c(2013, 2026), ylim = c(0, NA), clip = "off") +
     scale_fill_manual(values = fill_vals, name = "Marine Parks", drop = FALSE) +
     scale_shape_manual(values = shape_vals, name = "Marine Parks", drop = FALSE) +
     labs(x = "Year", y = "Predicted probability (modelled)") +

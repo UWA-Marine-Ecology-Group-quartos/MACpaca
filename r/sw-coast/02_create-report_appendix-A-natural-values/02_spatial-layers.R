@@ -78,6 +78,68 @@ names(detre) <- c("geoscience_detrended", "lineartrend")
 preds <- rast(list(bathy, preds, detre[[1]]))
 names(preds)[1] <- "geoscience_depth"
 
+# Oceanography ----
+# Long-term mean of each layer, coastal gaps filled, then resampled onto the
+# bathymetry grid (250 m) so every layer has exactly the same cells
+ocean_dir <- paste0("data/", park, "/spatial/oceanography/")
+
+# Fill NA cells along the coast with the mean of their neighbours
+fill_coast <- function(r, n = 10) {
+  for (i in 1:n) {
+    r <- terra::focal(r, w = 3, fun = "mean", na.policy = "only", na.rm = TRUE)
+  }
+  r
+}
+
+to_bathy_grid <- function(r) {
+  terra::crs(r) <- "EPSG:4326"
+  r %>%
+    fill_coast() %>%
+    terra::resample(bathy, method = "bilinear") %>%
+    terra::mask(bathy)
+}
+
+# SST - monthly, Kelvin to Celsius
+nc_sst  <- open.nc(paste0(ocean_dir, "SST.nc"))
+sst_var <- var.get.nc(nc_sst, "sea_surface_temperature")   # [lon, lat, time]
+lat     <- var.get.nc(nc_sst, "lat")
+lon     <- var.get.nc(nc_sst, "lon")
+close.nc(nc_sst)
+
+sst_mean <- rowMeans(sst_var, dims = 2, na.rm = TRUE) - 273.15
+sst <- terra::rast(t(sst_mean),
+                   extent = terra::ext(min(lon), max(lon), min(lat), max(lat)))
+rm(sst_var)
+
+# SLA and currents (eastward = UCUR, northward = VCUR)
+sla  <- mean(terra::rast(paste0(ocean_dir, "SLA.nc"), subds = "GSLA"), na.rm = TRUE)
+ucur <- mean(terra::rast(paste0(ocean_dir, "SLA.nc"), subds = "UCUR"), na.rm = TRUE)
+vcur <- mean(terra::rast(paste0(ocean_dir, "SLA.nc"), subds = "VCUR"), na.rm = TRUE)
+
+# Primary productivity - both models, FSS picks between them in 05 and 06
+# WARNING: these are large files and the mean can take a while
+prod_gsm <- mean(terra::rast(paste0(ocean_dir, "PROD_GSM.nc"),
+                             subds = "npp_vgpm_eppley_gsm"), na.rm = TRUE)
+prod_oc3 <- mean(terra::rast(paste0(ocean_dir, "PROD_OC3.nc"),
+                             subds = "npp_vgpm_eppley_oc3"), na.rm = TRUE)
+
+# TODO Check these are the right way up (north at the top) before moving on
+plot(c(sla, ucur, vcur))
+plot(c(prod_gsm, prod_oc3))
+plot(sst)
+
+ocean <- c(to_bathy_grid(sst),
+           to_bathy_grid(sla),
+           to_bathy_grid(ucur),
+           to_bathy_grid(vcur),
+           to_bathy_grid(prod_gsm),
+           to_bathy_grid(prod_oc3))
+names(ocean) <- c("ocean_sst", "ocean_sla", "ocean_ucur", "ocean_vcur",
+                  "ocean_prod_gsm", "ocean_prod_oc3")
+plot(ocean)
+
+preds <- c(preds, ocean)
+
 # Save the sample points
 vector_dir <- paste0("data/", park, "/spatial/shapefiles")
 if (!dir.exists(vector_dir)) dir.create(vector_dir, recursive = TRUE)
@@ -109,11 +171,9 @@ metadata.bathy.derivatives.all <- cbind(metadata,
 
 # TODO Check this
 dropped <- metadata.bathy.derivatives.all %>%
-  dplyr::filter(if_any(c(geoscience_depth, geoscience_aspect,
-                         geoscience_roughness, geoscience_detrended),
-                       ~ is.na(.)))
+  dplyr::filter(if_any(any_of(names(preds)), ~ is.na(.)))
 
-message("Samples dropped for missing bathymetry derivatives: ", nrow(dropped),
+message("Samples dropped for missing covariates: ", nrow(dropped),
         " of ", nrow(metadata.bathy.derivatives.all))
 
 if (nrow(dropped) > 0) {
@@ -126,8 +186,7 @@ if (nrow(dropped) > 0) {
 }
 
 metadata.bathy.derivatives <- metadata.bathy.derivatives.all %>%
-  filter(if_all(c(geoscience_depth, geoscience_aspect, geoscience_roughness, geoscience_detrended),
-                ~!is.na(.))) %>% # TODO Removes samples missing bathymetry derivatives - check these!
+  filter(if_all(any_of(names(preds)), ~!is.na(.))) %>% # TODO Removes samples missing any covariate - check these!
   glimpse()
 
 # Save the metadata bathymetry derivatives

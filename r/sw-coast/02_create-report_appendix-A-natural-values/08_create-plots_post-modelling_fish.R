@@ -263,9 +263,9 @@ boxplot(sst_tsdf$sst ~ sst_tsdf$month)
 # -------------------------------------------------------------------
 # Control plots by metric, facetted by depth class
 # -------------------------------------------------------------------
-# Years are pooled in the models, so zones are only shown for the year with
-# the most BRUV deployments (2024)
-control_year <- "2024"
+# Years are pooled in the models, so the average of all survey years is
+# plotted at 2025
+control_year <- "2025"
 
 control_all <- list(
   controldata_fish(dat = dat_list[[1]], year = control_year, amp_abbrv = "AMP", state_abbrv = "State MP")
@@ -670,6 +670,7 @@ b20 <- readRDS(paste0("data/", park, "/tidy/", name, "_b20-species_amp.rds")) %>
 # top 10 b20 per park using combined values only
 b20.10 <- b20 %>%
   filter(status == "Combined") %>%
+  filter(!scientific_name %in% "Arripis truttaceus") %>% # Australian salmon left out - likely a school
   group_by(park_name) %>%
   slice_max(order_by = b20, n = 10, with_ties = FALSE) %>%
   ungroup()
@@ -829,3 +830,4 @@ ggsave(
 
 saveRDS(bubble_combined,
         paste0("plots/", park, "/fish/", name, "_bubbleplot_richness-abundance.rds"))
+
