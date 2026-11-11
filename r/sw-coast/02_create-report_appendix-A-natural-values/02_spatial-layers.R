@@ -91,6 +91,15 @@ fill_coast <- function(r, n = 10) {
   r
 }
 
+# Only keep years with data in all 12 months (same as the other scripts)
+full_years <- function(dates) {
+  n_months <- tapply(lubridate::month(dates), lubridate::year(dates),
+                     function(m) length(unique(m)))
+  keep <- lubridate::year(dates) %in% as.numeric(names(n_months)[n_months == 12])
+  message("Years kept: ", paste(unique(lubridate::year(dates[keep])), collapse = ", "))
+  keep
+}
+
 to_bathy_grid <- function(r) {
   terra::crs(r) <- "EPSG:4326"
   r %>%
@@ -104,24 +113,43 @@ nc_sst  <- open.nc(paste0(ocean_dir, "SST.nc"))
 sst_var <- var.get.nc(nc_sst, "sea_surface_temperature")   # [lon, lat, time]
 lat     <- var.get.nc(nc_sst, "lat")
 lon     <- var.get.nc(nc_sst, "lon")
+sst_dates <- as.Date(utcal.nc("seconds since 1981-01-01 00:00:00",
+                              var.get.nc(nc_sst, "time"), type = "c"))
 close.nc(nc_sst)
 
+sst_var  <- sst_var[, , full_years(sst_dates), drop = FALSE]
 sst_mean <- rowMeans(sst_var, dims = 2, na.rm = TRUE) - 273.15
 sst <- terra::rast(t(sst_mean),
                    extent = terra::ext(min(lon), max(lon), min(lat), max(lat)))
 rm(sst_var)
 
 # SLA and currents (eastward = UCUR, northward = VCUR)
-sla  <- mean(terra::rast(paste0(ocean_dir, "SLA.nc"), subds = "GSLA"), na.rm = TRUE)
-ucur <- mean(terra::rast(paste0(ocean_dir, "SLA.nc"), subds = "UCUR"), na.rm = TRUE)
-vcur <- mean(terra::rast(paste0(ocean_dir, "SLA.nc"), subds = "VCUR"), na.rm = TRUE)
+nc_sla    <- open.nc(paste0(ocean_dir, "SLA.nc"))
+sla_dates <- as.Date(utcal.nc("days since 1985-01-01 00:00:00",
+                              var.get.nc(nc_sla, "TIME"), type = "c"))
+close.nc(nc_sla)
+sla_keep <- full_years(sla_dates)
+
+sla  <- mean(terra::rast(paste0(ocean_dir, "SLA.nc"), subds = "GSLA")[[sla_keep]], na.rm = TRUE)
+ucur <- mean(terra::rast(paste0(ocean_dir, "SLA.nc"), subds = "UCUR")[[sla_keep]], na.rm = TRUE)
+vcur <- mean(terra::rast(paste0(ocean_dir, "SLA.nc"), subds = "VCUR")[[sla_keep]], na.rm = TRUE)
 
 # Primary productivity - both models, FSS picks between them in 05 and 06
 # WARNING: these are large files and the mean can take a while
+prod_dates <- function(file) {
+  nc <- open.nc(paste0(ocean_dir, file))
+  d  <- as.Date(utcal.nc("days since 1990-01-01 00:00:00",
+                         var.get.nc(nc, "time"), type = "c"))
+  close.nc(nc)
+  d
+}
+
 prod_gsm <- mean(terra::rast(paste0(ocean_dir, "PROD_GSM.nc"),
-                             subds = "npp_vgpm_eppley_gsm"), na.rm = TRUE)
+                             subds = "npp_vgpm_eppley_gsm")[[full_years(prod_dates("PROD_GSM.nc"))]],
+                 na.rm = TRUE)
 prod_oc3 <- mean(terra::rast(paste0(ocean_dir, "PROD_OC3.nc"),
-                             subds = "npp_vgpm_eppley_oc3"), na.rm = TRUE)
+                             subds = "npp_vgpm_eppley_oc3")[[full_years(prod_dates("PROD_OC3.nc"))]],
+                 na.rm = TRUE)
 
 # TODO Check these are the right way up (north at the top) before moving on
 plot(c(sla, ucur, vcur))

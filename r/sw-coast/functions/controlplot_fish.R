@@ -69,6 +69,7 @@ controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
     ) %>%
       dplyr::mutate(year = as.numeric(year)) %>%
       dplyr::group_by(year) %>%
+      dplyr::filter(dplyr::n_distinct(month) == 12) %>% # Full years only
       dplyr::summarise(
         sst = mean(sst, na.rm = TRUE),
         sd  = mean(sd,  na.rm = TRUE),
@@ -121,7 +122,7 @@ controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
       ) +
       facet_wrap(~depth_class, ncol = 1, scales = "free_y") +
       theme_classic() +
-      scale_x_continuous(breaks = c(2014, 2020, 2024)) +
+      scale_x_continuous(breaks = c(2014, 2020, 2025)) +
       scale_y_continuous(expand = expansion(mult = 0.15)) +
       coord_cartesian(xlim = c(2014, 2026), ylim = cti_limits, clip = "off") +
       scale_fill_manual(values = fill_vals, name = "Marine Parks", drop = TRUE) +
@@ -167,7 +168,7 @@ controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
       ) +
       facet_wrap(~depth_class, ncol = 1, scales = "free_y") +
       theme_classic() +
-      scale_x_continuous(breaks = c(2014, 2020, 2024)) +
+      scale_x_continuous(breaks = c(2014, 2020, 2025)) +
       scale_y_continuous(expand = expansion(mult = 0.15)) +
       coord_cartesian(xlim = c(2014, 2026), ylim = c(0, NA), clip = "off") +
       scale_fill_manual(values = fill_vals, name = "Marine Parks", drop = TRUE) +

@@ -84,7 +84,7 @@ controlplot_benthos <- function(data, taxa, amp_abbrv, state_abbrv,
     ) +
     facet_wrap(~depth_class, ncol = 1, scales = "free_y") +
     theme_classic() +
-    scale_x_continuous(breaks = c(2014, 2024)) + # TODO set to your survey years
+    scale_x_continuous(breaks = c(2014, 2020, 2025)) + # TODO set to your survey years
     scale_y_continuous(expand = expansion(mult = 0.15)) +
     coord_cartesian(xlim = c(2013, 2026), ylim = c(0, NA), clip = "off") +
     scale_fill_manual(values = fill_vals, name = "Marine Parks", drop = FALSE) +
