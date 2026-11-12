@@ -157,7 +157,6 @@ no_year   <- dropped_by("year")
 no_status <- dropped_by("status")
 
 curve_hold_clauses <- c(
-  if (length(no_year))   paste0("year was not retained for ", list_and(no_year)),
   if (length(no_status)) paste0("zone status was not retained for ", list_and(no_status))
 )
 
@@ -175,7 +174,12 @@ pvalue_table      <- build_fish_term_pvalue_table(fish_models, fish_response_ord
 # Data Analysis
 
 Statistical methods and model selection results underpinning the natural values
-reported in Appendix A1.
+reported in Appendix A. Candidate predictors were depth, roughness and detrended
+bathymetry (Geoscience Australia 250 m bathymetry), and long-term means of sea
+surface temperature (SST), sea level anomaly (SLA), eastward (U) and northward
+(V) geostrophic current velocity and net primary productivity (PP; MODIS VGPM
+using OC3 chlorophyll), all resampled to the 250 m bathymetry grid. Survey years
+were pooled, and zone status (No-Take or Fished) was included in every model.
 
 {{< pagebreak >}}
 
@@ -183,14 +187,14 @@ reported in Appendix A1.
 
 ```{r}
 #| label: tbl-c1-1
-#| tbl-cap: 'Habitat model selection results. Top generalised additive models (GAMs) for predicting the probability of occurrence of key habitats from full subset analyses. Differences between the lowest reported corrected Akaike Information Criterion ($\Delta$AICc), AICc weight ($\omega$AICc), variance explained (R$^2$) and effective degrees of freedom (EDF) are reported for model comparison. Model selection was based on the most parsimonious model (fewest variables - shown in bold) within two units of the lowest AICc. Benthic samples are pooled across survey years, so survey year was not offered as a candidate predictor.'
+#| tbl-cap: 'Habitat model selection results. Top generalised additive models (GAMs) for predicting the probability of occurrence of key habitats from full subset analyses. Differences between the lowest reported corrected Akaike Information Criterion ($\Delta$AICc), AICc weight ($\omega$AICc), variance explained (R$^2$) and effective degrees of freedom (EDF) are reported for model comparison. Model selection was based on the most parsimonious model (fewest variables - shown in bold) within two units of the lowest AICc. Benthic samples are pooled across survey years, so survey year was not offered as a candidate predictor. Zone status was included in every candidate model.'
 build_habitat_model_table(habitat_table)
 ```
 
 ```{r}
 #| out-width: "85%"
 #| fig-align: center
-#| fig-cap: 'Variable importance scores for predicting the probability of occurrence of main habitat categories. Response variables included in the most parsimonious top model are indicated (X), with the colour gradient representing positive (red), zero (white) and negative (blue) relationships. Aspect is a circular variable, so the direction of its relationship should be read from the response curves rather than the colour gradient.'
+#| fig-cap: 'Variable importance scores for predicting the probability of occurrence of main habitat categories. Response variables included in the most parsimonious top model are indicated (X), with the colour gradient representing positive (red), zero (white) and negative (blue) relationships.'
 knitr::include_graphics(fig("habitat-importance.png"))
 ```
 
@@ -227,21 +231,21 @@ knitr::include_graphics(fig("habitat-response-curves.png"))
 
 ```{r}
 #| label: tbl-c2-1
-#| tbl-cap: 'Demersal fish model selection results. Top generalised additive models (GAMs) for predicting the species and abundance distribution of metrics of interest from full subset analyses. Differences between the lowest reported corrected Akaike Information Criterion ($\Delta$AICc), AICc weight ($\omega$AICc), variance explained (R$^2$) and effective degrees of freedom (EDF) are reported for model comparison. Model selection was based on the best model (fewest variables - shown in bold) within two units of the lowest AICc. \*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays.'
+#| tbl-cap: 'Demersal fish model selection results. Top generalised additive models (GAMs) for predicting the species and abundance distribution of metrics of interest from full subset analyses. Differences between the lowest reported corrected Akaike Information Criterion ($\Delta$AICc), AICc weight ($\omega$AICc), variance explained (R$^2$) and effective degrees of freedom (EDF) are reported for model comparison. Model selection was based on the best model (fewest variables - shown in bold) within two units of the lowest AICc. \*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays. Survey years are pooled and zone status was included in every candidate model.'
 build_fish_model_table(fish_table)
 ```
 
 ```{r}
 #| out-width: "85%"
 #| fig-align: center
-#| fig-cap: 'Variable importance scores for predicting the probability of demersal fish metrics. Response variables included in the most parsimonious top model are indicated (X), with the colour gradient representing positive (red), zero (white) and negative (blue) relationships. Aspect is a circular variable, so the direction of its relationship should be read from the response curves rather than the colour gradient. \*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays.'
+#| fig-cap: 'Variable importance scores for predicting the probability of demersal fish metrics. Response variables included in the most parsimonious top model are indicated (X), with the colour gradient representing positive (red), zero (white) and negative (blue) relationships. \*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays.'
 knitr::include_graphics(fig("fish-importance.png"))
 ```
 
 {{< pagebreak >}}
 
 ```{r}
-#| out-width: "75%"
+#| out-width: "90%"
 #| out-height: "80%"
 #| fig-align: center
 #| fig-cap: !expr paste0('Plots of the best model found to predict the probability of occurrence of key fish groups. Individual panes display the predicted relationships between model covariates and each demersal fish metric. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value, with zone status held at areas ', curve_status, '.', curve_hold_note, ' Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data from all survey years and zones. \\*Large Reef Fish Index representing the biomass of all fish greater than 20 cm (B20) has been adapted here for stereo-BRUV data by removing sharks and rays.')
@@ -250,11 +254,11 @@ knitr::include_graphics(fig("fish-response-curves.png"))
 
 {{< pagebreak >}}
 
-## Significance of year and zone status
+## Significance of zone status
 
 ```{r}
 #| label: tbl-c1-3
-#| tbl-cap: 'Significance of the year and zone status terms in each demersal fish GAMM. Estimate, standard error (SE), test statistic and p-value are taken from the parametric coefficient table of each model summary, one row per factor-level contrast (e.g. a survey year against the reference year, or No-Take against Fished).'
+#| tbl-cap: 'Significance of the zone status term (No-Take against Fished) in each demersal fish GAM. Estimate, standard error (SE), test statistic and p-value are taken from the parametric coefficient table of each model summary.'
 build_fish_term_pvalue_report(pvalue_table)
 ```
 

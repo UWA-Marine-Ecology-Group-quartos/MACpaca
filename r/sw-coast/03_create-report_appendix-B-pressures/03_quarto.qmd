@@ -68,3 +68,8 @@ include_graphics(here("plots/sw-coast/pressures/sw-coast_SST.png"))
 include_graphics(here("plots/sw-coast/pressures/sw-coast_DHW.png"))
 
 ```
+```{r}
+#| out-width: "90%"
+#| fig-cap: "Annual sea surface temperature anomaly at the scale of the SW coast over the last 100 years, relative to the 1961-1990 average. Red bars represent years warmer than average and blue bars years cooler than average. Data from NOAA ERSST v6, a 2° monthly reconstruction from ship, buoy and Argo float observations; values before 1940 are less certain due to sparse observations."
+include_graphics(here("plots/sw-coast/pressures/sw-coast_SST_anomaly.png"))
+```

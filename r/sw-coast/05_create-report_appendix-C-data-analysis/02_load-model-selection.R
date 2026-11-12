@@ -11,10 +11,7 @@ library(here)
 library(tidyverse)
 library(mgcv)
 
-# Locate this folder. Works in RStudio, in a plain R session, and when Quarto
-# renders (Quarto sets the working directory to the document's own folder).
-# rstudioapi::isAvailable() returns FALSE outside RStudio, whereas
-# getActiveDocumentContext() calls verifyAvailable() and hard-errors.
+# Locate this folder.
 if (!exists("appc_dir") || !file.exists(file.path(appc_dir, "00_config.yml"))) {
   appc_dir <- local({
     cands <- getwd()

@@ -63,10 +63,11 @@ controlplot_fish <- function(data, metric, amp_abbrv, state_abbrv,
 
     sst <- readRDS(
       paste0("data/", park, "/spatial/oceanography/",
-             name, "_SST_time-series.rds")
+             name, "_SST_time-series-recent.rds")
     ) %>%
       dplyr::mutate(year = as.numeric(year)) %>%
       dplyr::group_by(year) %>%
+      dplyr::filter(dplyr::n_distinct(month) == 12) %>% # Full years only
       dplyr::summarise(
         sst = mean(sst, na.rm = TRUE),
         sd  = mean(sd,  na.rm = TRUE),

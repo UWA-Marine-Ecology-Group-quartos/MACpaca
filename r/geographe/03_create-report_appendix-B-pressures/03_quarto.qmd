@@ -75,5 +75,8 @@ include_graphics(here("plots/geographe/pressures/GeographeAMP_SST.png"))
 #| fig-cap: "Maximum Degree Heating Weeks at the scale of the GMP. Heatmap values representing high (yellow) and low (blue) monthly Degree Heating Weeks (DHW) for the two most recent marine heatwave periods on record. Grey polygons represent State spatial management and Australian Marine Park boundaries."
 include_graphics(here("plots/geographe/pressures/GeographeAMP_DHW.png"))
 ```
-
-
+```{r}
+#| out-width: "90%"
+#| fig-cap: "Annual sea surface temperature anomaly at the scale of the GMP over the last 100 years, relative to the 1961-1990 average. Red bars represent years warmer than average and blue bars years cooler than average. Data from NOAA ERSST v6, a 2° monthly reconstruction from ship, buoy and Argo float observations, averaged over the 1 ERSST grid cell (115-117°E, 33-35°S) overlapping the park; values before 1940 are less certain due to sparse observations."
+include_graphics(here("plots/geographe/pressures/GeographeAMP_SST_anomaly.png"))
+```

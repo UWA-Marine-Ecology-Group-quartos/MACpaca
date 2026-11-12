@@ -68,3 +68,8 @@ include_graphics(here("plots/swc_westernarm/pressures/swc_westernarm_SST.png"))
 include_graphics(here("plots/swc_westernarm/pressures/swc_westernarm_DHW.png"))
 
 ```
+```{r}
+#| out-width: "90%"
+#| fig-cap: "Annual sea surface temperature anomaly at the scale of the SWCMP (Western arm) over the last 100 years, relative to the 1961-1990 average. Red bars represent years warmer than average and blue bars years cooler than average. Data from NOAA ERSST v6, a 2° monthly reconstruction from ship, buoy and Argo float observations, averaged over the 2 ERSST grid cells (113-117°E, 33-35°S) overlapping the park; values before 1940 are less certain due to sparse observations."
+include_graphics(here("plots/swc_westernarm/pressures/swc_westernarm_SST_anomaly.png"))
+```

@@ -7,3 +7,6 @@ SLA.nc
 Acidification.nc
 PROD_GSM.nc
 PROD_OC3.nc
+oisst_v2.1_monthly_sw-coast.nc
+sst.mnmean.nc
+sw-coast_SST_anomaly.rds

@@ -3,48 +3,18 @@
 "2","Platycephalidae","Platycephalus","spp",NA,NA,NA,NA,NA
 "3","Sillaginidae","Sillago","spp",NA,NA,NA,NA,NA
 "4","Carangidae","Pseudocaranx","spp",NA,NA,NA,NA,NA
-"5","Labridae","Notolabrus","parilus","Brownspotted Wrasse","TL",0.021,2.9072,NA
-"6","Labridae","Ophthalmolepis","lineolatus","Southern Maori Wrasse","TL",0.01065,2.986,NA
-"7","Monacanthidae","Scobinichthys","granulatus","Rough Leatherjacket","TL",0.01995,2.93,NA
-"8","Neosebastidae","Neosebastes","pandus","Bighead Gurnard Perch","TL",20.29528,1.0182,NA
-"9","Monacanthidae","Meuschenia","freycineti","Sixspine Leatherjacket","TL",0.02167,2.8735,NA
-"10","Aracanidae","Anoplocapros","amygdaloides","Western Smooth Boxfish","TL",0.01995,3.01,NA
-"11","Monacanthidae","Meuschenia","flavolineata","Yellowstriped Leatherjacket","TL",0.01995,2.93,NA
-"12","Scombridae","Unknown","spp","mackerels",NA,NA,NA,NA
-"13","Haemulidae","Plectorhinchus","flavomaculatus","Goldspotted Sweetlips","TL",0.2697,2.2459,NA
-"14","Chaetodontidae","Chelmonops","curiosus","Western Talma","TL",0.02239,3.01,NA
-"15","Monacanthidae","Meuschenia","galii","Bluelined Leatherjacket","TL",0.00582,3.2876,NA
-"16","Labridae","Pictilabrus","laticlavius","Senator Wrasse","TL",0.00955,3.07,NA
-"17","Monacanthidae","Acanthaluteres","vittiger","Toothbrush Leatherjacket","TL",0.01995,2.93,NA
-"18","Aracanidae","Anoplocapros","lenticularis","Whitebarred Boxfish","TL",0.01995,3.01,NA
-"19","Monacanthidae","Meuschenia","hippocrepis","Horseshoe Leatherjacket","TL",0.22153,2.2791,NA
-"20","Cheilodactylidae","Cheilodactylus","gibbosus","Magpie Morwong","TL",0.0123,3.02,NA
-"21","Labridae","Pseudolabrus","biserialis","Redband Wrasse","TL",0.01995,2.99,NA
-"22","Monacanthidae","Acanthaluteres","brownii","Spinytail Leatherjacket","TL",0.01995,2.93,NA
-"23","Pempherididae","Pempheris","klunzingeri","Rough Bullseye","TL",0.01288,3.03,NA
-"24","Mullidae","Parupeneus","chrysopleuron","Rosy Goatfish","SL",0.0344,2.86,"TL → FL"
-"25","Scombridae","Thunnus","spp",NA,NA,NA,NA,NA
-"26","Monacanthidae","Eubalichthys","mosaicus","Mosaic Leatherjacket","TL",0.01995,2.93,NA
-"27","Monacanthidae","Nelusetta","ayraud","Ocean Jacket","TL",0.0193,2.808,NA
-"28","Neosebastidae","Neosebastes","bougainvillii","Gulf Gurnard Perch","TL",0.01995,3.01,NA
-"29","Monacanthidae","Unknown","spp","a leatherjacket",NA,NA,NA,NA
-"30","Terapontidae","Pelsartia","humeralis","Sea Trumpeter","TL",0.01288,3.04,NA
-"31","Carangidae","Unknown","spp","trevallies",NA,NA,NA,NA
-"32","Zeidae","Zeus","faber","John Dory","TL",0.0211,2.931,NA
-"33","Hemiramphidae","Unknown","spp","garfishes",NA,NA,NA,NA
-"34","Carangidae","Trachurus","spp","a trevally",NA,NA,NA,NA
-"35","Scorpaenidae","Scorpaena","sumptuosa","Western Red Scorpionfish","TL",0.03117,2.8809,NA
-"36","Tetraodontidae","Unknown","spp","toadfishes",NA,NA,NA,NA
-"37","Monacanthidae","Acanthaluteres","spp",NA,NA,NA,NA,NA
-"38","Serranidae","Hypoplectrodes","nigroruber","Banded Seaperch","TL",0.01349,3,NA
-"39","Monacanthidae","Eubalichthys","cyanoura","Bluetail Leatherjacket","TL",0.01995,2.93,NA
-"40","Sillaginidae","Unknown","spp","whitings",NA,NA,NA,NA
-"41","Aracanidae","Aracana","aurita","Shaw's Cowfish","TL",0.01995,3.01,NA
-"42","Muraenidae","Gymnothorax","woodwardi","Woodward's Moray","TL",0.00048,3.28,NA
-"43","Plesiopidae","Paraplesiops","meleagris","Southern Blue Devil","TL",0.02342,2.8924,NA
-"44","Labridae","Notolabrus","spp",NA,NA,NA,NA,NA
-"45","Sillaginidae","Sillaginodes","spp",NA,NA,NA,NA,NA
-"46","Sphyraenidae","Sphyraena","spp","striped seapike",NA,NA,NA,NA
-"47","Kyphosidae","Kyphosus","spp",NA,NA,NA,NA,NA
-"48","Serranidae","Unknown","spp",NA,NA,NA,NA,NA
-"49","Tetraodontidae","Omegophora","armilla","Ringed Toadfish","TL",0.0257,2.88,NA
+"5","Scombridae","Unknown","spp","mackerels",NA,NA,NA,NA
+"6","Mullidae","Parupeneus","chrysopleuron","Rosy Goatfish","SL",0.0344,2.86,"TL → FL"
+"7","Scombridae","Thunnus","spp",NA,NA,NA,NA,NA
+"8","Monacanthidae","Unknown","spp","a leatherjacket",NA,NA,NA,NA
+"9","Carangidae","Unknown","spp","trevallies",NA,NA,NA,NA
+"10","Hemiramphidae","Unknown","spp","garfishes",NA,NA,NA,NA
+"11","Carangidae","Trachurus","spp","a trevally",NA,NA,NA,NA
+"12","Tetraodontidae","Unknown","spp","toadfishes",NA,NA,NA,NA
+"13","Monacanthidae","Acanthaluteres","spp",NA,NA,NA,NA,NA
+"14","Sillaginidae","Unknown","spp","whitings",NA,NA,NA,NA
+"15","Labridae","Notolabrus","spp",NA,NA,NA,NA,NA
+"16","Sillaginidae","Sillaginodes","spp",NA,NA,NA,NA,NA
+"17","Sphyraenidae","Sphyraena","spp","striped seapike",NA,NA,NA,NA
+"18","Kyphosidae","Kyphosus","spp",NA,NA,NA,NA,NA
+"19","Serranidae","Unknown","spp",NA,NA,NA,NA,NA

@@ -78,6 +78,19 @@ names(detre) <- c("geoscience_detrended", "lineartrend")
 preds <- rast(list(bathy, preds, detre[[1]]))
 names(preds)[1] <- "geoscience_depth"
 
+# Openness - euclidean distance from the coast (km)
+land <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
+  crop(ext(bathy)) %>%
+  classify(cbind(-Inf, 0, NA)) %>% # Keep land cells only (above 0 m)
+  aggregate(fact = 10, fun = "max", na.rm = TRUE) # ~2.5 km cells to speed up distance
+openness <- distance(land) %>%
+  resample(bathy, method = "bilinear") %>%
+  mask(bathy) / 1000
+names(openness) <- "geoscience_openness"
+plot(openness)
+
+preds <- c(preds, openness)
+
 # Oceanography ----
 # Long-term mean of each layer, coastal gaps filled, then resampled onto the
 # bathymetry grid (250 m) so every layer has exactly the same cells

@@ -522,8 +522,8 @@ threatened_species %>%
 ### Threatened shark and ray species
 
 ```{r}
-#| fig-width: 13
-#| fig-height: 13
+#| fig-width: 16
+#| fig-height: 17
 #| fig-cap: "Occurrence of threatened, IUCN Red List category, sharks and rays in stereo-BRUV imagery. Points are scaled by abundance (MaxN) and coloured by survey year; grey points show every stereo-BRUV deployment. State and Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters."
 readRDS(here("plots/geographe/fish/GeographeAMP_threatened-species-occurrence_page1_2014-2024.rds"))
 ```
@@ -539,8 +539,8 @@ fig-height are just a starting point - adjust freely, the .rds is a live
 ggplot object so it re-flows to whatever size you give it. -->
 
 ```{r}
-#| fig-width: 13
-#| fig-height: 13
+#| fig-width: 16
+#| fig-height: 17
 #| fig-cap: "Occurrence of shark and ray species that are not threatened in stereo-BRUV imagery. Points are scaled by abundance (MaxN) and coloured by survey year; grey points show every stereo-BRUV deployment, so a panel with no coloured points is a genuine absence rather than an absence of sampling. State and Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters."
 readRDS(here("plots/geographe/fish/GeographeAMP_non-threatened-species-occurrence_page1_2014-2024.rds"))
 ```
@@ -552,8 +552,8 @@ readRDS(here("plots/geographe/fish/GeographeAMP_non-threatened-species-occurrenc
 :::
 
 ```{r}
-#| fig-width: 14
-#| fig-height: 11
+#| fig-width: 16
+#| fig-height: 12.75
 #| fig-cap: "Occurrence of shark and ray species that are not threatened in stereo-BRUV imagery (continued). Points are scaled by abundance (MaxN) and coloured by survey year; grey points show every stereo-BRUV deployment, so a panel with no coloured points is a genuine absence rather than an absence of sampling. State and Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters."
 readRDS(here("plots/geographe/fish/GeographeAMP_non-threatened-species-occurrence_page2_2014-2024.rds"))
 ```

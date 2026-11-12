@@ -118,64 +118,31 @@ for (yr in years) {
 # SST PROCESSING - run once to create the SST time series used by the Reef
 # Fish Thermal Index (CTI) control plot.
 #
-# TODO Download the IMOS 6-day SST product (more recent coverage than the
-# 1-month product used in Appendix B - 03_create-report_appendix-B-pressures/
-# 01_spatial-layers.R): "IMOS - SRS - SST - L3S - Single Sensor - 6 day - day
-# and night time - Australia" from the AODN portal, and save it as:
-#   data/<park>/spatial/oceanography/SST_recent.nc
-# This file is large and can take a while to download, but gives more
-# up-to-date SST coverage than the monthly product (useful if your most
-# recent survey year is close to the current date).
-#
-# TODO point controlplot_fish() at "<name>_SST_time-series-recent.rds" (built
-# below) instead of the monthly "<name>_SST_time-series.rds" from Appendix B -
-# see the inline controlplot_fish() override in
-# r/eastern-recherche/02_create-report_appendix-A-natural-values/08_create-plots_post-modelling_fish.R
-# (defined after the source() loop above, so it overrides the default in
-# functions/controlplot_fish.R).
+# NOAA OISST v2.1 monthly (0.25°, Sep 1981 to present). Uses the SW coast file,
+# which covers this park:
+#   data/<park>/spatial/oceanography/oisst_v2.1_monthly_sw-coast.nc
 # =============================================================================
 
-library(RNetCDF)
 library(lubridate)
 
-nc_sst <- open.nc(paste0("data/", park, "/spatial/oceanography/SST-recent.nc"))
-print.nc(nc_sst)
+rast_sst <- terra::rast(paste0("data/", park, "/spatial/oceanography/oisst_v2.1_monthly_sw-coast.nc"),
+                        subds = "sst")
+terra::ext(rast_sst) <- terra::ext(110.5, 127.25, -37.0, -25.25) # GDAL doesn't read this file's coordinates
+rast_sst <- terra::crop(rast_sst, e)
 
-# Extract raw arrays
-sst_var <- var.get.nc(nc_sst, "sea_surface_temperature")
-lat     <- var.get.nc(nc_sst, "lat")
-lon     <- var.get.nc(nc_sst, "lon")
-time_nc <- var.get.nc(nc_sst, "time")
-
-# Convert time to dates
-dates_sst <- as.Date(utcal.nc("seconds since 1981-01-01 00:00:00", time_nc, type = "c"))
-
-close.nc(nc_sst) # close before raster operations to avoid GDAL errors
-
-# Convert Kelvin to Celsius and fix dimension order [lon, lat, time] -> [lat, lon, time]
-sst_var       <- sst_var - 273.15
-sst_corrected <- aperm(sst_var, c(2, 1, 3))
-
-# Create raster stack
-rast_sst <- terra::rast(sst_corrected,
-                        extent = terra::ext(min(lon), max(lon), min(lat), max(lat)),
-                        crs    = "EPSG:4326")
-
-# Assign dates, crop and trim to study extent
+# Keep 2014 onwards (survey period)
+dates_sst <- as.Date(terra::time(rast_sst))
+rast_sst  <- rast_sst[[dates_sst >= as.Date("2014-01-01")]]
+dates_sst <- dates_sst[dates_sst >= as.Date("2014-01-01")]
 names(rast_sst) <- as.character(dates_sst)
-time(rast_sst)  <- dates_sst
-rast_sst        <- terra::crop(rast_sst, e) %>% terra::trim()
 
-plot(rast_sst)
-# Check orientation - if upside down run: rast_sst <- terra::flip(rast_sst, "vertical")
 plot(rast_sst[[1]])
 
-# Build monthly climatology
+# Build monthly climatology (already in °C)
 sst_list <- list()
-for (month in sort(unique(month(time(rast_sst))))) {
-  monthly_rast <- subset(rast_sst, month(time(rast_sst)) == month) %>%
-    mean(na.rm = TRUE) %>%
-    app(fun = function(i) { i - 273.15 })
+for (month in sort(unique(month(dates_sst)))) {
+  monthly_rast <- subset(rast_sst, month(dates_sst) == month) %>%
+    mean(na.rm = TRUE)
   names(monthly_rast) <- month.abb[month]
   sst_list[[month.abb[month]]] <- monthly_rast
 }
@@ -190,7 +157,7 @@ sst_tsdf <- terra::global(rast_sst, fun = "mean", na.rm = TRUE) %>%
   tidyr::separate(rowname, into = c("year", "month", "day"), sep = "-") %>%
   dplyr::group_by(year, month) %>%
   summarise(
-    sst = mean(mean, na.rm = TRUE), # Apply -273.15 offset (controlplot_fish adds it back)
+    sst = mean(mean, na.rm = TRUE),
     sd  = mean(sd,   na.rm = TRUE),
     .groups = "drop"
   ) %>%

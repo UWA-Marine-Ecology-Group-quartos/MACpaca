@@ -169,6 +169,66 @@ for (metric_name in names(fish_metric_lookup)) {
           )
 }
 
+# =============================================================================
+# SST PROCESSING - run once to create the SST time series used by the Reef
+# Fish Thermal Index (CTI) control plot.
+#
+# NOAA OISST v2.1 monthly (0.25°, Sep 1981 to present). Uses the SW coast file,
+# which covers this park:
+#   data/<park>/spatial/oceanography/oisst_v2.1_monthly_sw-coast.nc
+# =============================================================================
+
+library(lubridate)
+
+rast_sst <- terra::rast(paste0("data/", park, "/spatial/oceanography/oisst_v2.1_monthly_sw-coast.nc"),
+                        subds = "sst")
+terra::ext(rast_sst) <- terra::ext(110.5, 127.25, -37.0, -25.25) # GDAL doesn't read this file's coordinates
+rast_sst <- terra::crop(rast_sst, ext(115.04, 115.60, -33.67, -33.346), snap = "out") # park extent (same as Appendix B)
+
+# Keep 2014 onwards (survey period)
+dates_sst <- as.Date(terra::time(rast_sst))
+rast_sst  <- rast_sst[[dates_sst >= as.Date("2014-01-01")]]
+dates_sst <- dates_sst[dates_sst >= as.Date("2014-01-01")]
+names(rast_sst) <- as.character(dates_sst)
+
+plot(rast_sst[[1]])
+
+# Build monthly climatology (already in °C)
+sst_list <- list()
+for (month in sort(unique(month(dates_sst)))) {
+  monthly_rast <- subset(rast_sst, month(dates_sst) == month) %>%
+    mean(na.rm = TRUE)
+  names(monthly_rast) <- month.abb[month]
+  sst_list[[month.abb[month]]] <- monthly_rast
+}
+sst <- rast(sst_list)
+
+saveRDS(sst, paste0("data/", park, "/spatial/oceanography/", name, "_SST_raster-recent.rds"))
+
+# Build monthly time-series summary
+sst_tsdf <- terra::global(rast_sst, fun = "mean", na.rm = TRUE) %>%
+  tibble::rownames_to_column() %>%
+  cbind(terra::global(rast_sst, fun = "sd", na.rm = TRUE)) %>%
+  tidyr::separate(rowname, into = c("year", "month", "day"), sep = "-") %>%
+  dplyr::group_by(year, month) %>%
+  summarise(
+    sst = mean(mean, na.rm = TRUE),
+    sd  = mean(sd,   na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  ungroup() %>%
+  dplyr::mutate(season = case_when(
+    month %in% c("04", "05", "06") ~ "Autumn",
+    month %in% c("07", "08", "09") ~ "Winter",
+    month %in% c("10", "11", "12") ~ "Spring",
+    month %in% c("01", "02", "03") ~ "Summer"
+  )) %>%
+  glimpse()
+
+saveRDS(sst_tsdf, paste0("data/", park, "/spatial/oceanography/", name, "_SST_time-series-recent.rds"))
+
+boxplot(sst_tsdf$sst ~ sst_tsdf$month)
+
 # -------------------------------------------------------------------
 # Control plots by metric, facetted by depth class
 # -------------------------------------------------------------------

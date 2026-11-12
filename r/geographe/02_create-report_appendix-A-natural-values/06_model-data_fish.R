@@ -241,12 +241,11 @@ m_cti <- gam(count ~ year + status +
 summary(m_cti)
 # plot(m_cti)
 
-# B20 - lowest AICc among the 3-term candidates within delta AICc 2
-# (detrended+depth+reef is 1.075 behind and has lower importance, 0.537 vs
-# aspect's 0.653)
+# B20 - 3-term model within delta AICc 2 (0.631 behind the top model, tied with
+# aspect+depth+reef at 0.567); detrended chosen over aspect
 m_b20 <- gam(count ~ year + status +
-               s(geoscience_aspect, k = 3, bs = "cc") +
                s(geoscience_depth, k = 3, bs = "cr") +
+               s(geoscience_detrended, k = 3, bs = "cr") +
                s(reef, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "b20"),
              family = tw())

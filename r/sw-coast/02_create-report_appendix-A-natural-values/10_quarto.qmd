@@ -1,5 +1,5 @@
 ---
-title: "Appendix A - Abrolhos to Eastern Recherche Natural Values Report"
+title: "Appendix A - South-west Network (Abrolhos to Eastern Recherche) Natural Values Report"
 subtitle: "South-west Marine Parks Network"
 filters:
   - figure-numbering.lua

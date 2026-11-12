@@ -221,9 +221,10 @@ m_cti <- gam(count ~ year + status +
              data = fabund %>% dplyr::filter(response %in% "cti"),
              family = gaussian(link = "identity"))
 
-# B20 - aspect dropped, 1.031 dAICc behind and r2 0.142 vs 0.147
+# B20 - only model within delta AICc 2 (r2 0.154)
 m_b20 <- gam(count ~ year + status +
-               s(reef, k = 3, bs = "cr") +
+               s(geoscience_aspect, k = 3, bs = "cc") +
+               s(geoscience_detrended, k = 3, bs = "cr") +
                s(geoscience_roughness, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "b20"),
              family = tw())

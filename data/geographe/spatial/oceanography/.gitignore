@@ -3,3 +3,8 @@ SST.nc
 Acidification.nc
 DHW.nc
 SST_WA.nc
+oisst_v2.1_monthly_sw-coast.nc
+sst.mnmean.nc
+GeographeAMP_SST_raster-recent.rds
+GeographeAMP_SST_time-series-recent.rds
+GeographeAMP_SST_anomaly.rds

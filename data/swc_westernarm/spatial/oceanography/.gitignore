@@ -12,3 +12,6 @@ swc_westernarm_SST_raster-recent.rds
 swc_westernarm_SST_raster.rds
 swc_westernarm_SST_time-series-recent.rds
 swc_westernarm_SST_time-series.rds
+oisst_v2.1_monthly_sw-coast.nc
+sst.mnmean.nc
+swc_westernarm_SST_anomaly.rds

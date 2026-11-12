@@ -118,6 +118,24 @@ saveRDS(sst_tsdf, paste0("data/", park, "/spatial/oceanography/", name, "_SST_ti
 # Check data
 boxplot(sst_tsdf$sst ~ sst_tsdf$month)
 
+# ── SST anomaly (last 100 years) ──────────────────────────────────────────────────────────────────
+# NOAA ERSST v6 (2°, monthly, 1850 to present) - sst.mnmean.nc from
+# https://psl.noaa.gov/thredds/catalog/Datasets/noaa.ersst.v6/catalog.html
+sst_hist <- rast(paste0("data/", park, "/spatial/oceanography/sst.mnmean.nc"), subds = "sst") %>%
+  crop(ext(109, 127, -37, -25)) # 2° cells overlapping the study extent
+
+sst_anom <- data.frame(date = as.Date(time(sst_hist)),
+                       sst = global(sst_hist, fun = "mean", na.rm = T)$mean) %>%
+  dplyr::mutate(year = year(date)) %>%
+  dplyr::group_by(year) %>%
+  dplyr::summarise(sst = mean(sst), n_months = n(), .groups = "drop") %>%
+  dplyr::filter(n_months == 12) %>% # Full years only
+  dplyr::mutate(anomaly = sst - mean(sst[year %in% 1961:1990])) %>% # 1961-1990 baseline
+  dplyr::filter(year > max(year) - 100) %>% # Last 100 years
+  glimpse()
+
+saveRDS(sst_anom, paste0("data/", park, "/spatial/oceanography/", name, "_SST_anomaly.rds"))
+
 # ── Sea Level anomaly ─────────────────────────────────────────────────────────────────────────────
 # Load data
 nc_sla <- open.nc(paste0("data/", park, "/spatial/oceanography/SLA.nc"),
