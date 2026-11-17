@@ -163,7 +163,8 @@ threatened_species <- threatened_obs %>%
       )
     )
   ) %>%
-  dplyr::arrange(dplyr::desc(n_samples), scientific_name)
+  dplyr::arrange(match(listing, iucn_categories), # Order by IUCN category
+                 dplyr::desc(n_samples), scientific_name)
 
 # TODO Check this list against the current EPBC and IUCN listings before it goes
 # in the report - the CheckEM table is a snapshot and listings are revised

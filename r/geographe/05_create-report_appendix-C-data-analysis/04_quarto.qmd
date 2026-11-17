@@ -1,6 +1,7 @@
 ---
 title: "Appendix C - Geographe Marine Park Data Analysis Report"
 subtitle: "South-west Marine Parks Network"
+abstract-title: ""
 filters:
   - appendix-c-numbering.lua
 format:
@@ -14,6 +15,7 @@ format:
       - right=2cm
     include-in-header:
       text: |
+        \titlehead{\small Updated: \the\day\space\ifcase\month\or January\or February\or March\or April\or May\or June\or July\or August\or September\or October\or November\or December\fi\space\the\year\\ \href{https://uwa-marine-ecology-group-quartos.github.io/MACpaca/}{MACpaca}}
         \usepackage{caption}
         \usepackage{float}
         \usepackage{chngcntr}
@@ -26,6 +28,10 @@ format:
         \renewcommand{\thetable}{C.\arabic{table}}
         \captionsetup{format=plain, indention=0pt}
   html:
+    date: today
+    date-format: "D MMMM YYYY"
+    published-title: "Updated"
+    abstract: "[MACpaca](https://uwa-marine-ecology-group-quartos.github.io/MACpaca/)"
     output-file: "Project 4.21-Geographe-3-Appendix C-q-Data analysis.html"
     fig-dpi: 96
     embed-resources: true
@@ -161,6 +167,8 @@ fish_dat          <- load_model_data()$fish
 fish_subset       <- function(resp) fish_dat %>% dplyr::filter(.data$response == resp)
 pvalue_table      <- build_fish_term_pvalue_table(fish_models, fish_response_order)
 status_year_table <- build_status_by_year_table(fish_models, fish_subset, fish_response_order)
+interaction_models <- readRDS(file.path(appc_out, paste0(name, "_interaction-models_fish.rds")))
+interaction_table  <- build_interaction_table(fish_models, interaction_models, fish_response_order)
 ```
 
 # Data Analysis
@@ -202,8 +210,17 @@ knitr::include_graphics(fig("habitat-importance.png"))
 ```{r}
 #| out-width: "75%"
 #| fig-align: center
-#| fig-cap: 'Plots of the most parsimonious model found to predict the probability of occurrence of key habitat types. Individual panes display the predicted relationships between model covariates and the probability of occurrence of each habitat class. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value. Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data from all survey years.'
-knitr::include_graphics(fig("habitat-response-curves.png"))
+#| fig-cap: 'Plots of the most parsimonious model found to predict the probability of occurrence of key habitat types. Individual panes display the predicted relationships between model covariates and the probability of occurrence of each habitat class in 2014. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value. Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data from 2014.'
+knitr::include_graphics(fig("habitat-response-curves_2014.png"))
+```
+
+{{< pagebreak >}}
+
+```{r}
+#| out-width: "75%"
+#| fig-align: center
+#| fig-cap: 'Plots of the most parsimonious model found to predict the probability of occurrence of key habitat types. Individual panes display the predicted relationships between model covariates and the probability of occurrence of each habitat class in 2024. Solid lines represent predicted Generalized Additive Model (GAM) fits with other variables held constant at their mean value. Dashed lines represent upper and lower standard error bounds around the prediction, and points represent the observed data from 2024.'
+knitr::include_graphics(fig("habitat-response-curves_2024.png"))
 ```
 
 {{< pagebreak >}}
@@ -246,4 +263,10 @@ build_fish_term_pvalue_report(pvalue_table)
 #| label: tbl-c3-2
 #| tbl-cap: 'Zone status test for each demersal fish metric, laid out by survey year. Zone status (No-Take vs Fished) is fitted as a single term across all years (no year by status interaction), so the status estimate, SE and p-value are the same in every row for a given metric; predicted values and their SE are shown per year, with other model covariates held at their mean.'
 build_status_by_year_report(status_year_table)
+```
+
+```{r}
+#| label: tbl-c3-3
+#| tbl-cap: 'Effect of establishing the Geographe Marine Park zoning on each demersal fish metric, tested as a year by zone status interaction (2014, before zoning, vs 2024, after). Negative $\Delta$AICc supports the interaction. Only 15 No-Take deployments were sampled in 2014, so power is limited.'
+build_interaction_report(interaction_table)
 ```

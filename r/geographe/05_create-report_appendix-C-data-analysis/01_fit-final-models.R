@@ -209,4 +209,11 @@ final_models_fish <- list(
 saveRDS(final_models_fish, file.path(outdir, paste0(name, "_final-models_fish.rds")))
 saveRDS(fabund,            file.path(outdir, paste0(name, "_fish-data.rds")))
 
+# Year x status interaction (zoning effect) ----
+# Same final models plus year:status - tests whether the No-Take vs Fished
+# difference changed from before (2014) to after (2024) the AMP zoning
+interaction_models_fish <- lapply(final_models_fish, function(m) update(m, . ~ . + year:status))
+
+saveRDS(interaction_models_fish, file.path(outdir, paste0(name, "_interaction-models_fish.rds")))
+
 message("Final models written to: ", outdir)

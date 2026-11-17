@@ -17,6 +17,7 @@ config <- yaml::read_yaml(
 
 name <- config$name
 park <- config$park
+dir.create(paste0("plots/", park, "/pressures/"), recursive = TRUE, showWarnings = FALSE)
 
 # Load functions
 file.sources <- list.files(pattern = "*.R", path = paste0("r/", park, "/functions/"), full.names = TRUE)
@@ -62,6 +63,19 @@ ggplot(sst_anom, aes(x = year, y = anomaly, fill = anomaly > 0)) +
   theme_classic()
 
 ggsave(paste0("plots/", park, "/pressures/", name, "_SST_anomaly.png"),
+       height = 3.5, width = 8, dpi = 600, bg = "white", units = "in")
+
+## Rainfall anomaly
+rain_anom <- readRDS(paste0("data/", park, "/spatial/oceanography/", name, "_rainfall_anomaly.rds"))
+
+ggplot(rain_anom, aes(x = year, y = anomaly, fill = anomaly > 0)) +
+  geom_col() +
+  geom_hline(yintercept = 0) +
+  scale_fill_manual(values = c("TRUE" = "#1E88E5", "FALSE" = "#D81B60"), guide = "none") +
+  labs(x = "Year", y = "Rainfall anomaly (mm)") +
+  theme_classic()
+
+ggsave(paste0("plots/", park, "/pressures/", name, "_rainfall_anomaly.png"),
        height = 3.5, width = 8, dpi = 600, bg = "white", units = "in")
 
 ## SLA

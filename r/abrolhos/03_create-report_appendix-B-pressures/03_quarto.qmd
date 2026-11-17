@@ -1,6 +1,7 @@
 ---
-title: "Appendix B - Abrolhos Marine Park Pressures Report"
+title: "Appendix B - Abrolhos Marine Park Climate Pressures Report"
 subtitle: "South-west Marine Parks Network"
+abstract-title: ""
 format:
   pdf:
     output-file: "Project 4.21-Abrolhos-2-Appendix B-q-Pressures.pdf"
@@ -11,6 +12,7 @@ format:
       - right=2cm
     include-in-header:
       text: |
+        \titlehead{\small Updated: \the\day\space\ifcase\month\or January\or February\or March\or April\or May\or June\or July\or August\or September\or October\or November\or December\fi\space\the\year\\ \href{https://uwa-marine-ecology-group-quartos.github.io/MACpaca/}{MACpaca}}
         \usepackage{caption}
         \captionsetup[figure]{labelformat=empty, labelsep=none}
 toc: true
@@ -54,4 +56,10 @@ include_graphics(here("plots/abrolhos/pressures/abrolhosAMP_SST.png"))
 #| out-width: "90%"
 #| fig-cap: "Figure 4. Maximum Degree Heating Weeks at the scale of the Abrolhos MP. Heatmap values representing high (yellow) and low (blue) monthly Degree Heating Weeks (DHW) for the two most recent marine heatwave periods on record. Grey polygons represent State spatial management and Australian Marine Park boundaries."
 include_graphics(here("plots/abrolhos/pressures/abrolhosAMP_DHW.png"))
+```
+
+```{r}
+#| out-width: "90%"
+#| fig-cap: "Figure 5. Late winter (June-September) sea surface temperature anomaly at the scale of the Abrolhos MP from 1850 to 2026, relative to the 1961-1990 average. Red bars represent years warmer than average and blue bars years cooler than average. Data from NOAA ERSST v6, a 2° monthly reconstruction from ship, buoy and Argo float observations, averaged over the ERSST grid cells overlapping the park; values before 1940 are less certain due to sparse observations."
+include_graphics(here("plots/abrolhos/pressures/abrolhosAMP_SST_anomaly.png"))
 ```

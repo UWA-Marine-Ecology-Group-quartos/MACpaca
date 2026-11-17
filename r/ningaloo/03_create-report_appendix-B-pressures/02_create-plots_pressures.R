@@ -52,6 +52,19 @@ ggsave(paste0("plots/", park, "/pressures/", name, "_SST.png"),
        plot = p_sst,
        height = 4.5, width = 8, dpi = 600, bg = "white", units = "in")
 
+## SST anomaly
+sst_anom <- readRDS(paste0("data/", park, "/spatial/oceanography/", name, "_SST_anomaly.rds"))
+
+ggplot(sst_anom, aes(x = year, y = anomaly, fill = anomaly > 0)) +
+  geom_col() +
+  geom_hline(yintercept = 0) +
+  scale_fill_manual(values = c("TRUE" = "#D81B60", "FALSE" = "#1E88E5"), guide = "none") +
+  labs(x = "Year", y = "SST anomaly (°C)") +
+  theme_classic()
+
+ggsave(paste0("plots/", park, "/pressures/", name, "_SST_anomaly.png"),
+       height = 3.5, width = 8, dpi = 600, bg = "white", units = "in")
+
 ## SLA
 sla <- rast(paste0("data/", park, "/spatial/oceanography/", name, "_SLA_raster.rds")) %>%
   subset(names(.) %in% c("Jan", "Mar", "May", "Jul", "Sep", "Nov"))

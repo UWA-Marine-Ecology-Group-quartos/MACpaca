@@ -1,6 +1,7 @@
 ---
 title: "Appendix C - Abrolhos Marine Park Western Rock Lobster Data Analysis Report"
 subtitle: "North-west Marine Parks Network"
+abstract-title: ""
 filters:
   - appendix-c-numbering.lua
 format:
@@ -14,6 +15,7 @@ format:
       - right=2cm
     include-in-header:
       text: |
+        \titlehead{\small Updated: \the\day\space\ifcase\month\or January\or February\or March\or April\or May\or June\or July\or August\or September\or October\or November\or December\fi\space\the\year\\ \href{https://uwa-marine-ecology-group-quartos.github.io/MACpaca/}{MACpaca}}
         \usepackage{caption}
         \usepackage{float}
         \usepackage{chngcntr}
@@ -25,6 +27,10 @@ format:
         \renewcommand{\thetable}{C.\arabic{table}}
         \captionsetup{format=plain, indention=0pt}
   html:
+    date: today
+    date-format: "D MMMM YYYY"
+    published-title: "Updated"
+    abstract: "[MACpaca](https://uwa-marine-ecology-group-quartos.github.io/MACpaca/)"
     output-file: "Project 4.21-Abrolhos-Lobster-Appendix C-q-Data analysis.html"
     fig-dpi: 96
     embed-resources: true

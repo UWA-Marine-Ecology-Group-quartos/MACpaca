@@ -1,6 +1,7 @@
 ---
-title: "Appendix B - South-west Corner (Western arm) Marine Park Pressures Report"
+title: "Appendix B - South-west Corner (Western arm) Marine Park Climate Pressures Report"
 subtitle: "South-west Marine Parks Network"
+abstract-title: ""
 figure-number-prefix: "B."
 filters:
   - figure-numbering.lua
@@ -15,6 +16,7 @@ format:
       - right=2cm
     include-in-header:
       text: |
+        \titlehead{\small Updated: \the\day\space\ifcase\month\or January\or February\or March\or April\or May\or June\or July\or August\or September\or October\or November\or December\fi\space\the\year\\ \href{https://uwa-marine-ecology-group-quartos.github.io/MACpaca/}{MACpaca}}
         \usepackage{caption}
         \usepackage{float}
         \usepackage{chngcntr}
@@ -24,6 +26,10 @@ format:
         \renewcommand{\thefigure}{B.\arabic{figure}}
         \captionsetup{format=plain, indention=0pt}
   html:
+    date: today
+    date-format: "D MMMM YYYY"
+    published-title: "Updated"
+    abstract: "[MACpaca](https://uwa-marine-ecology-group-quartos.github.io/MACpaca/)"
     output-file: "Project 4.21-swc_westernarm-2-Appendix B-q-Pressures.html"
     fig-dpi: 96
     embed-resources: true
@@ -49,7 +55,7 @@ name <- "swc_westernarm"
 Understanding of Pressures
 ```{r}
 #| out-width: "100%"
-#| fig-cap: "Seasonal sea level anomaly, seasonal sea surface temperature and Degree Heating Weeks at the scale of the SWCMP (Western arm). Solid lines represent mean values for sea level anomaly (SLA), sea surface temperature (SST) and Degree Heating Weeks (DHW). Confidence bounds represent standard errors. Red dashed vertical lines represent maximum DHW values that are plotted spatially in Figure B.4."
+#| fig-cap: "Seasonal sea level anomaly, seasonal sea surface temperature and Degree Heating Weeks at the scale of the SWCMP (Western arm). Solid lines represent mean values for sea level anomaly (SLA), sea surface temperature (SST) and Degree Heating Weeks (DHW). Confidence bounds represent standard errors. SST is from NOAA OISST v2.1 (0.25° monthly, 1982-2026) and DHW from NOAA Coral Reef Watch. Red dashed vertical lines represent maximum DHW values that are plotted spatially in Figure B.4."
 include_graphics(here("plots/swc_westernarm/pressures/swc_westernarm_oceanography_time-series.png"))
 ```
 ```{r}
@@ -70,6 +76,12 @@ include_graphics(here("plots/swc_westernarm/pressures/swc_westernarm_DHW.png"))
 ```
 ```{r}
 #| out-width: "90%"
-#| fig-cap: "Annual sea surface temperature anomaly at the scale of the SWCMP (Western arm) over the last 100 years, relative to the 1961-1990 average. Red bars represent years warmer than average and blue bars years cooler than average. Data from NOAA ERSST v6, a 2° monthly reconstruction from ship, buoy and Argo float observations, averaged over the 2 ERSST grid cells (113-117°E, 33-35°S) overlapping the park; values before 1940 are less certain due to sparse observations."
+#| fig-cap: "Late winter (June-September) sea surface temperature anomaly at the scale of the SWCMP (Western arm) from 1850 to 2026, relative to the 1961-1990 average. Red bars represent years warmer than average and blue bars years cooler than average. Data from NOAA ERSST v6, a 2° monthly reconstruction from ship, buoy and Argo float observations, averaged over the 2 ERSST grid cells (113-117°E, 33-35°S) overlapping the park; values before 1940 are less certain due to sparse observations."
 include_graphics(here("plots/swc_westernarm/pressures/swc_westernarm_SST_anomaly.png"))
+```
+
+```{r}
+#| out-width: "90%"
+#| fig-cap: "Mean April-July rainfall anomaly for South-western Australia from 1900 to 2026, relative to the 1961-1990 average. Blue bars represent years wetter than average and red bars years drier than average. Data from the Bureau of Meteorology."
+include_graphics(here("plots/swc_westernarm/pressures/swc_westernarm_rainfall_anomaly.png"))
 ```

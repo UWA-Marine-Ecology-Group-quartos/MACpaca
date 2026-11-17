@@ -1,6 +1,7 @@
 ---
-title: "Appendix B - Abrolhos to Eastern Recherche Pressures Report"
+title: "Appendix B - Abrolhos to Eastern Recherche Climate Pressures Report"
 subtitle: "South-west Marine Parks Network"
+abstract-title: ""
 figure-number-prefix: "B."
 filters:
   - figure-numbering.lua
@@ -15,6 +16,7 @@ format:
       - right=2cm
     include-in-header:
       text: |
+        \titlehead{\small Updated: \the\day\space\ifcase\month\or January\or February\or March\or April\or May\or June\or July\or August\or September\or October\or November\or December\fi\space\the\year\\ \href{https://uwa-marine-ecology-group-quartos.github.io/MACpaca/}{MACpaca}}
         \usepackage{caption}
         \usepackage{float}
         \usepackage{chngcntr}
@@ -24,6 +26,10 @@ format:
         \renewcommand{\thefigure}{B.\arabic{figure}}
         \captionsetup{format=plain, indention=0pt}
   html:
+    date: today
+    date-format: "D MMMM YYYY"
+    published-title: "Updated"
+    abstract: "[MACpaca](https://uwa-marine-ecology-group-quartos.github.io/MACpaca/)"
     output-file: "Project 4.21-sw-coast-2-Appendix B-q-Pressures.html"
     fig-dpi: 96
     embed-resources: true
@@ -70,6 +76,6 @@ include_graphics(here("plots/sw-coast/pressures/sw-coast_DHW.png"))
 ```
 ```{r}
 #| out-width: "90%"
-#| fig-cap: "Annual sea surface temperature anomaly at the scale of the SW coast over the last 100 years, relative to the 1961-1990 average. Red bars represent years warmer than average and blue bars years cooler than average. Data from NOAA ERSST v6, a 2° monthly reconstruction from ship, buoy and Argo float observations; values before 1940 are less certain due to sparse observations."
+#| fig-cap: "Late winter (June-September) sea surface temperature anomaly at the scale of the SW coast from 1850 to 2026, relative to the 1961-1990 average. Red bars represent years warmer than average and blue bars years cooler than average. Data from NOAA ERSST v6, a 2° monthly reconstruction from ship, buoy and Argo float observations; values before 1940 are less certain due to sparse observations."
 include_graphics(here("plots/sw-coast/pressures/sw-coast_SST_anomaly.png"))
 ```

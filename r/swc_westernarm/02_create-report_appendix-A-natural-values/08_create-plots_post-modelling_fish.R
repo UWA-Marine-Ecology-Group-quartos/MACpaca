@@ -20,6 +20,7 @@ config <- yaml::read_yaml(
 
 name <- config$name
 park <- config$park
+dir.create(paste0("plots/", park, "/fish/"), recursive = TRUE, showWarnings = FALSE)
 # 08 is fish-only, so every "years" below is the fish year list from 00_config.yml
 years <- unlist(config$fish_years)
 

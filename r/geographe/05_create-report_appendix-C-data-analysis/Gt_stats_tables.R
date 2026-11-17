@@ -296,3 +296,62 @@ build_status_by_year_report <- function(df) {
     build_status_by_year_gt(df)
   }
 }
+
+# =============================================================================
+# Year x status interaction (zoning effect), per fish GAMM
+# =============================================================================
+aicc <- function(m) {
+  k <- attr(logLik(m), "df"); n <- nobs(m)
+  AIC(m) + (2 * k * (k + 1)) / (n - k - 1)
+}
+
+build_interaction_table <- function(models, int_models, response_order) {
+  purrr::imap_dfr(int_models, function(mod, resp) {
+    pt <- as.data.frame(summary(mod)$p.table)
+    pt <- pt[grepl(":", rownames(pt)), , drop = FALSE]
+    tibble(
+      response   = resp,
+      contrast   = paste0("Year ", sub("^year", "", sub(":.*", "", rownames(pt))),
+                          " x ", sub("^status", "", sub(".*:", "", rownames(pt)))),
+      estimate   = pt[[1]],
+      se         = pt[[2]],
+      statistic  = pt[[3]],
+      p_value    = pt[[4]],
+      delta_aicc = aicc(mod) - aicc(models[[resp]])
+    )
+  }) %>%
+    mutate(response_key = factor(response, levels = response_order)) %>%
+    arrange(response_key) %>%
+    mutate(response = unname(response_labels[as.character(response_key)]),
+           response = if_else(duplicated(response_key), "", response)) %>%
+    select(response, contrast, estimate, se, statistic, p_value, delta_aicc)
+}
+
+build_interaction_report <- function(df) {
+  body <- df %>%
+    format_pvalue_table() %>%
+    mutate(delta_aicc = num_fmt(delta_aicc, 2))
+  labs <- c("Response", "Term", "Estimate", "SE", "Statistic", "p-value", "$\\Delta$AICc")
+
+  if (knitr::is_latex_output()) {
+    body %>%
+      kbl(booktabs = TRUE, longtable = TRUE, escape = FALSE, linesep = "",
+          col.names = labs, align = c("l", "l", rep("c", ncol(body) - 2))) %>%
+      kable_styling(latex_options = c("repeat_header", "hold_position"),
+                    font_size = report_font_size, full_width = FALSE) %>%
+      row_spec(0, bold = TRUE, background = report_header_latex)
+  } else {
+    body %>%
+      gt() %>%
+      cols_label(response = "Response", contrast = "Term", estimate = "Estimate",
+                 se = "SE", statistic = "Statistic", p_value = "p-value",
+                 delta_aicc = "ΔAICc") %>%
+      cols_align(align = "left",   columns = c(response, contrast)) %>%
+      cols_align(align = "center", columns = c(estimate, se, statistic, p_value, delta_aicc)) %>%
+      tab_options(table.width = pct(100), table.font.size = px(report_font_size),
+                  data_row.padding = report_row_padding,
+                  table_body.hlines.style = "none",
+                  column_labels.background.color = report_header_html) %>%
+      tab_style(style = cell_text(weight = "bold"), locations = cells_column_labels())
+  }
+}

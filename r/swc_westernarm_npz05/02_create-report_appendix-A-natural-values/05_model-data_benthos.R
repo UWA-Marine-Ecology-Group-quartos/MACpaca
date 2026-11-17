@@ -93,6 +93,7 @@ unique.vars.use
 
 # Run the full subset model selection----
 outdir    <- paste0("output/model-output/", park, "/habitat/")
+dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
 out.all   <- list()
 var.imp   <- list()
 resp.vars <- unique.vars.use

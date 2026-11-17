@@ -184,8 +184,9 @@ for (id in boss_ids) {
 
   # Synthesis 77 returns broken coordinates - repaired from the field sheet
   # (same fix as eastern-recherche/01_call-API.R)
+  # Field sheet copied from data/eastern-recherche/raw/
   if (id == "77") {
-    field <- read_csv("data/eastern-recherche/raw/Salisbury_Investigator_MBH_BOSS_habitat_Metadata.csv",
+    field <- read_csv(paste0("data/", park, "/raw/Salisbury_Investigator_MBH_BOSS_habitat_Metadata.csv"),
                       show_col_types = FALSE) %>%
       dplyr::select(sample_key = Sample, longitude_field = Longitude, latitude_field = Latitude) %>%
       dplyr::distinct(sample_key, .keep_all = TRUE)
