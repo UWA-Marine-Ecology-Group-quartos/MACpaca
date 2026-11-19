@@ -138,8 +138,8 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
         title.theme  = element_text(size = 9, face = "bold")
       )),
       # Axis labels every 0.4 degrees
-      scale_x_continuous(breaks = scales::breaks_width(0.4)),
-      scale_y_continuous(breaks = scales::breaks_width(0.4)),
+      scale_x_continuous(breaks = scales::breaks_width(0.2)),
+      scale_y_continuous(breaks = scales::breaks_width(0.1)),
       coord_sf(
         xlim   = c(prediction_limits[1], prediction_limits[2]),
         ylim   = c(prediction_limits[3], prediction_limits[4]),

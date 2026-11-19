@@ -242,6 +242,8 @@ x_breaks <- seq(floor(map_limits[1] / label_interval_x) * label_interval_x,
                 ceiling(map_limits[2] / label_interval_x) * label_interval_x,
                 by = label_interval_x)
 
+x_breaks <- c(113.3, 113.5) # Two labels so they don't overlap
+
 y_breaks <- seq(floor(map_limits[3] / label_interval_y) * label_interval_y,
                 ceiling(map_limits[4] / label_interval_y) * label_interval_y,
                 by = label_interval_y)
@@ -317,7 +319,7 @@ save_paginated_overview <- function(occ_points, file_stem) {
       facet_wrap(~scientific_name, ncol = facet_cols, nrow = page_nrow,
                  labeller = ggplot2::label_wrap_gen(width = 14)) +
       theme(strip.text = element_text(face = "italic", size = 16),
-            axis.text = element_text(size = 18),
+            axis.text = element_text(size = 12),
             legend.text = element_text(size = 19),
             legend.title = element_text(face = "bold", size = 21),
             legend.key.size = unit(1.4, "lines"),

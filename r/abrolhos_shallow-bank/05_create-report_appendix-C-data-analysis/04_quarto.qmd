@@ -1,6 +1,6 @@
 ---
 title: "Appendix C - Abrolhos Shallow Bank Marine Park Data Analysis Report"
-subtitle: "North-west Marine Parks Network"
+subtitle: "South-west Marine Parks Network"
 abstract-title: ""
 filters:
   - appendix-c-numbering.lua

@@ -57,7 +57,7 @@ e <- ext(prediction_limits[1] - e_pad, prediction_limits[2] + e_pad,
 # TODO Bubble plots are zoomed in tighter than the prediction surface so the
 # bubbles stay legible. Samples span ~114.07-114.24 and -29.29 to -29.24 -
 # check and adjust.
-bubble_limits <- c(114.05, 114.26, -29.31, -29.22)
+bubble_limits <- c(114.02, 114.29, -29.33, -29.20)
 
 # Load necessary spatial files
 sf_use_s2(FALSE)
@@ -124,54 +124,19 @@ print(ext(dat))
 # SST PROCESSING - run once to create the SST time series used by the Reef
 # Fish Thermal Index (CTI) control plot.
 #
-# TODO Download the IMOS 6-day SST product: "IMOS - SRS - SST - L3S - Single
-# Sensor - 6 day - day and night time - Australia" from the AODN portal, cropped
-# to the Clio Bank window, and save it as:
-#   data/<park>/spatial/oceanography/SST_recent.nc
-#
-# NOTE Kelvin is converted to Celsius ONCE, at extraction below. Do not subtract
-# 273.15 again in the climatology loop or the time-series summary.
-#
-# NOTE the SST file was downloaded to the OLD, narrower study window
-# (114.01-114.29, -29.35 to -29.17). The crop below now uses the wider
-# buffer-derived `e`, so it is effectively a no-op and the SST covers a smaller
-# area than the predictions. Fine for a park-wide climatology, but re-download
-# to the new window if you want them to match.
+# NOAA OISST v2.1 monthly (0.25°, Sep 1981 to present). Uses the SW coast file,
+# which covers this park:
+#   data/<park>/spatial/oceanography/oisst_v2.1_monthly_sw-coast.nc
 # =============================================================================
 
-library(RNetCDF)
 library(lubridate)
 
-nc_sst <- open.nc(paste0("data/", park, "/spatial/oceanography/SST_recent.nc"))
-print.nc(nc_sst)
+rast_sst <- terra::rast(paste0("data/", park, "/spatial/oceanography/oisst_v2.1_monthly_sw-coast.nc"),
+                        subds = "sst")
+terra::ext(rast_sst) <- terra::ext(110.5, 127.25, -37.0, -25.25) # GDAL doesn't read this file's coordinates
+rast_sst <- terra::crop(rast_sst, e, snap = "out")
+names(rast_sst) <- as.character(as.Date(terra::time(rast_sst)))
 
-# Extract raw arrays
-sst_var <- var.get.nc(nc_sst, "sea_surface_temperature")
-lat     <- var.get.nc(nc_sst, "lat")
-lon     <- var.get.nc(nc_sst, "lon")
-time_nc <- var.get.nc(nc_sst, "time")
-
-# Convert time to dates
-dates_sst <- as.Date(utcal.nc("seconds since 1981-01-01 00:00:00", time_nc, type = "c"))
-
-close.nc(nc_sst) # close before raster operations to avoid GDAL errors
-
-# Convert Kelvin to Celsius (ONCE) and fix dimension order
-# [lon, lat, time] -> [lat, lon, time]
-sst_var       <- sst_var - 273.15
-sst_corrected <- aperm(sst_var, c(2, 1, 3))
-
-# Create raster stack
-rast_sst <- terra::rast(sst_corrected,
-                        extent = terra::ext(min(lon), max(lon), min(lat), max(lat)),
-                        crs    = "EPSG:4326")
-
-# Assign dates, crop and trim to study extent
-names(rast_sst) <- as.character(dates_sst)
-time(rast_sst)  <- dates_sst
-rast_sst        <- terra::crop(rast_sst, e) %>% terra::trim()
-
-# Check orientation - if upside down run: rast_sst <- terra::flip(rast_sst, "vertical")
 plot(rast_sst[[1]])
 
 # ---- Keep only years with all 12 months represented ----
@@ -299,7 +264,7 @@ control_all <- list(
   controldata_fish(
     dat = dat_list[[as.character(years)]],
     year = as.numeric(years),
-    amp_abbrv = "ABMP"   # TODO confirm park abbreviation
+    amp_abbrv = "ABRMP"   # TODO confirm park abbreviation
   )
 )
 
@@ -342,7 +307,7 @@ for (metric_code in names(metric_lookup)) {
   p_metric <- controlplot_fish(
     data = park_dat.control,
     metric = metric_code,
-    amp_abbrv = "ABMP",   # TODO confirm park abbreviation
+    amp_abbrv = "ABRMP",   # TODO confirm park abbreviation
     metric_label = metric_lookup[[metric_code]]
   )
 
@@ -744,7 +709,8 @@ bubble_combined <- bubble_plots(
   prediction_limits   = prediction_limits,
   bubble_limits       = bubble_limits,
   size_range          = c(1, 9),
-  n_size_breaks       = 6
+  n_size_breaks       = 6,
+  bathy               = bathy
 )
 
 bubble_combined

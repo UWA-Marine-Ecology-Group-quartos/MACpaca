@@ -23,14 +23,14 @@ name <- config$name
 park <- config$park
 
 # TODO Set the extent of the study
-e <- ext(115.04, 115.60, -33.67, -33.346)
+e <- ext(113.93, 114.39, -29.43, -29.09)
 
 # Read in shapefile data for maps
 aus <- st_read("data/south-west network/spatial/shapefiles/aus-shapefile-w-investigator-stokes.shp")
 ausc <- st_crop(aus, e)
 
 marine_parks <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
-  dplyr::filter(name %in% c("Geographe", "Ngari Capes")) # TODO select relevant parks
+  dplyr::filter(name %in% c("Abrolhos", "Abrolhos Islands"))
 marine_parks <- st_crop(marine_parks, e)
 
 # Spatial plots
@@ -41,10 +41,12 @@ names(sst)
 sst <- sst[[c("Jan", "Mar", "May", "Jul", "Sep", "Nov")]]
 names(sst)
 
-prediction_limits = c(115.05, 115.592, -33.67, -33.346)
+prediction_limits = c(113.9676, 114.3476, -29.3899, -29.1349)
 
 plot_sst(prediction_limits) +
-  theme(axis.text = element_text(size = 6))
+  theme(axis.text = element_text(size = 6)) +
+  scale_x_continuous(breaks = scales::breaks_width(0.2)) +
+  scale_y_continuous(breaks = scales::breaks_width(0.1))
 
 
 ggsave(paste0("plots/", park, "/pressures/", name, "_SST.png"),
@@ -63,13 +65,28 @@ ggplot(sst_anom, aes(x = year, y = anomaly, fill = anomaly > 0)) +
 ggsave(paste0("plots/", park, "/pressures/", name, "_SST_anomaly.png"),
        height = 3.5, width = 8, dpi = 600, bg = "white", units = "in")
 
+## Rainfall anomaly
+rain_anom <- readRDS(paste0("data/", park, "/spatial/oceanography/", name, "_rainfall_anomaly.rds"))
+
+ggplot(rain_anom, aes(x = year, y = anomaly, fill = anomaly > 0)) +
+  geom_col() +
+  geom_hline(yintercept = 0) +
+  scale_fill_manual(values = c("TRUE" = "#1E88E5", "FALSE" = "#D81B60"), guide = "none") +
+  labs(x = "Year", y = "Rainfall anomaly (mm)") +
+  theme_classic()
+
+ggsave(paste0("plots/", park, "/pressures/", name, "_rainfall_anomaly.png"),
+       height = 3.5, width = 8, dpi = 600, bg = "white", units = "in")
+
 ## SLA
 sla <- rast(paste0("data/", park, "/spatial/oceanography/", name, "_SLA_raster.rds")) %>%
   subset(names(.) %in% c("Jan", "Mar", "May", "Jul", "Sep", "Nov"))
 names(sla)
 
 plot_sla(prediction_limits) +
-  theme(axis.text = element_text(size = 6))
+  theme(axis.text = element_text(size = 6)) +
+  scale_x_continuous(breaks = scales::breaks_width(0.2)) +
+  scale_y_continuous(breaks = scales::breaks_width(0.1))
 
 ggsave(paste0("plots/", park, "/pressures/", name, "_SLA.png"),
        height = 4.5, width = 8, dpi = 600, bg = "white", units = "in")
@@ -79,7 +96,9 @@ dhw <- rast(paste0("data/", park, "/spatial/oceanography/", name, "_DHW_raster.r
 names(dhw)
 
 plot_dhw(prediction_limits) +
-  theme(axis.text = element_text(size = 6))
+  theme(axis.text = element_text(size = 6)) +
+  scale_x_continuous(breaks = scales::breaks_width(0.2)) +
+  scale_y_continuous(breaks = scales::breaks_width(0.1))
 
 ggsave(paste0("plots/", park, "/pressures/", name, "_DHW.png"),
        height = 3.5, width = 8, dpi = 600, bg = "white", units = "in")

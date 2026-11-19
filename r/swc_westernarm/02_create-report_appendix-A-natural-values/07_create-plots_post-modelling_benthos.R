@@ -20,7 +20,6 @@ config <- yaml::read_yaml(
 
 name <- config$name
 park <- config$park
-dir.create(paste0("plots/", park, "/habitat/"), recursive = TRUE, showWarnings = FALSE)
 years <- config$years
 combine_benthos <- config$combine_benthos
 

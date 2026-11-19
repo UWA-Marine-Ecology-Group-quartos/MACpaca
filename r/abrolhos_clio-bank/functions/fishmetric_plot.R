@@ -112,8 +112,8 @@ fishmetric_plot <- function(metric_name,
           values = with(marine_parks_amp, setNames(colour, zone))
         ),
         # Axis labels: 0.1 degrees longitude, 0.04 degrees latitude
-        scale_x_continuous(breaks = scales::breaks_width(0.1)),
-        scale_y_continuous(breaks = scales::breaks_width(0.04)),
+        scale_x_continuous(breaks = scales::breaks_width(0.2)),
+        scale_y_continuous(breaks = scales::breaks_width(0.1)),
         coord_sf(
           xlim = c(prediction_limits[1], prediction_limits[2]),
           ylim = c(prediction_limits[3], prediction_limits[4]),

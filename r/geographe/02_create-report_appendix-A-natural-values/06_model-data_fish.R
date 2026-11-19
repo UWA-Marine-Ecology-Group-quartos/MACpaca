@@ -57,7 +57,6 @@ resp.vars
 
 # Run the full subset model selection----
 savedir <- paste0("output/model-output/", park, "/fish/maxn/")
-dir.create(savedir, recursive = TRUE, showWarnings = FALSE)
 # status and year are forced into every model via null.terms below, so they
 # are no longer offered as candidate factors here
 factor.vars <- NA
@@ -145,7 +144,6 @@ resp.vars
 
 # Run the full subset model selection----
 savedir <- paste0("output/model-output/", park, "/fish/length/")
-dir.create(savedir, recursive = TRUE, showWarnings = FALSE)
 name_b20 <- paste(name,"b20", sep = "_")
 out.all <- list()
 var.imp <- list()

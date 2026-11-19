@@ -215,9 +215,13 @@ dominantbenthos_plot_multi <- function(dat_list, prediction_limits, habitat_look
         option   = "A",
         na.value = "transparent",
         name     = "Normalised\ncombined SE",
-        limits   = se_limits,
+        limits   = c(0, se_limits[2]), # Start at 0 so the 0.0 label shows
+        breaks   = c(0, 0.2, 0.4),
+        labels   = c("0.0", "0.2", "0.4"),
         oob      = scales::squish,
         guide    = guide_colorbar(
+          title.position = "top", # Title above so it doesn't touch the 0.0 label
+          title.hjust    = 0.5,
           barwidth  = unit(2.4, "cm"),
           barheight = unit(0.45, "cm")
         )

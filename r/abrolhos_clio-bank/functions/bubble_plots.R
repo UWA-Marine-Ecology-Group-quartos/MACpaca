@@ -8,7 +8,8 @@ bubble_plots <- function(dat,
                          bubble_limits = NULL,
                          size_range   = c(1, 9),
                          n_size_breaks = 6,
-                         park_linewidth = 0.8) {
+                         park_linewidth = 0.8,
+                         bathy = NULL) {
 
   plot_state <- !is.null(wasanc) && nrow(wasanc) > 0
 
@@ -18,8 +19,12 @@ bubble_plots <- function(dat,
 
   # ---- background map layer (drawn first, under the bubbles) ----
   build_background <- function() {
-    list(
-      geom_sf(data = ausc, fill = "seashell2", colour = "black", linewidth = 0.2)
+    c(
+      # Bathymetry contours (30, 70 and 200 m), same as the prediction plots
+      if (!is.null(bathy)) list(geom_contour(data = bathy, aes(x = x, y = y, z = Depth),
+                                             colour = "black", breaks = c(-30, -70, -200),
+                                             linewidth = 0.2)),
+      list(geom_sf(data = ausc, fill = "seashell2", colour = "black", linewidth = 0.2))
     )
   }
 
@@ -127,6 +132,7 @@ bubble_plots <- function(dat,
       ggnewscale::new_scale_color() +
       build_parks(show_park_legend = FALSE) +
       scale_x_continuous(breaks = scales::breaks_width(0.1)) +
+      scale_y_continuous(breaks = scales::breaks_width(0.05)) +
       coord_sf(
         xlim   = c(bubble_limits[1], bubble_limits[2]),
         ylim   = c(bubble_limits[3], bubble_limits[4]),

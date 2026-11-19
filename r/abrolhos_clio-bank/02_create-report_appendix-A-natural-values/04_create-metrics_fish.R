@@ -35,6 +35,11 @@ metadata_bathy_derivatives <- readRDS(paste0("data/", park, "/tidy/", name, "_me
   glimpse()
 
 metadata <- readRDS(paste0("data/", park, "/raw/metadata.RDS"))
+# Samples that actually have length data - unmeasured deployments are not zero biomass
+b20_samples <- readRDS(paste0("data/", park, "/raw/_length-with-zeros.RDS")) %>%
+  dplyr::distinct(campaignid, sample) %>%
+  dplyr::left_join(metadata %>% dplyr::select(campaignid, sample, year),
+                   by = c("campaignid", "sample"))
 
 # This is formatted habitat from 03_create-metrics_habitat
 benthos <- readRDS(paste0("data/", park, "/tidy/", name, "_benthos-count.RDS")) %>%
@@ -185,6 +190,7 @@ biomass <- b20_length %>%
       fb_length_weight_measure %in% "FL" ~ length_cm,
       fb_length_weight_measure %in% "TL" & fb_ll_equation_type %in% "FL → TL" ~ (length_cm * fb_b_ll) + fb_a_ll,
       fb_length_weight_measure %in% "TL" & fb_ll_equation_type %in% "TL → FL" ~ (length_cm - fb_a_ll) / fb_b_ll,
+      fb_length_weight_measure %in% "TL" ~ length_cm, # No equation - use FL as TL
       TRUE ~ NA_real_
     ),
     mass_g = case_when(
@@ -235,8 +241,7 @@ b20_by_sample <- b20_mass %>%
 
 
 # 4) Ensure every BRUV × species exists (zeros for absences)
-all_samples <- metadata %>%
-  distinct(year, sample)
+all_samples <- b20_samples %>% distinct(year, sample)
 
 b20_by_sample_complete <- b20_by_sample %>%
   right_join(all_samples, by = c("year","sample")) %>%
@@ -318,6 +323,7 @@ biomass_amp <- b20_length_amp %>%
       fb_length_weight_measure %in% "FL" ~ length_cm,
       fb_length_weight_measure %in% "TL" & fb_ll_equation_type %in% "FL → TL" ~ (length_cm * fb_b_ll) + fb_a_ll,
       fb_length_weight_measure %in% "TL" & fb_ll_equation_type %in% "TL → FL" ~ (length_cm - fb_a_ll) / fb_b_ll,
+      fb_length_weight_measure %in% "TL" ~ length_cm, # No equation - use FL as TL
       TRUE ~ NA_real_
     ),
     mass_g = case_when(
@@ -364,7 +370,8 @@ b20_by_sample_amp <- b20_mass_amp %>%
   left_join(sp_watercol_amp, by = "scientific_name")
 
 # 4) Ensure every BRUV × species exists (zeros for absences)
-all_samples_amp <- metadata_amp %>%
+all_samples_amp <- b20_samples %>%
+  semi_join(metadata_amp, by = c("campaignid", "sample")) %>%
   distinct(year, sample)
 
 b20_by_sample_complete_amp <- b20_by_sample_amp %>%
@@ -440,9 +447,7 @@ saveRDS(
 #          fb_a, fb_b, fb_ll_equation_type)
 # write.csv(missing_info, file = paste0("data/", park, "/tidy/", name, "_b20_missing_info.csv"))
 
-b20_metadata <- metadata %>%
-  distinct(year, sample) %>%
-  glimpse()
+b20_metadata <- b20_samples %>% distinct(year, sample) %>% glimpse()
 
 # Calculate B20* for each sample
 b20_tidy <- biomass %>% # TODO this needs tweaking, not working 100% because some lengths have NA mass (fix in biomass)

@@ -225,7 +225,7 @@ m_cti <- gam(count ~ s(geoscience_depth, k = 3, bs = "cr"),
 summary(m_cti)
 
 # B20
-m_b20 <- gam(count ~ s(geoscience_depth, k = 3, bs = "cr"),
+m_b20 <- gam(count ~ s(geoscience_detrended, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "b20"),
              family = tw())
 summary(m_b20)

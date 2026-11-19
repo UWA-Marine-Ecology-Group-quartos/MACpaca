@@ -1,6 +1,6 @@
 ---
 title: "Appendix A - Abrolhos Shallow Bank Marine Park Natural Values Report"
-subtitle: "North-west Marine Parks Network"
+subtitle: "South-west Marine Parks Network"
 abstract-title: ""
 filters:
   - figure-numbering.lua
@@ -19,10 +19,14 @@ format:
         \usepackage{caption}
         \usepackage{float}
         \usepackage{chngcntr}
+        \usepackage{array}
         \floatplacement{table}{H}
         \newcounter{metric}
         \counterwithin*{figure}{metric}
         \captionsetup{format=plain, indention=0pt}
+        % Appendix prefix. Change A here and in figure-numbering.lua together.
+        \renewcommand{\thefigure}{A.\arabic{figure}}
+        \renewcommand{\thetable}{A.\arabic{table}}
   html:
     date: today
     date-format: "D MMMM YYYY"
@@ -46,6 +50,20 @@ format:
             hyphens: auto;
           }
         </style>
+    include-after-body:
+      text: |
+        <script>
+        // Figures are prefixed by figure-numbering.lua. Quarto builds the table
+        // caption after that filter runs, so the table prefix is applied here.
+        // TODO Keep "A" in step with fig_prefix in figure-numbering.lua.
+        document.querySelectorAll("caption, .gt_caption, .table-caption, figcaption")
+          .forEach(function (el) {
+            // el.innerHTML re-serialises a non-breaking space as the literal
+            // "&nbsp;" entity text, not a whitespace character, so \s alone
+            // does not match it - match either form here.
+            el.innerHTML = el.innerHTML.replace(/^(\s*Table(?:\s|&nbsp;)+)(\d+)/, "$1A.$2");
+          });
+        </script>
 toc: true
 execute:
   echo: false
@@ -95,6 +113,10 @@ Understanding of natural values
 
 ## Sampling summary
 
+```{=latex}
+\setlength{\extrarowheight}{4pt}
+```
+
 ```{r}
 #| label: tbl-sampling-effort
 #| tbl-cap: "Summary of monitoring campaigns in the study area, showing the survey dates, sampling method, management zones sampled, and the number of samples with each data type. NPZ = National Park Zone, HPZ = Habitat Protection Zone, MUZ = Multiple Use Zone, SPZ = Special Purpose Zone."
@@ -134,7 +156,8 @@ sampling_summary %>%
   cols_align(align = "center",
              columns = c(method, n_samples, habitat_count, fish_count,
                          fish_length)) %>%
-  opt_row_striping() %>%
+  tab_style(style = cell_fill(color = "grey90"), # Grey every second row
+            locations = cells_body(rows = which(seq_len(nrow(sampling_summary)) %% 2 == 0))) %>%
   tab_style(style = cell_text(weight = "bold"),
             locations = list(cells_column_labels(),
                              cells_column_spanners(spanners = everything()))) %>%
@@ -147,6 +170,10 @@ sampling_summary %>%
               table_body.hlines.style   = "none")
 ```
 
+```{=latex}
+\setlength{\extrarowheight}{0pt}
+```
+
 {{< pagebreak >}}
 
 ## Benthic ecosystem extent
@@ -155,7 +182,7 @@ sampling_summary %>%
 ```{r}
 #| fig-width: 9
 #| fig-height: 5
-#| fig-cap: "Habitat classes observed in spatially balanced stereo-BRUV and drop-camera imagery visualised as spatial pie charts, pooled across the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+#| fig-cap: "Habitat classes observed in spatially balanced stereo-BRUV and drop-camera imagery visualised as spatial pie charts, shown separately for the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 show_png(hab(paste0("_scatterpie_", dash_label, ".png")))
 ```
 
@@ -166,7 +193,7 @@ show_png(hab(paste0("_scatterpie_", dash_label, ".png")))
 ```{r}
 #| fig-width: 9
 #| fig-height: 7.5
-#| fig-cap: "Predicted dominant habitat type from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+#| fig-cap: "Predicted dominant habitat type from stereo-BRUV and drop-camera groundtruthing, shown separately for the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 p_dom <- readRDS(hab(paste0("_predicted-dominant-benthos-and-combined-se_", dash_label, ".rds")))
 p_dom
 ```
@@ -178,7 +205,7 @@ p_dom
 ```{r}
 #| fig-width: 8
 #| fig-height: 5
-#| fig-cap: "Predicted habitat class distribution from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+#| fig-cap: "Predicted habitat class distribution from stereo-BRUV and drop-camera groundtruthing, shown separately for the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 p_cat <- readRDS(hab(paste0("_predicted-habitat-categorical_", dash_label, ".rds")))
 p_cat
 ```
@@ -198,7 +225,7 @@ p_control
 ```{r}
 #| fig-width: 8
 #| fig-height: 4
-#| fig-cap: "Predicted reef distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+#| fig-cap: "Predicted reef distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, shown separately for the 2021 and 2025 surveys. Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 show_png(hab(paste0("_predicted-reef-and-se_", dash_label, ".png")))
 ```
 
@@ -218,7 +245,7 @@ p_control
 ```{r}
 #| fig-width: 8
 #| fig-height: 3.6
-#| fig-cap: "Sand: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABRMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+#| fig-cap: "Sand: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, shown separately for the 2021 and 2025 surveys. ABRMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 show_png(hab(paste0("_predicted-individual-habitat_sand_", dash_label, ".png")))
 ```
 
@@ -237,7 +264,7 @@ p_control
 ```{r}
 #| fig-width: 8
 #| fig-height: 3.6
-#| fig-cap: "Macroalgae: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABRMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+#| fig-cap: "Macroalgae: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, shown separately for the 2021 and 2025 surveys. ABRMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 show_png(hab(paste0("_predicted-individual-habitat_macroalgae_", dash_label, ".png")))
 ```
 
@@ -256,7 +283,7 @@ p_control
 ```{r}
 #| fig-width: 8
 #| fig-height: 3.6
-#| fig-cap: "Kelp: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABRMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+#| fig-cap: "Kelp: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, shown separately for the 2021 and 2025 surveys. ABRMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 show_png(hab(paste0("_predicted-individual-habitat_kelp_", dash_label, ".png")))
 ```
 
@@ -275,7 +302,7 @@ p_control
 ```{r}
 #| fig-width: 8
 #| fig-height: 3.6
-#| fig-cap: "Rock: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABRMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+#| fig-cap: "Rock: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, shown separately for the 2021 and 2025 surveys. ABRMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 show_png(hab(paste0("_predicted-individual-habitat_rock_", dash_label, ".png")))
 ```
 
@@ -294,7 +321,7 @@ p_control
 ```{r}
 #| fig-width: 8
 #| fig-height: 3.6
-#| fig-cap: "Sessile invertebrates: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, pooled across the 2021 and 2025 surveys. ABRMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
+#| fig-cap: "Sessile invertebrates: spatial plots of distribution probability and uncertainty from stereo-BRUV and drop-camera groundtruthing, shown separately for the 2021 and 2025 surveys. ABRMP = Abrolhos Marine Park (Commonwealth). Commonwealth marine park boundaries are shown. The red line delimits state and commonwealth waters. Bathymetric contour at 30 m is shown."
 show_png(hab(paste0("_predicted-individual-habitat_sessile-invertebrates_", dash_label, ".png")))
 ```
 
@@ -441,7 +468,7 @@ show_png(fish(paste0("_predicted-individual-fish-metric_large-reef-fish-index_",
 ```{r}
 #| fig-width: 6
 #| fig-height: 3
-#| fig-cap: "Demersal fish - Reef Fish Thermal Index: benchmark plots by zone and depth contour, with annual sea surface temperature (black line, grey band = SD) overlaid, from stereo-BRUV groundtruthing. ABRMP = Abrolhos Marine Park (Commonwealth)."
+#| fig-cap: "Demersal fish - Reef Fish Thermal Index: benchmark plots by zone and depth contour from stereo-BRUV groundtruthing. Annual sea surface temperature (black line, grey band = SD) from NOAA OISST v2.1 is overlaid. ABRMP = Abrolhos Marine Park (Commonwealth)."
 p_control <- readRDS(fish("_control-plot_community-thermal-index-c.rds"))
 p_control
 ```
@@ -475,6 +502,10 @@ show_png(fish(paste0("_predicted-individual-fish-metric_cti_", dash_label, ".png
 \stepcounter{metric}
 ```
 
+```{=latex}
+\renewcommand{\arraystretch}{1.4}
+```
+
 ```{r}
 #| label: tbl-threatened-species
 #| tbl-cap: "Threatened species recorded in stereo-BRUV imagery across all survey years, showing IUCN Red List category, the number of deployments each species was recorded in, and the total abundance (MaxN) summed across those samples. *This species is also listed as ‘Conservation dependent’ on the EPBC Act List of Threatened Fauna. ^This species is also listed as ‘Vulnerable’ on the EPBC Act List of Threatened Fauna."
@@ -505,16 +536,21 @@ threatened_species %>%
              columns = c(listing, n_samples, total_maxn, years_seen)) %>%
   tab_style(style = cell_text(style = "italic"),
             locations = cells_body(columns = species_label)) %>%
-  opt_row_striping() %>%
+  tab_style(style = cell_fill(color = "grey90"), # Grey every second row
+            locations = cells_body(rows = which(seq_len(nrow(threatened_species)) %% 2 == 0))) %>%
   tab_style(style = cell_text(weight = "bold"),
             locations = cells_column_labels()) %>%
   tab_options(table.width               = pct(100),
               table.font.size           = px(11),
-              data_row.padding          = px(4),
+              data_row.padding          = px(6),
               latex.use_longtable       = TRUE,
               column_labels.border.top.style = "none",
               table.border.top.style    = "none",
               table_body.hlines.style   = "none")
+```
+
+```{=latex}
+\renewcommand{\arraystretch}{1}
 ```
 
 {{< pagebreak >}}

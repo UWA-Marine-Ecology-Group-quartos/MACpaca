@@ -115,6 +115,12 @@ for (yr in years) {
   )
 }
 
+# Dominant and categorical habitat plots only show cells where every habitat is predicted
+dat_list_dom <- lapply(dat_list, function(r) {
+  fit_lyrs <- names(r)[grepl("\\.fit$", names(r)) & !grepl("\\.se\\.fit$", names(r)) & !grepl("^p_reef", names(r))]
+  terra::mask(r, sum(r[[fit_lyrs]]))
+})
+
 # -------------------------------------------------------------------
 # PART 1: Single-year plots (categorical + dominant benthos)
 # -------------------------------------------------------------------
@@ -122,7 +128,7 @@ for (yr in years) {
 
   message("Building per-year plots for: ", yr)
 
-  dat <- dat_list[[as.character(yr)]]
+  dat <- dat_list_dom[[as.character(yr)]]
 
   pred_class <- as.data.frame(dat, xy = TRUE) %>%
     dplyr::mutate(year = yr)
@@ -200,7 +206,7 @@ for (yr in years) {
 # PART 2: Multi-year categorical and dominant benthos + combined SE plot
 # -------------------------------------------------------------------
 p_dom_se <- dominantbenthos_plot_multi(
-  dat_list = dat_list,
+  dat_list = dat_list_dom,
   prediction_limits = prediction_limits,
   habitat_lookup = habitat_lookup
 )
@@ -229,7 +235,7 @@ saveRDS(p_dom_se,
         ))
 
 p_cat_multi <- categoricalhabitat_plot_multi(
-  dat_list = dat_list,
+  dat_list = dat_list_dom,
   prediction_limits = prediction_limits,
   habitat_lookup = habitat_lookup
 )

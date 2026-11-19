@@ -44,7 +44,7 @@ library(RNetCDF)
 library(rerddap)
 
 # TODO Set the extent of the study
-e <- ext(115.04, 115.60, -33.67, -33.346)
+e <- ext(113.15, 113.65, -28.25, -27.85)
 
 # Oceanography/Pressures
 # ── Sea Surface Temperature ───────────────────────────────────────────────────────────────────────
@@ -83,12 +83,11 @@ plot(rast_sst[[1]])
 winter_sst_ts <- rast_sst[[which(month(dates_sst) %in% c(7, 8, 9))]]
 
 # Build monthly climatology
-# Average across years for each month and convert from Kelvin to Celsius
+# Average across years for each month (already in Celsius)
 sst_list <- list()
 for (month in sort(unique(month(time(rast_sst))))) {
   monthly_rast <- subset(rast_sst, month(time(rast_sst)) == month) %>%
-    mean(na.rm = TRUE) %>%
-    app(fun = function(i) {i - 273.15})
+    mean(na.rm = TRUE)
   names(monthly_rast) <- month.abb[month]
   sst_list[[month.abb[month]]] <- monthly_rast
 }
@@ -98,12 +97,20 @@ sst <- rast(sst_list)
 saveRDS(sst, paste0("data/", park, "/spatial/oceanography/", name, "_SST_raster.rds"))
 
 # Build a monthly time-series summary
-sst_tsdf <- terra::global(rast_sst, fun = "mean", na.rm = T) %>%
+# NOAA OISST v2.1 monthly (0.25°, Sep 1981 to present) - the AODN data above is only used for the maps
+rast_sst_noaa <- rast(paste0("data/", park, "/spatial/oceanography/oisst_v2.1_monthly_sw-coast.nc"),
+                      subds = "sst")
+ext(rast_sst_noaa) <- ext(110.5, 127.25, -37.0, -25.25) # GDAL doesn't read this file's coordinates
+rast_sst_noaa <- crop(rast_sst_noaa, e, snap = "out")
+rast_sst_noaa <- rast_sst_noaa[[as.Date(time(rast_sst_noaa)) >= as.Date("1982-01-01")]] # Full years only
+names(rast_sst_noaa) <- as.character(as.Date(time(rast_sst_noaa)))
+
+sst_tsdf <- terra::global(rast_sst_noaa, fun = "mean", na.rm = T) %>%
   tibble::rownames_to_column() %>%
-  cbind(terra::global(rast_sst, fun = "sd", na.rm = T)) %>%
+  cbind(terra::global(rast_sst_noaa, fun = "sd", na.rm = T)) %>%
   tidyr::separate(rowname, into = c("year", "month", "day"), sep = "-") %>%
   dplyr::group_by(year, month) %>%
-  summarise(sst = mean(mean, na.rm = T) - 273.15, # Convert kelvin to celsius
+  summarise(sst = mean(mean, na.rm = T), # Already in celsius
             sd = mean(sd, na.rm = T)) %>%
   ungroup() %>%
   dplyr::mutate(season = case_when(month %in% c("04", "05", "06") ~ "Autumn", # seasons are based on SST not euro seasons
@@ -135,6 +142,16 @@ sst_anom <- data.frame(date = as.Date(time(sst_hist)),
   glimpse()
 
 saveRDS(sst_anom, paste0("data/", park, "/spatial/oceanography/", name, "_SST_anomaly.rds"))
+
+# ── Rainfall anomaly (April-July) ─────────────────────────────────────────────────────────────────
+# BoM monthly rainfall anomaly (mm) for South-western Australia, pasted from the BoM time series
+rain_anom <- read_csv(paste0("data/", park, "/raw/BoM_rainfall-anomaly_south-west_apr-jul.csv")) %>%
+  dplyr::group_by(year) %>%
+  dplyr::summarise(anomaly = mean(rainfall_anomaly_mm), n_months = n(), .groups = "drop") %>%
+  dplyr::filter(n_months == 4) %>% # April-July complete
+  glimpse()
+
+saveRDS(rain_anom, paste0("data/", park, "/spatial/oceanography/", name, "_rainfall_anomaly.rds"))
 
 # ── Sea Level anomaly ─────────────────────────────────────────────────────────────────────────────
 # Load data
@@ -255,6 +272,7 @@ rast_acid <- terra::rast(paste0("data/", park, "/spatial/oceanography/Acidificat
                          subds = "pH_T")
 time(rast_acid) <- dates_acid
 names(rast_acid) <- dates_acid
+rast_acid <- crop(rast_acid, e, snap = "out") # 1° cells overlapping the park
 plot(rast_acid)
 
 # Create time series

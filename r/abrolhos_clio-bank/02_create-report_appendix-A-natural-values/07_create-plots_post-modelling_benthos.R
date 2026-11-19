@@ -140,6 +140,12 @@ if (combine_benthos) {
 # prints anything outside prediction_limits, re-copy them from 02.
 print(ext(dat_list[[1]]))
 
+# Dominant and categorical habitat plots only show cells where every habitat is predicted
+dat_list_dom <- lapply(dat_list, function(r) {
+  fit_lyrs <- names(r)[grepl("\\.fit$", names(r)) & !grepl("\\.se\\.fit$", names(r)) & !grepl("^p_reef", names(r))]
+  terra::mask(r, sum(r[[fit_lyrs]]))
+})
+
 # -------------------------------------------------------------------
 # PART 1: Single-year plots (categorical + dominant benthos)
 # -------------------------------------------------------------------
@@ -147,7 +153,7 @@ for (yr in pred.labels) {
 
   message("Building per-year plots for: ", yr)
 
-  dat <- dat_list[[as.character(yr)]]
+  dat <- dat_list_dom[[as.character(yr)]]
 
   pred_class <- as.data.frame(dat, xy = TRUE) %>%
     dplyr::mutate(year = yr)
@@ -227,7 +233,7 @@ for (yr in pred.labels) {
 if (!combine_benthos && length(years) > 1) {
 
   p_dom_se <- dominantbenthos_plot_multi(
-    dat_list = dat_list,
+    dat_list = dat_list_dom,
     prediction_limits = prediction_limits,
     habitat_lookup = habitat_lookup
   )
@@ -256,7 +262,7 @@ if (!combine_benthos && length(years) > 1) {
           ))
 
   p_cat_multi <- categoricalhabitat_plot_multi(
-    dat_list = dat_list,
+    dat_list = dat_list_dom,
     prediction_limits = prediction_limits,
     habitat_lookup = habitat_lookup
   )
@@ -371,7 +377,7 @@ if (!combine_benthos && length(years) > 1) {
       )
     )
     controldata_benthos(dat = dat_yy, year = as.numeric(yy),
-                        amp_abbrv = "ABMP", state_abbrv = NULL) # TODO set park abbreviations
+                        amp_abbrv = "ABRMP", state_abbrv = NULL) # TODO set park abbreviations
   })
 
   park_dat.shallow <- purrr::map_dfr(control_all, "shallow") %>%
@@ -414,7 +420,7 @@ if (!combine_benthos && length(years) > 1) {
     p_taxa <- controlplot_benthos(
       data = park_dat.control,
       taxa = taxa_code,
-      amp_abbrv = "ABMP", # TODO set park abbreviation
+      amp_abbrv = "ABRMP", # TODO set park abbreviation
       taxa_label = taxa_lookup[[taxa_code]]
     )
 
@@ -475,17 +481,13 @@ benthos <- readRDS(
             by = c("campaignid", "sample", "year", "status")) %>%
   arrange(desc(Sand))
 
-# Seagrass is zero in every sample at Clio Bank, so it renders as a zero-width
-# slice. Kept in so the legend documents that it was scored for and not found -
-# drop it from both limits and values if you would rather not show it.
 hab_fills <- scale_fill_manual(
   name = NULL,
-  limits = c("Rock", "Sessile invertebrates", "Macroalgae", "Seagrass", "Sand"),
+  limits = c("Rock", "Sessile invertebrates", "Macroalgae", "Sand"),
   values = c(
     "Rock" = "grey40",
     "Sessile invertebrates" = "plum",
     "Macroalgae" = "darkgoldenrod4",
-    "Seagrass" = "forestgreen",
     "Sand" = "wheat"
   )
 )

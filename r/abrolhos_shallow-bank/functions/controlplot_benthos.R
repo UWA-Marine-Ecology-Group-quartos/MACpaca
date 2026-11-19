@@ -103,6 +103,18 @@ controlplot_benthos <- function(data, taxa, amp_abbrv, state_abbrv = NULL,
     facet_wrap(~depth_class, ncol = 1, scales = "free_y") +
     theme_classic() +
     scale_x_continuous(breaks = survey_years) +
+    scale_y_continuous(breaks = function(lim) { # 3 y labels: bottom, middle, near top
+      if (lim[1] <= 0) {
+        steps <- as.vector(outer(c(1, 1.5, 2, 2.5, 3, 4, 5, 6, 8), 10^(-5:6)))
+        step <- max(steps[2 * steps <= lim[2]])
+        return(c(0, step, 2 * step))
+      }
+      for (step in rev(sort(as.vector(outer(c(1, 2, 2.5, 5), 10^(-5:6)))))) {
+        lo <- ceiling(lim[1] / step) * step
+        if (lo + 2 * step <= lim[2]) return(lo + (0:2) * step)
+      }
+      pretty(lim, 3)
+    }) +
     coord_cartesian(xlim = x_limits, ylim = c(0, NA)) +
     scale_fill_manual(values = fill_vals, name = "Marine Parks", drop = FALSE) +
     scale_shape_manual(values = shape_vals, name = "Marine Parks", drop = FALSE) +

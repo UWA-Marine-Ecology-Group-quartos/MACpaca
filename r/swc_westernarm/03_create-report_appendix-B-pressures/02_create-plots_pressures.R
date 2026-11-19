@@ -17,7 +17,6 @@ config <- yaml::read_yaml(
 
 name <- config$name
 park <- config$park
-dir.create(paste0("plots/", park, "/pressures/"), recursive = TRUE, showWarnings = FALSE)
 
 # Load functions
 file.sources <- list.files(pattern = "*.R", path = paste0("r/", park, "/functions/"), full.names = TRUE)

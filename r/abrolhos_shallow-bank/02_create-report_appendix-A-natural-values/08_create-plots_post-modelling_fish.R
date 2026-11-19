@@ -120,49 +120,19 @@ for (yr in years) {
 # SST PROCESSING - run once to create the SST time series used by the Reef
 # Fish Thermal Index (CTI) control plot.
 #
-# TODO Download the IMOS 6-day SST product (more recent coverage than the
-# 1-month product used in Appendix B - 03_create-report_appendix-B-pressures/
-# 01_spatial-layers.R): "IMOS - SRS - SST - L3S - Single Sensor - 6 day - day
-# and night time - Australia" from the AODN portal, and save it as:
-#   data/<park>/spatial/oceanography/SST_recent.nc
-#
-# NOTE Kelvin is converted to Celsius ONCE, at extraction below. Do not subtract
-# 273.15 again in the climatology loop or the time-series summary.
+# NOAA OISST v2.1 monthly (0.25°, Sep 1981 to present). Uses the SW coast file,
+# which covers this park:
+#   data/<park>/spatial/oceanography/oisst_v2.1_monthly_sw-coast.nc
 # =============================================================================
 
-library(RNetCDF)
 library(lubridate)
 
-nc_sst <- open.nc(paste0("data/", park, "/spatial/oceanography/SST_recent.nc"))
-print.nc(nc_sst)
+rast_sst <- terra::rast(paste0("data/", park, "/spatial/oceanography/oisst_v2.1_monthly_sw-coast.nc"),
+                        subds = "sst")
+terra::ext(rast_sst) <- terra::ext(110.5, 127.25, -37.0, -25.25) # GDAL doesn't read this file's coordinates
+rast_sst <- terra::crop(rast_sst, e, snap = "out")
+names(rast_sst) <- as.character(as.Date(terra::time(rast_sst)))
 
-# Extract raw arrays
-sst_var <- var.get.nc(nc_sst, "sea_surface_temperature")
-lat     <- var.get.nc(nc_sst, "lat")
-lon     <- var.get.nc(nc_sst, "lon")
-time_nc <- var.get.nc(nc_sst, "time")
-
-# Convert time to dates
-dates_sst <- as.Date(utcal.nc("seconds since 1981-01-01 00:00:00", time_nc, type = "c"))
-
-close.nc(nc_sst) # close before raster operations to avoid GDAL errors
-
-# Convert Kelvin to Celsius (ONCE) and fix dimension order
-# [lon, lat, time] -> [lat, lon, time]
-sst_var       <- sst_var - 273.15
-sst_corrected <- aperm(sst_var, c(2, 1, 3))
-
-# Create raster stack
-rast_sst <- terra::rast(sst_corrected,
-                        extent = terra::ext(min(lon), max(lon), min(lat), max(lat)),
-                        crs    = "EPSG:4326")
-
-# Assign dates, crop and trim to study extent
-names(rast_sst) <- as.character(dates_sst)
-time(rast_sst)  <- dates_sst
-rast_sst        <- terra::crop(rast_sst, e) %>% terra::trim()
-
-# Check orientation - if upside down run: rast_sst <- terra::flip(rast_sst, "vertical")
 plot(rast_sst[[1]])
 
 # ---- Keep only years with all 12 months represented ----

@@ -4,3 +4,5 @@ Acidification.nc
 DHW.nc
 SST_WA.nc
 SST_recent.nc
+*.nc
+*.rds
