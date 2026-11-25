@@ -1,0 +1,205 @@
+# MACpaca website configuration
+# -----------------------------------------------------------------------------
+# The home page is rebuilt automatically (see .github/workflows/deploy-site.yml)
+# every time something in quartos/, images/parks/ or site/ is pushed to main.
+#
+# Reports are found automatically: any .html file sitting directly inside a
+# quartos/<folder>/ is linked on the card of the park that lists <folder>.
+# File names like "...-Appendix C1-q-Data analysis.html" become "C1 Data analysis".
+#
+# You only need to edit this file to:
+#   - add a new park (copy an existing block)
+#   - change a photo, its credit, or the GlobalArchive synthesis links
+#     (leave "credit:" out when the source page names no photographer;
+#      the caption then reads "Image: Australian Marine Parks")
+#   - list reports that are planned but not rendered yet ("planned:")
+#   - hide a quartos folder from the site ("hidden_folders:")
+# -----------------------------------------------------------------------------
+
+repo: UWA-Marine-Ecology-Group-quartos/MACpaca
+synthesis_url: https://dev.globalarchive.org/ui/main/syntheses/
+field_manuals_url: https://marine-sampling-field-manual.github.io/
+
+# quartos/ folders that should NOT appear on the site
+hidden_folders:
+  - abrolhos          # Lobster appendix
+  - abrolhos_lobster
+
+networks:
+  - id: south-west
+    name: South-west Network
+  - id: north-west
+    name: North-west Network
+  - id: south-east
+    name: South-east Network
+  - id: temperate-east
+    name: Temperate East Network
+
+parks:
+  - name: South-west Network
+    subtitle: Abrolhos to Eastern Recherche
+    network: south-west
+    folders: [sw-coast]
+    code: r/sw-coast
+    image:
+      file: images/parks/two.rocks.jpg
+      caption: Divers
+      source: https://australianmarineparks.gov.au/parks/south-west-marine-parks-network/two-rocks-marine-park/
+    syntheses:
+      - {label: BRUV · Abrolhos, id: 71}
+      - {label: BRUV · Geographe, id: 72}
+      - {label: BRUV · SWC west, id: 76}
+      - {label: BRUV · SWC east, id: 69}
+      - {label: BRUV · E. Recherche, id: 70}
+      - {label: BOSS · Abrolhos, id: 84}
+      - {label: BOSS · Two Rocks, id: 86}
+      - {label: BOSS · Geographe, id: 85}
+      - {label: BOSS · SWC west, id: 87}
+      - {label: BOSS · SWC east, id: 78}
+      - {label: BOSS · E. Recherche, id: 77}
+    planned:
+      - {code: B, title: Pressures}
+      - {code: C, title: Data analysis}
+
+  - name: Geographe Marine Park
+    network: south-west
+    folders: [geographe]
+    code: r/geographe
+    image:
+      file: images/parks/geographe.jpg
+      caption: Seagrass meadows
+      source: https://australianmarineparks.gov.au/parks/south-west-marine-parks-network/geographe-marine-park/
+    syntheses:
+      - {label: BRUV, id: 72}
+      - {label: BOSS, id: 85}
+
+  - name: Eastern Recherche Marine Park
+    network: south-west
+    folders: [eastern-recherche]
+    code: r/eastern-recherche
+    image:
+      file: images/parks/eastern.recherche.jpg
+      caption: Little penguin
+      credit: Brian Furby collection
+      source: https://australianmarineparks.gov.au/parks/south-west-marine-parks-network/eastern-recherche-marine-park/
+    syntheses:
+      - {label: BRUV, id: 70}
+      - {label: BOSS, id: 77}
+    planned:
+      - {code: B, title: Pressures}
+      - {code: C, title: Data analysis}
+
+  - name: South-west Corner Marine Park
+    subtitle: Eastern Arm
+    network: south-west
+    folders: [swc_easternarm]
+    code: r/swc_easternarm
+    image:
+      file: images/parks/south.west.corner.jpg
+      caption: White shark
+      source: https://australianmarineparks.gov.au/parks/south-west-marine-parks-network/south-west-corner-marine-park/
+    syntheses:
+      - {label: BRUV, id: 69}
+      - {label: BOSS, id: 78}
+    planned:
+      - {code: B, title: Pressures}
+      - {code: C, title: Data analysis}
+
+  - name: South-west Corner Marine Park
+    subtitle: Western Arm
+    network: south-west
+    folders:
+      - swc_westernarm
+      - {path: swc_westernarm_npz05, suffix: (NPZ only)}
+    code: r/swc_westernarm
+    image:
+      file: images/parks/south.west.corner.jpg
+      caption: White shark
+      source: https://australianmarineparks.gov.au/parks/south-west-marine-parks-network/south-west-corner-marine-park/
+    syntheses:
+      - {label: BRUV, id: 76}
+      - {label: BOSS, id: 87}
+
+  - name: Abrolhos Marine Park
+    subtitle: Clio Bank
+    network: south-west
+    folders: [abrolhos_clio-bank]
+    code: r/abrolhos_clio-bank
+    image: &abrolhos_img
+      file: images/parks/abrolhos.jpg
+      caption: A boat travels over the corals below
+      source: https://australianmarineparks.gov.au/parks/south-west-marine-parks-network/abrolhos-marine-park/
+    syntheses:
+      - {label: BRUV, id: 71}
+
+  - name: Abrolhos Marine Park
+    subtitle: Shallow Bank
+    network: south-west
+    folders: [abrolhos_shallow-bank]
+    code: r/abrolhos_shallow-bank
+    image: *abrolhos_img
+    syntheses:
+      - {label: BRUV, id: 71}
+      - {label: BOSS, id: 84}
+
+  - name: Abrolhos Marine Park
+    subtitle: Big Bank
+    network: south-west
+    folders: [abrolhos_big-bank]
+    code: r/abrolhos_big-bank
+    image: *abrolhos_img
+    syntheses:
+      - {label: BRUV, id: 71}
+    planned:
+      - {code: B, title: Pressures}
+      - {code: C, title: Data analysis}
+
+  - name: Ningaloo Marine Park
+    network: north-west
+    folders:
+      - ningaloo
+      - {path: ningaloo_npz02, suffix: (NPZ only)}
+    code: r/ningaloo
+    image:
+      file: images/parks/ningaloo.jpg
+      caption: Guitar shark, Ningaloo Reef
+      credit: Lewis Burnett
+      source: https://australianmarineparks.gov.au/parks/north-west-marine-parks-network/ningaloo-marine-park/
+    syntheses:
+      - {label: BRUV, id: 89}
+      - {label: BOSS, id: 88}
+
+  - name: Dampier Marine Park
+    network: north-west
+    folders: [dampier]
+    code: r/dampier
+    titles:
+      DampierAMP-report: Dampier Marine Park report
+    image:
+      file: images/parks/dampier.jpg
+      caption: Adult fairy tern with a fish in its beak
+      source: https://australianmarineparks.gov.au/parks/north-west-marine-parks-network/dampier-marine-park/
+
+  - name: Beagle Marine Park
+    network: south-east
+    folders: [beagle]
+    code: r/beagle
+    image:
+      file: images/parks/beagle.jpg     # save the banner photo from the source page here
+      caption: Fairy prion (Pachyptila turtur)
+      credit: JJ Harrison
+      source: https://australianmarineparks.gov.au/parks/south-east-marine-parks-network/beagle-marine-park/
+    syntheses:
+      - {label: BRUV, id: 80}
+
+  - name: Hunter Marine Park
+    network: temperate-east
+    folders: [hunter]
+    code: r/hunter
+    image:
+      file: images/parks/hunter.jpg     # save the banner photo from the source page here
+      caption: Yellowfin tuna
+      credit: Tom Wang / Shutterstock
+      source: https://australianmarineparks.gov.au/parks/temperate-east-marine-parks-network/hunter-marine-park/
+    syntheses:
+      - {label: BRUV, id: 81}

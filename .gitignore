@@ -44,3 +44,6 @@ hunter_rov/
 
 # sw-coast bathymetry + ocean stack (~100 MB) - regenerate with 02_spatial-layers.R
 data/sw-coast/spatial/rasters/sw-coast_bathymetry-derivatives.rds
+
+# Local website build output
+_site/
