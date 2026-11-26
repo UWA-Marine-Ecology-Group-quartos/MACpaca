@@ -103,7 +103,7 @@ e <- ext(bb[["xmin"]] - e_pad, bb[["xmax"]] + e_pad,
          bb[["ymin"]] - e_pad, bb[["ymax"]] + e_pad)
 
 # Load the bathymetry data (GA 250m resolution)
-bathy <- rast("data/north-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
+bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
   crop(e) %>%
   clamp(upper = 0, lower = -250, values = F) %>%
   trim()

@@ -88,7 +88,7 @@ individualbenthic_plot <- function(habitat_name,
       geom_sf(data = cwatr, colour = "firebrick", linewidth = 0.6),
       scale_colour_manual(values = with(marine_parks_amp, setNames(colour, zone))),
       scale_x_continuous(breaks = scales::breaks_width(0.6)),
-      scale_y_continuous(breaks = scales::breaks_width(0.5)),
+      scale_y_continuous(breaks = scales::breaks_width(0.8)),
       coord_sf(
         xlim = c(prediction_limits[1], prediction_limits[2]),
         ylim = c(prediction_limits[3], prediction_limits[4]),

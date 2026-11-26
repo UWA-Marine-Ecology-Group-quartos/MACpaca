@@ -81,7 +81,7 @@ cwatr_offset <- st_as_sf(geos_offset_curve(as_geos_geometry(cwatr), distance = 0
 st_crs(cwatr_offset) <- 4326
 
 # Load the bathymetry data (GA 250m resolution)
-bathy <- rast("data/north-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
+bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
   crop(e) %>%
   clamp(upper = 0, lower = -250, values = FALSE) %>%
   trim() %>%
@@ -129,6 +129,12 @@ if (combine_benthos) {
   }
 }
 
+# Dominant and categorical habitat plots only show cells where every habitat is predicted
+dat_list_dom <- lapply(dat_list, function(r) {
+  fit_lyrs <- names(r)[grepl("\\.fit$", names(r)) & !grepl("\\.se\\.fit$", names(r)) & !grepl("^p_reef", names(r))]
+  terra::mask(r, sum(r[[fit_lyrs]]))
+})
+
 # -------------------------------------------------------------------
 # PART 1: Single-year plots (categorical + dominant benthos)
 # -------------------------------------------------------------------
@@ -136,7 +142,7 @@ for (yr in pred.labels) {
 
   message("Building per-year plots for: ", yr)
 
-  dat <- dat_list[[as.character(yr)]]
+  dat <- dat_list_dom[[as.character(yr)]]
 
   pred_class <- as.data.frame(dat, xy = TRUE) %>%
     dplyr::mutate(year = yr)
@@ -218,7 +224,7 @@ for (yr in pred.labels) {
 if (!combine_benthos) {
 
 p_dom_se <- dominantbenthos_plot_multi(
-  dat_list = dat_list,
+  dat_list = dat_list_dom,
   prediction_limits = prediction_limits,
   habitat_lookup = habitat_lookup
 )
@@ -247,7 +253,7 @@ saveRDS(p_dom_se,
         ))
 
 p_cat_multi <- categoricalhabitat_plot_multi(
-  dat_list = dat_list,
+  dat_list = dat_list_dom,
   prediction_limits = prediction_limits,
   habitat_lookup = habitat_lookup
 )
@@ -442,7 +448,7 @@ for (taxa_code in names(taxa_lookup)) {
 e <- ext(113.2, 114.4, -23, -21.5)
 
 # Load the bathymetry data (GA 250m resolution)
-bathy <- rast("data/north-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
+bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
   crop(e) %>%
   clamp(upper = 0, lower = -250, values = FALSE) %>%
   trim() %>%

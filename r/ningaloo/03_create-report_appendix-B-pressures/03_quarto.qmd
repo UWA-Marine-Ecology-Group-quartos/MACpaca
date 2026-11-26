@@ -56,7 +56,7 @@ Understanding of Pressures
 
 ```{r}
 #| out-width: "100%"
-#| fig-cap: "Seasonal sea level anomaly, seasonal sea surface temperature and Degree Heating Weeks at the scale of Ningaloo Marine Park. Solid lines represent mean values for sea level anomaly (SLA), sea surface temperature (SST) and Degree Heating Weeks (DHW). Confidence bounds represent standard errors. Red dashed vertical lines represent maximum DHW values that are plotted spatially in Figure B.4."
+#| fig-cap: "Seasonal sea level anomaly, seasonal sea surface temperature and Degree Heating Weeks at the scale of Ningaloo Marine Park. Solid lines represent mean values for sea level anomaly (SLA), sea surface temperature (SST) and Degree Heating Weeks (DHW). Confidence bounds represent standard errors. SST is from NOAA OISST v2.1 (0.25° monthly, 1982-2026) and DHW from NOAA Coral Reef Watch. Red dashed vertical lines represent maximum DHW values that are plotted spatially in Figure B.4."
 include_graphics(here("plots/ningaloo/pressures/ningaloo_oceanography_time-series.png"))
 ```
 

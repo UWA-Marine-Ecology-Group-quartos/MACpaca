@@ -19,6 +19,7 @@ format:
         \usepackage{caption}
         \usepackage{float}
         \usepackage{chngcntr}
+        \usepackage{array}
         \floatplacement{table}{H}
         \newcounter{metric}
         \counterwithin*{figure}{metric}
@@ -99,6 +100,10 @@ Understanding of natural values
 
 ## Sampling summary
 
+```{=latex}
+\setlength{\extrarowheight}{4pt}
+```
+
 ```{r}
 #| label: tbl-sampling-effort
 #| tbl-cap: "Summary of monitoring campaigns in the study area, showing the survey dates, sampling method, management zones sampled, and the number of samples with each data type. NPZ = National Park Zone, HPZ = Habitat Protection Zone, MUZ = Multiple Use Zone, SPZ = Special Purpose Zone."
@@ -138,7 +143,8 @@ sampling_summary %>%
   cols_align(align = "center",
              columns = c(method, n_samples, habitat_count, fish_count,
                          fish_length)) %>%
-  opt_row_striping() %>%
+  tab_style(style = cell_fill(color = "grey90"), # Grey every second row
+            locations = cells_body(rows = which(seq_len(nrow(sampling_summary)) %% 2 == 0))) %>%
   tab_style(style = cell_text(weight = "bold"),
             locations = list(cells_column_labels(),
                              cells_column_spanners(spanners = everything()))) %>%
@@ -149,6 +155,10 @@ sampling_summary %>%
               column_labels.border.top.style = "none",
               table.border.top.style    = "none",
               table_body.hlines.style   = "none")
+```
+
+```{=latex}
+\setlength{\extrarowheight}{0pt}
 ```
 
 {{< pagebreak >}}
@@ -400,6 +410,10 @@ grid::grid.raster(img)
 \stepcounter{metric}
 ```
 
+```{=latex}
+\renewcommand{\arraystretch}{1.4}
+```
+
 ```{r}
 #| label: tbl-threatened-species
 #| tbl-cap: "Threatened species recorded in stereo-BRUV imagery across all survey years, showing IUCN Red List category, the number of deployments each species was recorded in, and the total abundance (MaxN) summed across those samples. *This species is also listed as 'Conservation dependent' on the EPBC Act List of Threatened Fauna. ^This species is also listed as 'Vulnerable' on the EPBC Act List of Threatened Fauna."
@@ -430,16 +444,21 @@ threatened_species %>%
              columns = c(listing, n_samples, total_maxn, years_seen)) %>%
   tab_style(style = cell_text(style = "italic"),
             locations = cells_body(columns = species_label)) %>%
-  opt_row_striping() %>%
+  tab_style(style = cell_fill(color = "grey90"), # Grey every second row
+            locations = cells_body(rows = which(seq_len(nrow(threatened_species)) %% 2 == 0))) %>%
   tab_style(style = cell_text(weight = "bold"),
             locations = cells_column_labels()) %>%
   tab_options(table.width               = pct(100),
               table.font.size           = px(11),
-              data_row.padding          = px(4),
+              data_row.padding          = px(6),
               latex.use_longtable       = TRUE,
               column_labels.border.top.style = "none",
               table.border.top.style    = "none",
               table_body.hlines.style   = "none")
+```
+
+```{=latex}
+\renewcommand{\arraystretch}{1}
 ```
 
 {{< pagebreak >}}

@@ -81,7 +81,7 @@ cwatr <- st_read("data/north-west network/spatial/shapefiles/amb_coastal_waters_
   st_transform(4326)
 
 # Load the bathymetry data (GA 250m resolution)
-bathy <- rast("data/north-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
+bathy <- rast("data/south-west network/spatial/rasters/AusBathyTopo__Australia__2024_250m_MSL_cog.tif") %>%
   crop(e) %>%
   clamp(upper = 0, lower = -250, values = FALSE) %>%
   trim() %>%

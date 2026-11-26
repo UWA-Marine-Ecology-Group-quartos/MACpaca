@@ -68,7 +68,7 @@ categoricalhabitat_plot_single <- function(pred_plot, prediction_limits, habitat
     new_scale_color() +
     geom_sf(data = cwatr, colour = "red", linewidth = 0.9) +
     scale_x_continuous(breaks = scales::breaks_width(0.6)) +
-    scale_y_continuous(breaks = scales::breaks_width(0.5)) +
+    scale_y_continuous(breaks = scales::breaks_width(0.8)) +
     coord_sf(
       xlim = c(prediction_limits[1], prediction_limits[2]),
       ylim = c(prediction_limits[3], prediction_limits[4]),
