@@ -7,7 +7,7 @@
 <meta name="description" content="Natural values, pressures and data analysis reports for Australian Marine Parks — Marine and Coastal Hub Project 4.21.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -17,47 +17,34 @@
     <a class="brand" href="#top">MACpaca</a>
     <nav aria-label="Main">
       <a href="#workflow">Workflow</a>
-      <a href="#parks">Protected areas</a>
-      <a href="{{FIELD_MANUALS_URL}}">Field manuals ↗</a>
-      <a href="{{REPO_URL}}">GitHub ↗</a>
+      <a href="#parks">Marine parks</a>
+      <a href="{{FIELD_MANUALS_URL}}">Field manuals</a>
+      <a href="{{REPO_URL}}">GitHub</a>
     </nav>
   </div>
 </header>
 
-<section class="hero" id="top">
-  <div class="wrap hero-inner">
-    <div class="hero-text">
-      <p class="eyebrow">Marine and Coastal Hub · Project 4.21</p>
-      <h1>Protected Area Condition Assessment</h1>
-      <p class="lede">Natural values, pressures and data analysis reports for Australian Marine Parks, built from stereo-BRUV and BOSS surveys.</p>
-      <div class="actions">
-        <a class="btn btn-primary" href="{{FIELD_MANUALS_URL}}">Field Manuals for Marine Sampling ↗</a>
-        <a class="btn btn-secondary" href="#parks">Browse marine parks</a>
-      </div>
-    </div>
-    <dl class="stats">
-      <div><dt>parks &amp; sites</dt><dd>{{PARK_COUNT}}</dd></div>
-      <div><dt>reports published</dt><dd>{{REPORT_COUNT}}</dd></div>
-    </dl>
-  </div>
-</section>
-
-<main class="wrap">
-  <section class="panel" id="workflow">
-    <div class="panel-head">
-      <h2>Condition assessment workflow</h2>
-      <a href="workflow.png">Open full-size infographic ↗</a>
-    </div>
-    <img src="assets/workflow.jpg" alt="Three-stage workflow: 1 survey and annotation, 2 habitat condition and trend assessment, 3 fish condition and trend assessment" width="2000" height="1394">
+<main class="wrap" id="top">
+  <section class="intro">
+    <h1>Protected Area Condition Assessment</h1>
+    <p class="project">Marine and Coastal Hub, Project 4.21</p>
+    <p class="lede">Natural values, pressures and data analysis reports for Australian Marine Parks, built from stereo-BRUV and BOSS surveys.</p>
+    <p class="intro-links">
+      <a class="btn" href="{{FIELD_MANUALS_URL}}">Field Manuals for Marine Sampling</a>
+      <a class="text-link" href="#parks">Go to the marine park reports ↓</a>
+    </p>
   </section>
+
+  <figure class="workflow" id="workflow">
+    <img src="assets/workflow.jpg" alt="Three-stage workflow: 1 survey and annotation, 2 habitat condition and trend assessment, 3 fish condition and trend assessment" width="2000" height="1394">
+    <figcaption><strong>Condition assessment workflow.</strong> Survey and annotation, followed by habitat and fish condition and trend assessment. <a href="workflow.png">View full size</a>.</figcaption>
+  </figure>
 
   <section id="parks" class="parks">
     <div class="parks-head">
-      <div>
-        <h2>Protected areas</h2>
-        <p class="muted">Linked titles are published. Greyed titles are still in preparation.</p>
-      </div>
-      <div class="filters" role="group" aria-label="Filter by network">{{FILTERS}}</div>
+      <h2>Marine parks</h2>
+      <p class="muted">Reports are listed by appendix. Titles in grey are still in preparation.</p>
+      <div class="filters" role="group" aria-label="Show network">{{FILTERS}}</div>
     </div>
     {{SECTIONS}}
   </section>
@@ -65,8 +52,8 @@
 
 <footer class="footer">
   <div class="wrap footer-inner">
-    <span>UWA Marine Ecology Group · Marine and Coastal Hub</span>
-    <span>Park photos: Australian Marine Parks (credits on each photo) · Updated {{BUILD_DATE}}</span>
+    <p>UWA Marine Ecology Group · Marine and Coastal Hub</p>
+    <p>Park photographs from Australian Marine Parks, credited under each photo. Page updated {{BUILD_DATE}}.</p>
   </div>
 </footer>
 
