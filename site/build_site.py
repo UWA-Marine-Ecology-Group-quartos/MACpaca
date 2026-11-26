@@ -108,10 +108,19 @@ def render_card(park: dict, cfg: dict) -> str:
 
     syn = ""
     if park.get("syntheses"):
-        chips = "".join(
-            f'<a class="chip" href="{esc(cfg["synthesis_url"])}{esc(s["id"])}">{esc(s["label"])}</a>'
-            for s in park["syntheses"])
-        syn = f'<div class="block"><h4 class="label">Data syntheses</h4><div class="chips">{chips}</div></div>'
+        groups: dict[str, list[str]] = {}
+        for s in park["syntheses"]:
+            method, _, site = str(s["label"]).partition(" · ")
+            href = f'{esc(cfg["synthesis_url"])}{esc(s["id"])}'
+            groups.setdefault(method, []).append(f'<a href="{href}">{esc(site or method)}</a>')
+        if all(len(v) == 1 and "·" not in k for k, v in groups.items()) and not any(" · " in str(s["label"]) for s in park["syntheses"]):
+            body = '<p class="syn-links">' + '<span class="sep" aria-hidden="true">·</span>'.join(v[0] for v in groups.values()) + '</p>'
+        else:
+            body = "".join(
+                f'<p class="syn-row"><span class="syn-method">{esc(k)}</span><span class="syn-items">'
+                + ', '.join(v) + '</span></p>'
+                for k, v in groups.items())
+        syn = f'<div class="block"><h4 class="label">Data syntheses</h4>{body}</div>'
 
     rows = []
     for r in park["reports"]:
@@ -211,7 +220,9 @@ def main() -> int:
     if workflow.is_file():
         shutil.copy2(workflow, OUT / "workflow.png")
         with Image.open(workflow) as im:
-            im = im.convert("RGB")
+            im = im.convert("RGBA")
+            white = Image.new("RGBA", im.size, (255, 255, 255, 255))
+            im = Image.alpha_composite(white, im).convert("RGB")  # transparent areas -> white, not black
             im.thumbnail((2000, 2000), Image.LANCZOS)
             (OUT / "assets").mkdir(exist_ok=True)
             im.save(OUT / "assets/workflow.jpg", "JPEG", quality=85, optimize=True)

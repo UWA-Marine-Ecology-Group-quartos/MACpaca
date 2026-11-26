@@ -41,7 +41,7 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 700; letter-spacing: -0.01e
 
 /* Workflow figure */
 .workflow { margin: 0 0 56px; padding: 22px; background: #fff; border: 1px solid #e1e7eb; border-radius: 12px; }
-.workflow img { display: block; width: 100%; height: auto; border-radius: 6px; }
+.workflow img { display: block; width: 100%; height: auto; }
 .workflow figcaption { margin-top: 10px; color: var(--muted); font-size: 15px; }
 .workflow figcaption strong { color: var(--ink); }
 
@@ -70,16 +70,22 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 700; letter-spacing: -0.01e
 .card-title { font-size: 20px; }
 .card-sub { margin: 2px 0 0; color: var(--muted); font-size: 15px; }
 .label { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--faint); }
-.chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.chip { background: #e8f0f5; color: var(--link); font-size: 14px; font-weight: 500; padding: 4px 11px; border-radius: 999px; text-decoration: none; }
-.chip:hover { background: #d8e6ef; color: var(--navy); text-decoration: none; }
+.syn-links, .syn-row { margin: 0; font-size: 15px; line-height: 1.7; }
+.syn-links a, .syn-row a { font-weight: 500; white-space: nowrap; }
+.syn-row { display: grid; grid-template-columns: 3.4em minmax(0, 1fr); gap: 0 6px; }
+.syn-row + .syn-row { margin-top: 4px; }
+.syn-method { font-weight: 600; color: var(--ink); }
+.sep { padding: 0 3px; color: #b3bdc4; }
+.syn-links .sep { padding: 0 7px; }
 .reports { list-style: none; margin: 0; padding: 0; font-size: 15px; }
 .reports li { display: flex; gap: 10px; align-items: baseline; justify-content: space-between; padding: 7px 0; border-top: 1px solid #edf1f3; }
-.code { display: inline-block; min-width: 2.1em; font-weight: 700; color: var(--faint); }
+.code { display: inline-block; min-width: 2.2em; margin-right: 10px; padding: 1px 0; text-align: center; font-size: 12px; font-weight: 700; color: var(--navy); background: #e8f0f5; border-radius: 999px; }
 .reports a { font-weight: 500; text-decoration: none; }
+.reports a:hover .code { text-decoration: none; }
 .reports a:hover { text-decoration: underline; }
-.todo, .todo .code { color: var(--faint); }
-.pill { flex-shrink: 0; font-size: 12px; color: #6a5a2a; background: #fbf1d9; border-radius: 4px; padding: 1px 7px; }
+.todo { color: var(--faint); }
+.todo .code { color: var(--faint); background: #eef1f3; }
+.pill { flex-shrink: 0; font-size: 12px; font-weight: 500; color: #6a5a2a; background: #fbf1d9; border-radius: 999px; padding: 2px 9px; }
 .code-link { margin-top: auto; padding-top: 4px; font-size: 15px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
 .code-link:hover { text-decoration: underline; }
 
